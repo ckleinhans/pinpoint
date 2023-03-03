@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "56663903953",
+    "project_id": "pinpoint-12a7e",
+    "storage_bucket": "pinpoint-12a7e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:56663903953:android:1f2612651cfad13c92bff0",
+        "android_client_info": {
+          "package_name": "edu.wisc.ece.pinpoint"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "56663903953-4mcdl05hcjfn5ddjat13b19b9o2s2d11.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDscSVQAvi_gKUqwznX6ej09G5QlQYH7Ig"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "56663903953-4mcdl05hcjfn5ddjat13b19b9o2s2d11.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
