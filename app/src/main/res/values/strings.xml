@@ -1,3 +1,13 @@
 <resources>
-    <string name="app_name">pinpoint</string>
+    <string name="app_name">PinPoint</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="password">Password</string>
+    <string name="email">Email</string>
+    <string name="blankPassword">Password cannot be blank</string>
+    <string name="invalidEmail">Enter a valid email</string>
+    <string name="username">Username</string>
+    <string name="confirmPassword">Confirm Password</string>
+    <string name="passwordsNotMatched">Passwords do not match</string>
+    <string name="usernameBlank">Username cannot be blank</string>
 </resources>
