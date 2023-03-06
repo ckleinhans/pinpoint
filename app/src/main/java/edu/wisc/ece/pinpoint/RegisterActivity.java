@@ -10,6 +10,7 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
@@ -74,7 +75,8 @@ public class RegisterActivity extends AppCompatActivity {
             String password = passwordInput.getText().toString();
             FirebaseDriver.getInstance().registerUserPassword(email, password).addOnCompleteListener(this, task -> {
                 if (task.isSuccessful()) {
-                    // TODO: add username to profile
+                    UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder().setDisplayName(usernameInput.getText().toString()).build();
+                    FirebaseDriver.getInstance().getUser().updateProfile(profileUpdates);
                     Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
                     startActivity(intent);
                 } else {
