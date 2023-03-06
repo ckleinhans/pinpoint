@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputLayout;
 
+import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
 public class RegisterActivity extends AppCompatActivity {
@@ -69,9 +70,17 @@ public class RegisterActivity extends AppCompatActivity {
             confirmPasswordInputLayout.setErrorEnabled(false);
         }
         if (isValid) {
-            Toast.makeText(this, "TODO: send data to firebase", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+            String email = emailInput.getText().toString();
+            String password = passwordInput.getText().toString();
+            FirebaseDriver.getInstance().registerUserPassword(email, password).addOnCompleteListener(this, task -> {
+                if (task.isSuccessful()) {
+                    // TODO: add username to profile
+                    Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(RegisterActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 }

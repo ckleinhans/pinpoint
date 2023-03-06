@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.textfield.TextInputLayout;
 
+import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
 public class LoginActivity extends AppCompatActivity {
@@ -28,6 +29,16 @@ public class LoginActivity extends AppCompatActivity {
         passwordInputLayout = findViewById(R.id.passwordInputLayout);
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        if (FirebaseDriver.getInstance().getUser() != null) {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            startActivity(intent);
+        }
+    }
+
     public void handleLogin(View view) {
         boolean isValid = true;
         if (ValidationUtils.isNotEmail(emailInput)) {
@@ -43,9 +54,16 @@ public class LoginActivity extends AppCompatActivity {
             passwordInputLayout.setErrorEnabled(false);
         }
         if (isValid) {
-            Toast.makeText(this, "TODO: send data to firebase", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
+            String email = emailInput.getText().toString();
+            String password = passwordInput.getText().toString();
+            FirebaseDriver.getInstance().loginUserPassword(email, password).addOnCompleteListener(this, task -> {
+                if (task.isSuccessful()) {
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(LoginActivity.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 
