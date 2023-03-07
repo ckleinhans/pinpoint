@@ -14,10 +14,3 @@ plugins {
     id 'com.android.application' version '7.4.1' apply false
     id 'com.android.library' version '7.4.1' apply false
 }
-
-//allprojects {
-//    repositories {
-//        google()  // Google's Maven repository
-//        mavenCentral()  // Maven Central repository
-//    }
-//}
