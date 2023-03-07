@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
             firebase.launchAuth(this);
         } else {
             // User is logged in!
+            // Log user out for testing purposes
+            firebase.logout(this);
         }
     }
 }
