@@ -26,11 +26,11 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         // Check if user is not signed in, if so start auth flow
         if (firebase.getUser() == null) {
-            firebase.launchAuth(this);
+            //firebase.launchAuth(this);
         } else {
             // User is logged in!
             // Log user out for testing purposes
-            firebase.logout(this);
+            //firebase.logout(this);
         }
     }
 }
