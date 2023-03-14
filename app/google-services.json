@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "56663903953-4mcdl05hcjfn5ddjat13b19b9o2s2d11.apps.googleusercontent.com",
+          "client_id": "56663903953-je61uqk9u161b31r84plj58jgnb235v9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.wisc.ece.pinpoint",
+            "certificate_hash": "a2f5de21dd82ac37c22cd76cf1515293fcfa7840"
+          }
+        },
+        {
+          "client_id": "56663903953-to115p76l8n5pu122fctomt963934drp.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
