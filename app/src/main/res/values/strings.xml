@@ -2,4 +2,5 @@
     <string name="app_name">PinPoint</string>
     <string name="fui_missing_first_and_last_name">Please enter a username.</string>
     <string name="fui_name_hint">Username</string>
+    <string name="follow_button_text">Follow</string>
 </resources>

@@ -1,35 +1,40 @@
 package edu.wisc.ece.pinpoint;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import android.view.View;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationBarView;
+import com.google.android.material.tabs.TabLayout;
 
-import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+public class ProfilePageActivity extends AppCompatActivity {
 
-public class MainActivity extends AppCompatActivity {
-    private FirebaseDriver firebase;
+    private TabLayout tabLayout;
+    private ViewPager2 viewPager;
     private BottomNavigationView navBar;
+    private FloatingActionButton mapButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        firebase = FirebaseDriver.getInstance();
+        setContentView(R.layout.activity_profile_page);
         navBar = findViewById(R.id.navBar);
         navBar.getMenu().getItem(2).setEnabled(false);
+        navBar.setSelectedItemId(R.id.navbarProfile);
+        mapButton = findViewById(R.id.mapButton);
         navBar.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 switch(item.getItemId()){
                     case R.id.navbarProfile:
-                        startActivity(new Intent(getApplicationContext(), ProfilePageActivity.class));
-                        overridePendingTransition(0,0);
                         return true;
                     case R.id.navbarSearch:
                         return true;
@@ -41,19 +46,18 @@ public class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
-    }
+        mapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(getApplicationContext(), MainActivity.class));
+                overridePendingTransition(0,0);
+            }
+        });
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        navBar.setSelectedItemId(R.id.navbarEmpty);
-        // Check if user is not signed in, if so start auth flow
-        if (firebase.getUser() == null) {
-            //firebase.launchAuth(this);
-        } else {
-            // User is logged in!
-            // Log user out for testing purposes
-            //firebase.logout(this);
-        }
+        tabLayout = findViewById(R.id.tab_layout);
+        viewPager = findViewById(R.id.view_pager);
+        tabLayout.addTab(tabLayout.newTab().setText("Activity"));
+        tabLayout.addTab(tabLayout.newTab().setText("Dropped Pins"));
+
     }
 }
