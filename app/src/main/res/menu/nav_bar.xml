@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/navbarFeed"
+        android:icon="@drawable/ic_feed"
+        android:title="Feed" />
+    <item
+        android:id="@+id/navbarLeaderboard"
+        android:icon="@drawable/ic_leaderboard"
+        android:title="Leaderboard" />
+    <item
+        android:id="@+id/navbarEmpty"
+        android:title="" />
+    <item
+        android:id="@+id/navbarSearch"
+        android:icon="@drawable/ic_search"
+        android:title="Search" />
+    <item
+        android:id="@+id/navbarProfile"
+        android:icon="@drawable/ic_profile"
+        android:title="Profile" />
+</menu>
