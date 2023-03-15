@@ -3,4 +3,8 @@
     <string name="fui_missing_first_and_last_name">Please enter a username.</string>
     <string name="fui_name_hint">Username</string>
     <string name="follow_button_text">Follow</string>
+    <string name="pins_found_text">Pins Found</string>
+    <string name="pins_dropped_text">Pins Dropped</string>
+    <string name="following_text">Following</string>
+    <string name="followers_text">Followers</string>
 </resources>
