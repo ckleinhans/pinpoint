@@ -154,11 +154,14 @@
         app:layout_anchor="@+id/constraint_layout"
         app:layout_anchorGravity="bottom"
         android:layout_gravity="bottom"
-        android:id="@+id/tab_layout" />
+        android:id="@+id/tab_layout"
+        app:tabRippleColor="@color/fui_transparent"
+        />
 
+    <!-- Note that the page fragments are currently *wrap-content* height. This may need to be adjusted -->
     <androidx.viewpager2.widget.ViewPager2
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:id="@+id/view_pager"
         app:layout_anchor="@+id/tab_layout"
         app:layout_anchorGravity="bottom"

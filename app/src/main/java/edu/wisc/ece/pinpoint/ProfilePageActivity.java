@@ -58,6 +58,33 @@ public class ProfilePageActivity extends AppCompatActivity {
         viewPager = findViewById(R.id.view_pager);
         tabLayout.addTab(tabLayout.newTab().setText("Activity"));
         tabLayout.addTab(tabLayout.newTab().setText("Dropped Pins"));
+        ProfileFragmentAdapter fragmentAdapter = new ProfileFragmentAdapter(this.getSupportFragmentManager(),  tabLayout.getTabCount(), getLifecycle());
+        viewPager.setAdapter(fragmentAdapter);
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                viewPager.setCurrentItem(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+
+        viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                tabLayout.getTabAt(position).select();
+            }
+        });
 
     }
 }
