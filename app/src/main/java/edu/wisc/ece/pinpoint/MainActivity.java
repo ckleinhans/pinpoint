@@ -32,8 +32,6 @@ public class MainActivity extends AppCompatActivity {
                         overridePendingTransition(0,0);
                         return true;
                     case R.id.navbarSearch:
-                        startActivity(new Intent(getApplicationContext(), TestActivity.class));
-                        overridePendingTransition(0,0);
                         return true;
                     case R.id.navbarLeaderboard:
                         return true;
