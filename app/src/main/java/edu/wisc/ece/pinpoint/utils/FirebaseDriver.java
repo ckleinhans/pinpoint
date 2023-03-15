@@ -11,6 +11,11 @@ import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.util.Arrays;
+
+import edu.wisc.ece.pinpoint.BuildConfig;
+import edu.wisc.ece.pinpoint.R;
+
 public final class FirebaseDriver {
     private static FirebaseDriver instance;
     private final FirebaseAuth auth;
@@ -35,13 +40,23 @@ public final class FirebaseDriver {
     }
 
     public void launchAuth(AppCompatActivity activity) {
-        ActivityResultLauncher<Intent> authLauncher = activity.registerForActivityResult(
-                new FirebaseAuthUIActivityResultContract(),
-                (result) -> {
-                    // Handle the FirebaseAuthUIAuthenticationResult
-                });
+        ActivityResultLauncher<Intent> authLauncher =
+                activity.registerForActivityResult(new FirebaseAuthUIActivityResultContract(),
+                        (result) -> {
+                            // Handle the FirebaseAuthUIAuthenticationResult
+                        });
 
-        Intent signInIntent = AuthUI.getInstance().createSignInIntentBuilder().build();
+        Intent signInIntent =
+                AuthUI.getInstance().createSignInIntentBuilder().setLogo(R.mipmap.ic_launcher)
+                        // Enable smart lock only on production builds
+                        .setIsSmartLockEnabled(!BuildConfig.DEBUG, true)
+                        .setAvailableProviders(
+                                Arrays.asList(new AuthUI.IdpConfig.EmailBuilder().build(),
+                                        new AuthUI.IdpConfig.GoogleBuilder().build(),
+                                        new AuthUI.IdpConfig.GitHubBuilder().build()
+                                        // new AuthUI.IdpConfig.FacebookBuilder().build(),
+                                        // new AuthUI.IdpConfig.AnonymousBuilder().build(),
+                                )).build();
         authLauncher.launch(signInIntent);
     }
 
