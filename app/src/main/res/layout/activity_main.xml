@@ -24,7 +24,9 @@
             android:background="@android:color/transparent"
             android:outlineSpotShadowColor="@android:color/transparent"
             app:itemRippleColor="@color/fui_transparent"
+            app:elevation="0dp"
             />
+
     </com.google.android.material.bottomappbar.BottomAppBar>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
