@@ -50,12 +50,12 @@ public class ProfilePageFragment extends Fragment {
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
-
+                // Mandatory override meethod left intentionally blank because we will not implement onTabUnselected
             }
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-
+                // Mandatory override meethod left intentionally blank because we will not implement onTabReselected
             }
         });
 

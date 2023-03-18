@@ -1,11 +1,8 @@
 package edu.wisc.ece.pinpoint;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -13,7 +10,6 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationBarView;
 
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
@@ -44,11 +40,11 @@ public class MainActivity extends AppCompatActivity {
         super.onStart();
         // Check if user is not signed in, if so start auth flow
         if (firebase.getUser() == null) {
-            //firebase.launchAuth(this);
+            firebase.launchAuth(this);
         } else {
             // User is logged in!
             // Log user out for testing purposes
-            //firebase.logout(this);
+            firebase.logout(this);
         }
     }
 }

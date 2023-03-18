@@ -58,5 +58,4 @@ dependencies {
     // Required only if Facebook login support is required
     // Find the latest Facebook SDK releases here: https://github.com/facebook/facebook-android-sdk/blob/master/CHANGELOG.md
     // implementation 'com.facebook.android:facebook-login:8.1.0'
-    // Import navigation dependencies
 }
