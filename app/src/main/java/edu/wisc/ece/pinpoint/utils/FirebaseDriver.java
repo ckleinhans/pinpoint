@@ -1,20 +1,14 @@
 package edu.wisc.ece.pinpoint.utils;
 
-import android.content.Context;
-import android.content.Intent;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.appcompat.app.AppCompatActivity;
+import android.app.Activity;
 
 import com.firebase.ui.auth.AuthUI;
-import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import java.util.Arrays;
-
-import edu.wisc.ece.pinpoint.BuildConfig;
-import edu.wisc.ece.pinpoint.R;
+import javax.annotation.Nullable;
 
 public final class FirebaseDriver {
     private static FirebaseDriver instance;
@@ -35,32 +29,44 @@ public final class FirebaseDriver {
         return instance;
     }
 
-    public FirebaseUser getUser() {
-        return auth.getCurrentUser();
+    public boolean isLoggedIn() {
+        return auth.getCurrentUser() != null;
     }
 
-    public void launchAuth(AppCompatActivity activity) {
-        ActivityResultLauncher<Intent> authLauncher =
-                activity.registerForActivityResult(new FirebaseAuthUIActivityResultContract(),
-                        (result) -> {
-                            // Handle the FirebaseAuthUIAuthenticationResult
-                        });
-
-        Intent signInIntent =
-                AuthUI.getInstance().createSignInIntentBuilder().setLogo(R.mipmap.ic_launcher)
-                        // Enable smart lock only on production builds
-                        .setIsSmartLockEnabled(!BuildConfig.DEBUG, true)
-                        .setAvailableProviders(
-                                Arrays.asList(new AuthUI.IdpConfig.EmailBuilder().build(),
-                                        new AuthUI.IdpConfig.GoogleBuilder().build(),
-                                        new AuthUI.IdpConfig.GitHubBuilder().build()
-                                        // new AuthUI.IdpConfig.FacebookBuilder().build(),
-                                        // new AuthUI.IdpConfig.AnonymousBuilder().build(),
-                                )).build();
-        authLauncher.launch(signInIntent);
+    public void sendEmailVerification(@Nullable OnCompleteListener<Void> onComplete) {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            throw new IllegalStateException("Cannot send email verification when not logged in.");
+        }
+        if (onComplete != null) {
+            user.sendEmailVerification().addOnCompleteListener(onComplete);
+        } else {
+            user.sendEmailVerification();
+        }
     }
 
-    public void logout(Context context) {
-        AuthUI.getInstance().signOut(context);
+    public boolean isVerified() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            throw new IllegalStateException("Cannot verify user when not logged in.");
+        }
+        return !user.getProviderData().get(1).getProviderId()
+                .equals("password") || user.isEmailVerified();
+    }
+
+    public Task<Void> reloadAuth() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            throw new IllegalStateException("Cannot reload authentication when not logged in.");
+        }
+        return auth.getCurrentUser().reload();
+    }
+
+    public void logout(Activity activity) {
+        AuthUI.getInstance().signOut(activity);
+        // TODO: once actual logout button added, uncomment below lines
+        // Intent intent = new Intent(activity, AuthActivity.class);
+        // activity.startActivity(intent);
+        // activity.finish();
     }
 }

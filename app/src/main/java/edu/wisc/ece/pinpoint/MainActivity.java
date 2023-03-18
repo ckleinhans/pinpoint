@@ -9,42 +9,27 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class MainActivity extends AppCompatActivity {
     private FirebaseDriver firebase;
-    private FloatingActionButton mapButton;
+    private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         firebase = FirebaseDriver.getInstance();
-        NavController navController = Navigation.findNavController(this, R.id.activity_main_nav_host_fragment);
+        navController = Navigation.findNavController(this, R.id.activity_main_nav_host_fragment);
         BottomNavigationView navBar = findViewById(R.id.navBar);
         navBar.getMenu().getItem(2).setEnabled(false);
         NavigationUI.setupWithNavController(navBar, navController);
-        mapButton = findViewById(R.id.mapButton);
-        mapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                navController.navigate(R.id.navbarMap);
-            }
-        });
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is not signed in, if so start auth flow
-        if (firebase.getUser() == null) {
-            firebase.launchAuth(this);
-        } else {
-            // User is logged in!
-            // Log user out for testing purposes
-            firebase.logout(this);
-        }
+    public void onMapButtonClick(View view) {
+        navController.navigate(R.id.navbarMap);
+        // TODO: temporary use map button to log user out, remove later
+        firebase.logout(MainActivity.this);
     }
 }
