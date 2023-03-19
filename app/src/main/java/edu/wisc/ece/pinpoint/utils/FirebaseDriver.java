@@ -62,11 +62,7 @@ public final class FirebaseDriver {
         return auth.getCurrentUser().reload();
     }
 
-    public void logout(Activity activity) {
-        AuthUI.getInstance().signOut(activity);
-        // TODO: once actual logout button added, uncomment below lines
-        // Intent intent = new Intent(activity, AuthActivity.class);
-        // activity.startActivity(intent);
-        // activity.finish();
+    public Task<Void> logout(Activity activity) {
+        return AuthUI.getInstance().signOut(activity);
     }
 }

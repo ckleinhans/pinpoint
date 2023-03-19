@@ -4,156 +4,154 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.ProfilePageFragment">
+    tools:context=".pages.profile.ProfilePageFragment">
 
-        <TextView
-            android:id="@+id/profile_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="15dp"
-            android:text="Mark Ibrahim"
-            android:textAlignment="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/profile_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:text="Mark Ibrahim"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <ImageView
-            android:id="@+id/profile_image"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_margin="15dp"
-            android:src="@drawable/ic_profile"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/profile_name" />
+    <ImageView
+        android:id="@+id/profile_image"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_margin="15dp"
+        android:src="@drawable/ic_profile"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/profile_name" />
 
-        <TextView
-            android:id="@+id/profile_follower_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="4000000"
-            android:textAlignment="center"
-            app:layout_constraintEnd_toEndOf="@+id/profile_follower_text"
-            app:layout_constraintStart_toStartOf="@+id/profile_follower_text"
-            app:layout_constraintTop_toTopOf="@+id/profile_image" />
+    <TextView
+        android:id="@+id/profile_follower_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="4000000"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="@+id/profile_follower_text"
+        app:layout_constraintStart_toStartOf="@+id/profile_follower_text"
+        app:layout_constraintTop_toTopOf="@+id/profile_image" />
 
-        <TextView
-            android:id="@+id/profile_follower_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/followers_text"
-            android:textAlignment="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/profile_image"
-            app:layout_constraintTop_toBottomOf="@+id/profile_follower_count" />
+    <TextView
+        android:id="@+id/profile_follower_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/followers_text"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/profile_image"
+        app:layout_constraintTop_toBottomOf="@+id/profile_follower_count" />
 
-        <TextView
-            android:id="@+id/profile_following_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="40"
-            android:textAlignment="center"
-            app:layout_constraintBottom_toTopOf="@+id/profile_following_text"
-            app:layout_constraintEnd_toEndOf="@+id/profile_following_text"
-            app:layout_constraintStart_toStartOf="@+id/profile_following_text" />
+    <TextView
+        android:id="@+id/profile_following_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="40"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toTopOf="@+id/profile_following_text"
+        app:layout_constraintEnd_toEndOf="@+id/profile_following_text"
+        app:layout_constraintStart_toStartOf="@+id/profile_following_text" />
 
-        <TextView
-            android:id="@+id/profile_following_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/following_text"
-            android:textAlignment="center"
-            app:layout_constraintBottom_toBottomOf="@+id/profile_image"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/profile_image" />
+    <TextView
+        android:id="@+id/profile_following_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/following_text"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@+id/profile_image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/profile_image" />
 
-        <TextView
-            android:id="@+id/profile_dropped_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="71"
-            android:textAlignment="center"
-            app:layout_constraintEnd_toEndOf="@+id/profile_dropped_text"
-            app:layout_constraintStart_toStartOf="@+id/profile_dropped_text"
-            app:layout_constraintTop_toTopOf="@+id/profile_image" />
+    <TextView
+        android:id="@+id/profile_dropped_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="71"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="@+id/profile_dropped_text"
+        app:layout_constraintStart_toStartOf="@+id/profile_dropped_text"
+        app:layout_constraintTop_toTopOf="@+id/profile_image" />
 
-        <TextView
-            android:id="@+id/profile_dropped_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/pins_dropped_text"
-            android:textAlignment="center"
-            app:layout_constraintEnd_toStartOf="@+id/profile_image"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/profile_follower_count" />
+    <TextView
+        android:id="@+id/profile_dropped_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/pins_dropped_text"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toStartOf="@+id/profile_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/profile_follower_count" />
 
-        <TextView
-            android:id="@+id/profile_found_count"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="768"
-            android:textAlignment="center"
-            app:layout_constraintBottom_toTopOf="@+id/profile_found_text"
-            app:layout_constraintEnd_toEndOf="@+id/profile_found_text"
-            app:layout_constraintStart_toStartOf="@+id/profile_found_text" />
+    <TextView
+        android:id="@+id/profile_found_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="768"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toTopOf="@+id/profile_found_text"
+        app:layout_constraintEnd_toEndOf="@+id/profile_found_text"
+        app:layout_constraintStart_toStartOf="@+id/profile_found_text" />
 
-        <TextView
-            android:id="@+id/profile_found_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/pins_found_text"
-            android:textAlignment="center"
-            app:layout_constraintBottom_toBottomOf="@+id/profile_image"
-            app:layout_constraintEnd_toStartOf="@+id/profile_image"
-            app:layout_constraintStart_toStartOf="parent" />
+    <TextView
+        android:id="@+id/profile_found_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/pins_found_text"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@+id/profile_image"
+        app:layout_constraintEnd_toStartOf="@+id/profile_image"
+        app:layout_constraintStart_toStartOf="parent" />
 
-        <TextView
-            android:id="@+id/profile_location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="15dp"
-            android:text="Madison, Wisconsin"
-            android:textAlignment="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/profile_image" />
+    <TextView
+        android:id="@+id/profile_location"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:text="Madison, Wisconsin"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/profile_image" />
 
-        <TextView
-            android:id="@+id/profile_bio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="15dp"
-            android:text="Lorem Ipsum Dolor Sit Amet"
-            android:textAlignment="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/profile_location" />
+    <TextView
+        android:id="@+id/profile_bio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:text="Lorem Ipsum Dolor Sit Amet"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/profile_location" />
 
-        <Button
-            android:id="@+id/profile_follow"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_margin="15dp"
-            android:text="@string/follow_button_text"
-            android:textAlignment="center"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/profile_bio" />
+    <Button
+        android:id="@+id/profile_follow"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:text="@string/follow_button_text"
+        android:textAlignment="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/profile_bio" />
 
     <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/profile_follow"
-        android:id="@+id/tab_layout"
-        app:tabRippleColor="@color/fui_transparent"
-        />
+        app:tabRippleColor="@color/fui_transparent" />
 
     <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:id="@+id/view_pager"
-        app:layout_constraintTop_toBottomOf="@+id/tab_layout"
         app:layout_constraintBottom_toBottomOf="parent"
-        />
+        app:layout_constraintTop_toBottomOf="@+id/tab_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

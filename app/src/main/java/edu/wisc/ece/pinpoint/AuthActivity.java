@@ -3,7 +3,7 @@ package edu.wisc.ece.pinpoint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
@@ -19,30 +19,39 @@ import java.util.Arrays;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class AuthActivity extends AppCompatActivity {
-    private static final int RELOAD_AUTH_DELAY = 5000;
+    private static final int RELOAD_AUTH_DELAY = 2000;
+    private static final String TAG = "AUTH";
     private FirebaseDriver firebase;
     private ViewSwitcher switcher;
     private Handler reloadAuthHandler;
+    private ActivityResultLauncher<Intent> authLauncher;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_auth);
         firebase = FirebaseDriver.getInstance();
         switcher = findViewById(R.id.view_switcher);
+
+        authLauncher = this.registerForActivityResult(new FirebaseAuthUIActivityResultContract(),
+                (result) -> {
+                    if (result.getResultCode() == RESULT_OK) {
+                        // TODO: post user's username to DB node so it is visible to others
+                        if (!firebase.isVerified()) {
+                            firebase.sendEmailVerification(null);
+                        }
+                    }
+                });
     }
 
     @Override
     public void onStart() {
         super.onStart();
         if (!firebase.isLoggedIn()) {
+            showView(R.id.loading_view);
             launchAuth();
         } else if (!firebase.isVerified()) {
-            // Switch to email verification view
-            if (switcher.getNextView().getId() == R.id.verify_email_view) {
-                switcher.showNext();
-            }
-            // Start periodically reloading auth to know if user becomes verified
+            showView(R.id.verify_email_view);
             startAuthReloadHandler();
         } else {
             // User is logged in and verified
@@ -52,18 +61,38 @@ public class AuthActivity extends AppCompatActivity {
         }
     }
 
-    private void launchAuth() {
-        ActivityResultLauncher<Intent> authLauncher =
-                this.registerForActivityResult(new FirebaseAuthUIActivityResultContract(),
-                        (result) -> {
-                            if (result.getResultCode() == RESULT_OK) {
-                                // TODO: post user's username to DB node so it is visible to others
-                                if (!firebase.isVerified()) {
-                                    firebase.sendEmailVerification(null);
-                                }
-                            }
-                        });
+    @Override
+    public void onStop() {
+        super.onStop();
+        // Stop auth reload handler when app goes to background
+        if (reloadAuthHandler != null) {
+            reloadAuthHandler.removeCallbacksAndMessages(null);
+            reloadAuthHandler = null;
+            Log.d(TAG, "Auth reload stopped.");
+        }
+    }
 
+    public void resendEmail(View view) {
+        // Remove button from view to prevent spam
+        view.setVisibility(View.INVISIBLE);
+        firebase.sendEmailVerification(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(this, "Email verification sent! Check your inbox.",
+                        Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Couldn't send verification email. Try again later.",
+                        Toast.LENGTH_LONG).show();
+                view.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
+    public void logout(View view) {
+        showView(R.id.loading_view);
+        firebase.logout(this).addOnCompleteListener(task -> launchAuth());
+    }
+
+    private void launchAuth() {
         Intent signInIntent =
                 AuthUI.getInstance().createSignInIntentBuilder().setLogo(R.mipmap.ic_launcher)
                         // Enable smart lock only on production builds
@@ -74,48 +103,43 @@ public class AuthActivity extends AppCompatActivity {
                                         // new AuthUI.IdpConfig.FacebookBuilder().build(),
                                         // new AuthUI.IdpConfig.AnonymousBuilder().build(),
                                 )).build();
+
         authLauncher.launch(signInIntent);
     }
 
-    public void resendEmail(View view) {
-        // Remove button from view to prevent spam
-        view.setVisibility(View.INVISIBLE);
-        firebase.sendEmailVerification(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(this, "Email verification sent! Check your inbox.",
-                        Toast.LENGTH_LONG).show();
-
-            } else {
-                Toast.makeText(this, "Couldn't send verification email. Try again later.",
-                        Toast.LENGTH_LONG).show();
-                view.setVisibility(View.VISIBLE);
-            }
-        });
+    private void showView(int viewId) {
+        if (switcher.getNextView().getId() == viewId) {
+            switcher.showNext();
+        }
     }
 
     private void startAuthReloadHandler() {
         if (reloadAuthHandler != null) {
             return;
         }
-        reloadAuthHandler = new Handler(Looper.myLooper());
+        reloadAuthHandler = new Handler(getMainLooper());
         Runnable reloadAuth = new Runnable() {
             @Override
             public void run() {
-                if (!firebase.isLoggedIn()) {
-                    return;
-                }
-                if (firebase.isVerified()) {
-                    // Verified, start main activity and finish auth activity
-                    Intent intent = new Intent(AuthActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    // Reload auth and schedule verification check again
-                    firebase.reloadAuth();
-                    reloadAuthHandler.postDelayed(this, RELOAD_AUTH_DELAY);
-                }
+                Log.d(TAG, "Reloading user auth state...");
+                firebase.reloadAuth().addOnCompleteListener((reloadTask -> {
+                    if (!firebase.isLoggedIn()) {
+                        Log.d(TAG, "User logged out.");
+                    } else if (firebase.isVerified()) {
+                        Log.d(TAG, "User verified!");
+                        Intent intent = new Intent(AuthActivity.this, MainActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Log.d(TAG, "Not verified, scheduling next reload...");
+                        if (reloadAuthHandler != null) {
+                            reloadAuthHandler.postDelayed(this, RELOAD_AUTH_DELAY);
+                        }
+                    }
+                }));
             }
         };
+        Log.d(TAG, "Starting auth reload...");
         reloadAuthHandler.postDelayed(reloadAuth, RELOAD_AUTH_DELAY);
     }
 }

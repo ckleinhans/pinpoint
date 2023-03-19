@@ -1,4 +1,4 @@
-package edu.wisc.ece.pinpoint.fragments;
+package edu.wisc.ece.pinpoint.pages.profile;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -12,7 +12,6 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 
-import edu.wisc.ece.pinpoint.ProfileFragmentAdapter;
 import edu.wisc.ece.pinpoint.R;
 
 public class ProfilePageFragment extends Fragment {
@@ -47,14 +46,12 @@ public class ProfilePageFragment extends Fragment {
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
-                // Mandatory override method left intentionally blank because we will not
-                // implement onTabUnselected
+                // Mandatory override intentionally blank, will not implement onTabUnselected
             }
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {
-                // Mandatory override method left intentionally blank because we will not
-                // implement onTabReselected
+                // Mandatory override intentionally blank, will not implement onTabReselected
             }
         });
 

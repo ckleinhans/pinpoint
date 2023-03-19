@@ -49,6 +49,14 @@
             android:gravity="center"
             android:onClick="resendEmail"
             android:text="@string/resend_email_text" />
+
+        <Button
+            android:id="@+id/logout_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:onClick="logout"
+            android:text="@string/logout_text" />
     </LinearLayout>
 
 </ViewSwitcher>

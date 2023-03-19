@@ -6,12 +6,12 @@
     app:startDestination="@id/navbarMap">
     <fragment
         android:id="@+id/navbarMap"
-        android:name="edu.wisc.ece.pinpoint.fragments.MapFragment"
+        android:name="edu.wisc.ece.pinpoint.pages.map.MapFragment"
         android:label="fragment_map"
         tools:layout="@layout/fragment_map" />
     <fragment
         android:id="@+id/navbarProfile"
-        android:name="edu.wisc.ece.pinpoint.fragments.ProfilePageFragment"
+        android:name="edu.wisc.ece.pinpoint.pages.profile.ProfilePageFragment"
         android:label="fragment_profile_page"
         tools:layout="@layout/fragment_profile_page" />
 </navigation>
