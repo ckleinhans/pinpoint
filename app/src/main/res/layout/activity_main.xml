@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/background"
     tools:context=".MainActivity">
 
     <fragment
@@ -20,6 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        app:backgroundTint="@color/foreground"
         app:contentInsetStart="0dp"
         app:fabCradleMargin="10dp"
         app:fabCradleRoundedCornerRadius="20dp">
@@ -31,7 +33,9 @@
             android:background="@android:color/transparent"
             android:outlineSpotShadowColor="@android:color/transparent"
             app:elevation="0dp"
+            app:itemIconTint="@color/inner_foreground"
             app:itemRippleColor="@color/fui_transparent"
+            app:itemTextColor="@color/inner_foreground"
             app:menu="@menu/nav_bar" />
 
     </com.google.android.material.bottomappbar.BottomAppBar>
@@ -43,6 +47,8 @@
         android:contentDescription="@string/map_button_text"
         android:onClick="onMapButtonClick"
         android:src="@drawable/ic_map"
+        app:tint="@color/inner_foreground"
+        app:backgroundTint="@color/secondary_foreground"
         app:fabCustomSize="56dp"
         app:layout_anchor="@id/navBar"
         app:maxImageSize="32dp" />
