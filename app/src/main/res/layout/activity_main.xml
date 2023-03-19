@@ -12,39 +12,39 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:defaultNavHost="true"
-        app:navGraph="@navigation/navigation" />
+        app:navGraph="@navigation/navigation"
+        tools:ignore="FragmentTagUsage" />
 
     <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottomBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         app:contentInsetStart="0dp"
-        android:id="@+id/bottomBar"
         app:fabCradleMargin="10dp"
-        app:fabCradleRoundedCornerRadius="20dp"
-        >
+        app:fabCradleRoundedCornerRadius="20dp">
 
         <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/navBar"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/navBar"
-            app:menu="@menu/nav_bar"
             android:background="@android:color/transparent"
             android:outlineSpotShadowColor="@android:color/transparent"
-            app:itemRippleColor="@color/fui_transparent"
             app:elevation="0dp"
-            />
+            app:itemRippleColor="@color/fui_transparent"
+            app:menu="@menu/nav_bar" />
 
     </com.google.android.material.bottomappbar.BottomAppBar>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/mapButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_anchor="@id/navBar"
-        android:id="@+id/mapButton"
+        android:contentDescription="@string/map_button_text"
+        android:onClick="onMapButtonClick"
         android:src="@drawable/ic_map"
         app:fabCustomSize="56dp"
-        app:maxImageSize="32dp"
-        />
+        app:layout_anchor="@id/navBar"
+        app:maxImageSize="32dp" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
