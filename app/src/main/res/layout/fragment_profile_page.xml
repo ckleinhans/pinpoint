@@ -7,6 +7,19 @@
     android:background="?attr/colorBackgroundFloating"
     tools:context=".pages.profile.ProfilePageFragment">
 
+    <ImageButton
+        android:id="@+id/profile_edit"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="10dp"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_edit"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/profile_follow"
+        app:layout_constraintTop_toTopOf="@+id/profile_follow" />
+
     <TextView
         android:id="@+id/profile_name"
         android:layout_width="match_parent"
@@ -19,8 +32,9 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/profile_image"
+        style="@style/circle_image_view"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_margin="15dp"

@@ -7,6 +7,9 @@
     <string name="pins_dropped_text">Pins Dropped</string>
     <string name="following_text">Following</string>
     <string name="followers_text">Followers</string>
+    <string name="username_text">Username</string>
+    <string name="location_text">Location</string>
+    <string name="bio_text">Bio</string>
     <string name="verify_email_text">Verify your account by clicking the link sent to your email.</string>
     <string name="resend_email_text">Resend email</string>
     <string name="logout_text">Logout</string>
