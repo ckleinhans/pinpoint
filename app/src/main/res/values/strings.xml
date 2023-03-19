@@ -14,4 +14,8 @@
     <string name="resend_email_text">Resend email</string>
     <string name="logout_text">Logout</string>
     <string name="map_button_text">Map Button</string>
+    <string name="feed_text">Feed</string>
+    <string name="leaderboard_text">Leaderboard</string>
+    <string name="search_text">Search</string>
+    <string name="profile_text">Profile</string>
 </resources>
