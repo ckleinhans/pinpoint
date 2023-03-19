@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
@@ -17,6 +18,7 @@ public class MainActivity extends AppCompatActivity {
     private FirebaseDriver firebase;
     private FloatingActionButton mapButton;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -30,7 +32,9 @@ public class MainActivity extends AppCompatActivity {
         mapButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                navController.navigate(R.id.navbarMap);
+
+               // navController.navigate(R.id.navbarMap);
+                openPinView();
             }
         });
     }
@@ -46,5 +50,11 @@ public class MainActivity extends AppCompatActivity {
             // Log user out for testing purposes
             firebase.logout(this);
         }
+    }
+
+    public void openPinView(){
+        Intent intent = new Intent(this, PinViewActivity.class);
+        startActivity(intent);
+
     }
 }
