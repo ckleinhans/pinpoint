@@ -1,12 +1,11 @@
-package edu.wisc.ece.pinpoint.fragments;
+package edu.wisc.ece.pinpoint.pages.profile;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import androidx.fragment.app.Fragment;
 
 import edu.wisc.ece.pinpoint.R;
 
