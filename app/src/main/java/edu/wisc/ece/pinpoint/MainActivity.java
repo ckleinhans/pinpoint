@@ -34,7 +34,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                // navController.navigate(R.id.navbarMap);
-                openPinView();
+                openPinList();
             }
         });
     }
@@ -52,8 +52,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void openPinView(){
-        Intent intent = new Intent(this, PinViewActivity.class);
+    public void openPinList(){
+        Intent intent = new Intent(this, pinList.class);
         startActivity(intent);
 
     }
