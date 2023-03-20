@@ -30,9 +30,6 @@ public class MainActivity extends AppCompatActivity {
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbarMap);
 
-        //TODO: temporary use map button to switch to light mode, remove later
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-
         // TODO: temporary use map button to log user out, remove later
         firebase.logout(MainActivity.this);
     }

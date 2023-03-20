@@ -6,7 +6,7 @@
         <item name="colorOnBackground">@color/grey</item>
 
         <item name="colorPrimary">@color/blue</item>
-        
+
         <!--color primary variant controls the color above the top bar -->
         <item name="colorPrimaryVariant">@color/blue</item>
 
