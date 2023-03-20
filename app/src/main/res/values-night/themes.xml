@@ -6,6 +6,10 @@
         <item name="colorOnBackground">@color/white</item>
 
         <item name="colorPrimary">@color/blue</item>
+        <item name="colorPrimaryDark">@color/blue</item>
+
+        <!--color primary variant controls the color above the top bar -->
+        <item name="colorPrimaryVariant">@color/blue</item>
         <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/soft_red</item>
