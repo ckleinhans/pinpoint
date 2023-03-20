@@ -41,7 +41,7 @@ public class AuthActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK) {
                         IdpResponse response = result.getIdpResponse();
                         if (response != null && response.isNewUser()) {
-                            FirebaseUser user = firebase.getUser();
+                            FirebaseUser user = firebase.getCurrentUser();
                             new User(user.getDisplayName()).save(user.getUid());
                             if (!firebase.isVerified()) {
                                 firebase.sendEmailVerification(null);

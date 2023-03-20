@@ -11,6 +11,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
+
 import javax.annotation.Nullable;
 
 import edu.wisc.ece.pinpoint.data.User;
@@ -19,6 +21,7 @@ public final class FirebaseDriver {
     private static FirebaseDriver instance;
     private final FirebaseAuth auth;
     private final FirebaseFirestore db;
+    private final HashMap<String, User> users;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -27,6 +30,7 @@ public final class FirebaseDriver {
         instance = this;
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        users = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -73,13 +77,19 @@ public final class FirebaseDriver {
         return AuthUI.getInstance().signOut(activity);
     }
 
-    public FirebaseUser getUser() {
+    public FirebaseUser getCurrentUser() {
         return auth.getCurrentUser();
     }
 
     public Task<User> fetchUser(@NonNull String uid) {
-        return db.collection("users").document(uid).get()
-                .continueWith(task -> task.getResult().toObject(User.class));
+        return db.collection("users").document(uid).get().continueWith(task -> {
+            User user = task.getResult().toObject(User.class);
+            users.put(uid, user);
+            return user;
+        });
     }
 
+    public User getCachedUser(@NonNull String uid) {
+        return users.get(uid);
+    }
 }

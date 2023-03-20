@@ -1,7 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.profile;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,36 +55,18 @@ public class ProfilePageFragment extends Fragment {
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
 
-        if (savedInstanceState != null) {
-            Log.d("TEST", "Loading saved instance state...");
-            username.setText(savedInstanceState.getCharSequence("username"));
-            followerCount.setText(savedInstanceState.getCharSequence("followerCount"));
-            followingCount.setText(savedInstanceState.getCharSequence("followingCount"));
-            pinsDroppedCount.setText(savedInstanceState.getCharSequence("pinsDroppedCount"));
-            pinsFoundCount.setText(savedInstanceState.getCharSequence("pinsFoundCount"));
-            location.setText(savedInstanceState.getCharSequence("location"));
-            bio.setText(savedInstanceState.getCharSequence("bio"));
-        }
-
         Bundle args = getArguments();
         String uid =
                 args != null ? ProfilePageFragmentArgs.fromBundle(getArguments()).getUid() : null;
         if (uid == null) {
             requireView().findViewById(R.id.profile_follow).setVisibility(View.INVISIBLE);
             requireView().findViewById(R.id.profile_edit).setVisibility(View.VISIBLE);
-            uid = firebase.getUser().getUid();
+            uid = firebase.getCurrentUser().getUid();
         }
-        firebase.fetchUser(uid).addOnCompleteListener(task -> {
-            User user = task.getResult();
-            Log.d("TEST", "Updating data with firebase data...");
-            username.setText(user.getUsername());
-            followerCount.setText(String.valueOf(user.getNumFollowers()));
-            followingCount.setText(String.valueOf(user.getNumFollowing()));
-            pinsDroppedCount.setText(String.valueOf(user.getNumPinsDropped()));
-            pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
-            location.setText(user.getLocation());
-            bio.setText(user.getBio());
-        });
+        User cachedUser = firebase.getCachedUser(uid);
+        if (cachedUser != null) setUserData(cachedUser);
+        firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult()));
+
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
         tabLayout.addTab(tabLayout.newTab().setText("Activity"));
@@ -94,7 +75,6 @@ public class ProfilePageFragment extends Fragment {
                 new ProfileFragmentAdapter(requireActivity().getSupportFragmentManager(),
                         tabLayout.getTabCount(), getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
-
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -111,7 +91,6 @@ public class ProfilePageFragment extends Fragment {
                 // Mandatory override intentionally blank, will not implement onTabReselected
             }
         });
-
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -122,16 +101,13 @@ public class ProfilePageFragment extends Fragment {
         });
     }
 
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle state) {
-        // Not sure if saving state will work correctly if we have multiple user profiles
-        super.onSaveInstanceState(state);
-        state.putCharSequence("username", username.getText());
-        state.putCharSequence("followerCount", followerCount.getText());
-        state.putCharSequence("followingCount", followingCount.getText());
-        state.putCharSequence("pinsDroppedCount", pinsDroppedCount.getText());
-        state.putCharSequence("pinsFoundCount", pinsFoundCount.getText());
-        state.putCharSequence("location", location.getText());
-        state.putCharSequence("bio", bio.getText());
+    public void setUserData(@NonNull User user) {
+        username.setText(user.getUsername());
+        followerCount.setText(String.valueOf(user.getNumFollowers()));
+        followingCount.setText(String.valueOf(user.getNumFollowing()));
+        pinsDroppedCount.setText(String.valueOf(user.getNumPinsDropped()));
+        pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
+        location.setText(user.getLocation());
+        bio.setText(user.getBio());
     }
 }
