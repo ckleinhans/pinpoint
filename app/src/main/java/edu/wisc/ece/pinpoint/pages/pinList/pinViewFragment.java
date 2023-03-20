@@ -30,7 +30,7 @@ public class pinViewFragment extends Fragment {
     private TextView messageView;
 
     private FirebaseDriver firebase;
-    
+
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

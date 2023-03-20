@@ -7,37 +7,6 @@
     tools:context=".MainActivity">
 
 
-    <com.google.android.material.bottomappbar.BottomAppBar
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        app:contentInsetStart="0dp"
-        android:id="@+id/bottomBar"
-        app:fabCradleMargin="10dp"
-        app:fabCradleRoundedCornerRadius="20dp"
-        >
-
-        <com.google.android.material.bottomnavigation.BottomNavigationView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/navBar"
-            app:menu="@menu/nav_bar"
-            android:background="@android:color/transparent"
-            android:outlineSpotShadowColor="@android:color/transparent"
-            app:itemRippleColor="@color/fui_transparent"
-            />
-    </com.google.android.material.bottomappbar.BottomAppBar>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_anchor="@id/navBar"
-        android:id="@+id/mapButton"
-        android:src="@drawable/ic_map"
-        app:fabCustomSize="56dp"
-        app:maxImageSize="32dp"
-        />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
