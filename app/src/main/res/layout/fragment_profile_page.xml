@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorBackgroundFloating"
     tools:context=".pages.profile.ProfilePageFragment">
 
     <TextView
@@ -13,6 +14,7 @@
         android:layout_margin="15dp"
         android:text="Mark Ibrahim"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -33,6 +35,7 @@
         android:layout_height="wrap_content"
         android:text="4000000"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="@+id/profile_follower_text"
         app:layout_constraintStart_toStartOf="@+id/profile_follower_text"
         app:layout_constraintTop_toTopOf="@+id/profile_image" />
@@ -43,6 +46,7 @@
         android:layout_height="wrap_content"
         android:text="@string/followers_text"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/profile_image"
         app:layout_constraintTop_toBottomOf="@+id/profile_follower_count" />
@@ -53,6 +57,7 @@
         android:layout_height="wrap_content"
         android:text="40"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintBottom_toTopOf="@+id/profile_following_text"
         app:layout_constraintEnd_toEndOf="@+id/profile_following_text"
         app:layout_constraintStart_toStartOf="@+id/profile_following_text" />
@@ -63,6 +68,7 @@
         android:layout_height="wrap_content"
         android:text="@string/following_text"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintBottom_toBottomOf="@+id/profile_image"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/profile_image" />
@@ -73,6 +79,7 @@
         android:layout_height="wrap_content"
         android:text="71"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="@+id/profile_dropped_text"
         app:layout_constraintStart_toStartOf="@+id/profile_dropped_text"
         app:layout_constraintTop_toTopOf="@+id/profile_image" />
@@ -83,6 +90,7 @@
         android:layout_height="wrap_content"
         android:text="@string/pins_dropped_text"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toStartOf="@+id/profile_image"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/profile_follower_count" />
@@ -93,6 +101,7 @@
         android:layout_height="wrap_content"
         android:text="768"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintBottom_toTopOf="@+id/profile_found_text"
         app:layout_constraintEnd_toEndOf="@+id/profile_found_text"
         app:layout_constraintStart_toStartOf="@+id/profile_found_text" />
@@ -103,6 +112,7 @@
         android:layout_height="wrap_content"
         android:text="@string/pins_found_text"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintBottom_toBottomOf="@+id/profile_image"
         app:layout_constraintEnd_toStartOf="@+id/profile_image"
         app:layout_constraintStart_toStartOf="parent" />
@@ -114,6 +124,7 @@
         android:layout_margin="15dp"
         android:text="Madison, Wisconsin"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/profile_image" />
@@ -125,6 +136,7 @@
         android:layout_margin="15dp"
         android:text="Lorem Ipsum Dolor Sit Amet"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/profile_location" />
@@ -134,8 +146,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
+        android:backgroundTint="?attr/colorPrimary"
         android:text="@string/follow_button_text"
         android:textAlignment="center"
+        android:textColor="?attr/colorOnPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/profile_bio" />
@@ -144,13 +158,18 @@
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="?attr/colorBackgroundFloating"
         app:layout_constraintTop_toBottomOf="@+id/profile_follow"
-        app:tabRippleColor="@color/fui_transparent" />
+        app:tabIconTint="?attr/colorPrimary"
+        app:tabIndicatorColor="?attr/colorPrimary"
+        app:tabRippleColor="@color/fui_transparent"
+        app:tabTextColor="?attr/colorPrimary" />
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:backgroundTint="?attr/colorPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tab_layout" />
 
