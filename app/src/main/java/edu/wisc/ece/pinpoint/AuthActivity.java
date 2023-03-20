@@ -13,9 +13,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
+import com.firebase.ui.auth.IdpResponse;
+import com.google.firebase.auth.FirebaseUser;
 
 import java.util.Arrays;
 
+import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class AuthActivity extends AppCompatActivity {
@@ -36,9 +39,13 @@ public class AuthActivity extends AppCompatActivity {
         authLauncher = this.registerForActivityResult(new FirebaseAuthUIActivityResultContract(),
                 (result) -> {
                     if (result.getResultCode() == RESULT_OK) {
-                        // TODO: post user's username to DB node so it is visible to others
-                        if (!firebase.isVerified()) {
-                            firebase.sendEmailVerification(null);
+                        IdpResponse response = result.getIdpResponse();
+                        if (response != null && response.isNewUser()) {
+                            FirebaseUser user = firebase.getUser();
+                            new User(user.getDisplayName()).save(user.getUid());
+                            if (!firebase.isVerified()) {
+                                firebase.sendEmailVerification(null);
+                            }
                         }
                     }
                 });

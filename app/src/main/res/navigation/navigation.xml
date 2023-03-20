@@ -17,6 +17,11 @@
         <action
             android:id="@+id/action_navbarProfile_to_editProfileFragment"
             app:destination="@id/editProfileFragment" />
+        <argument
+            android:name="uid"
+            android:defaultValue="@null"
+            app:argType="string"
+            app:nullable="true" />
     </fragment>
     <fragment
         android:id="@+id/editProfileFragment"

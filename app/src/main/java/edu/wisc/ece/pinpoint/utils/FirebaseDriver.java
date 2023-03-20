@@ -2,6 +2,8 @@ package edu.wisc.ece.pinpoint.utils;
 
 import android.app.Activity;
 
+import androidx.annotation.NonNull;
+
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -67,12 +69,17 @@ public final class FirebaseDriver {
         return auth.getCurrentUser().reload();
     }
 
-    public Task<Void> logout(Activity activity) {
+    public Task<Void> logout(@NonNull Activity activity) {
         return AuthUI.getInstance().signOut(activity);
     }
 
-    public Task<User> fetchUser(String uid) {
+    public FirebaseUser getUser() {
+        return auth.getCurrentUser();
+    }
+
+    public Task<User> fetchUser(@NonNull String uid) {
         return db.collection("users").document(uid).get()
                 .continueWith(task -> task.getResult().toObject(User.class));
     }
+
 }

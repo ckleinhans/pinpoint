@@ -18,4 +18,6 @@
     <string name="leaderboard_text">Leaderboard</string>
     <string name="search_text">Search</string>
     <string name="profile_text">Profile</string>
+    <string name="edit_profile_text">Edit Profile</string>
+    <string name="zero">0</string>
 </resources>

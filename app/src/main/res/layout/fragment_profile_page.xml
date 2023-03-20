@@ -7,25 +7,11 @@
     android:background="?attr/colorBackgroundFloating"
     tools:context=".pages.profile.ProfilePageFragment">
 
-    <ImageButton
-        android:id="@+id/profile_edit"
-        style="@style/Widget.AppCompat.Button.Borderless"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="10dp"
-        android:padding="4dp"
-        android:scaleType="fitCenter"
-        android:src="@drawable/ic_edit"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/profile_follow"
-        app:layout_constraintTop_toTopOf="@+id/profile_follow" />
-
     <TextView
-        android:id="@+id/profile_name"
+        android:id="@+id/profile_username"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
-        android:text="Mark Ibrahim"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="parent"
@@ -33,7 +19,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.imageview.ShapeableImageView
-        android:id="@+id/profile_image"
+        android:id="@+id/profile_pic"
         style="@style/circle_image_view"
         android:layout_width="100dp"
         android:layout_height="100dp"
@@ -41,18 +27,18 @@
         android:src="@drawable/ic_profile"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/profile_name" />
+        app:layout_constraintTop_toBottomOf="@+id/profile_username" />
 
     <TextView
         android:id="@+id/profile_follower_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="4000000"
+        android:text="@string/zero"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="@+id/profile_follower_text"
         app:layout_constraintStart_toStartOf="@+id/profile_follower_text"
-        app:layout_constraintTop_toTopOf="@+id/profile_image" />
+        app:layout_constraintTop_toTopOf="@+id/profile_pic" />
 
     <TextView
         android:id="@+id/profile_follower_text"
@@ -62,14 +48,14 @@
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/profile_image"
+        app:layout_constraintStart_toEndOf="@+id/profile_pic"
         app:layout_constraintTop_toBottomOf="@+id/profile_follower_count" />
 
     <TextView
         android:id="@+id/profile_following_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="40"
+        android:text="@string/zero"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
         app:layout_constraintBottom_toTopOf="@+id/profile_following_text"
@@ -83,20 +69,20 @@
         android:text="@string/following_text"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
-        app:layout_constraintBottom_toBottomOf="@+id/profile_image"
+        app:layout_constraintBottom_toBottomOf="@+id/profile_pic"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/profile_image" />
+        app:layout_constraintStart_toEndOf="@+id/profile_pic" />
 
     <TextView
         android:id="@+id/profile_dropped_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="71"
+        android:text="@string/zero"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="@+id/profile_dropped_text"
         app:layout_constraintStart_toStartOf="@+id/profile_dropped_text"
-        app:layout_constraintTop_toTopOf="@+id/profile_image" />
+        app:layout_constraintTop_toTopOf="@+id/profile_pic" />
 
     <TextView
         android:id="@+id/profile_dropped_text"
@@ -105,7 +91,7 @@
         android:text="@string/pins_dropped_text"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
-        app:layout_constraintEnd_toStartOf="@+id/profile_image"
+        app:layout_constraintEnd_toStartOf="@+id/profile_pic"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/profile_follower_count" />
 
@@ -113,7 +99,7 @@
         android:id="@+id/profile_found_count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="768"
+        android:text="@string/zero"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
         app:layout_constraintBottom_toTopOf="@+id/profile_found_text"
@@ -127,8 +113,8 @@
         android:text="@string/pins_found_text"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
-        app:layout_constraintBottom_toBottomOf="@+id/profile_image"
-        app:layout_constraintEnd_toStartOf="@+id/profile_image"
+        app:layout_constraintBottom_toBottomOf="@+id/profile_pic"
+        app:layout_constraintEnd_toStartOf="@+id/profile_pic"
         app:layout_constraintStart_toStartOf="parent" />
 
     <TextView
@@ -136,19 +122,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
-        android:text="Madison, Wisconsin"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profile_image" />
+        app:layout_constraintTop_toBottomOf="@id/profile_pic" />
 
     <TextView
         android:id="@+id/profile_bio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="15dp"
-        android:text="Lorem Ipsum Dolor Sit Amet"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"
         app:layout_constraintEnd_toEndOf="parent"
@@ -164,6 +148,18 @@
         android:text="@string/follow_button_text"
         android:textAlignment="center"
         android:textColor="?attr/colorOnPrimary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/profile_bio" />
+
+    <Button
+        android:id="@+id/profile_edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:text="@string/edit_profile_text"
+        android:textAlignment="center"
+        android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/profile_bio" />
