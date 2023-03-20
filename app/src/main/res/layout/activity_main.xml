@@ -35,7 +35,8 @@
             app:elevation="0dp"
             app:itemHorizontalTranslationEnabled="false"
             app:itemIconTint="?attr/colorBackgroundFloating"
-            app:itemRippleColor="@color/fui_transparent"
+            app:itemBackground="@color/transparent"
+            app:itemRippleColor="@android:color/transparent"
             app:itemTextColor="?attr/colorOnPrimary"
             app:menu="@menu/nav_bar" />
 
