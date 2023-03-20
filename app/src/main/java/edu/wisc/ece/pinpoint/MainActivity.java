@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint;
 
+
 import android.os.Bundle;
 import android.view.View;
 
@@ -9,12 +10,14 @@ import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class MainActivity extends AppCompatActivity {
     private FirebaseDriver firebase;
     private NavController navController;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
