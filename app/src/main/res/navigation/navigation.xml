@@ -42,4 +42,20 @@
         android:name="edu.wisc.ece.pinpoint.pages.profile.SettingsContainerFragment"
         android:label="fragment_settings_container"
         tools:layout="@layout/fragment_settings_container" />
+        tools:layout="@layout/fragment_profile_page" />
+    <fragment
+        android:id="@+id/navbarSearch"
+        android:name="edu.wisc.ece.pinpoint.pages.pinList.pinListFragment"
+        android:label="fragment_pin_list"
+        tools:layout="@layout/fragment_pin_list" >
+        <action
+            android:id="@+id/action_navbarSearch_to_pinViewPage"
+            app:destination="@id/pinViewPage" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/pinViewPage"
+        android:name="edu.wisc.ece.pinpoint.pages.pinList.pinViewFragment"
+        android:label="fragment_pin_view"
+        tools:layout="@layout/fragment_pin_view" />
 </navigation>
