@@ -95,6 +95,7 @@ public class AuthActivity extends AppCompatActivity {
     private void launchAuth() {
         Intent signInIntent =
                 AuthUI.getInstance().createSignInIntentBuilder().setLogo(R.mipmap.ic_launcher)
+                        .setTheme(R.style.Theme_Pinpoint)
                         // Enable smart lock only on production builds
                         .setIsSmartLockEnabled(!BuildConfig.DEBUG, true).setAvailableProviders(
                                 Arrays.asList(new AuthUI.IdpConfig.EmailBuilder().build(),
