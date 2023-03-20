@@ -15,7 +15,7 @@
         android:label="fragment_profile_page"
         tools:layout="@layout/fragment_profile_page">
         <action
-            android:id="@+id/action_navbarProfile_to_editProfileFragment"
+            android:id="@+id/editProfile"
             app:destination="@id/editProfileFragment" />
         <argument
             android:name="uid"
@@ -27,12 +27,11 @@
         android:id="@+id/editProfileFragment"
         android:name="edu.wisc.ece.pinpoint.pages.profile.EditProfileFragment"
         android:label="fragment_edit_profile"
-        tools:layout="@layout/fragment_edit_profile">
-        <action
-            android:id="@+id/action_editProfileFragment_to_navbarProfile"
-            app:destination="@id/navbarProfile" />
-        <action
-            android:id="@+id/action_editProfileFragment_to_navbarProfile2"
-            app:destination="@id/navbarProfile" />
-    </fragment>
+        tools:layout="@layout/fragment_edit_profile" />
+    <action
+        android:id="@+id/map"
+        app:destination="@id/navbarMap" />
+    <action
+        android:id="@+id/profile"
+        app:destination="@id/navbarProfile" />
 </navigation>

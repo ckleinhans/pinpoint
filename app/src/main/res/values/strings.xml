@@ -2,7 +2,7 @@
     <string name="app_name">PinPoint</string>
     <string name="fui_missing_first_and_last_name">Please enter a username.</string>
     <string name="fui_name_hint">Username</string>
-    <string name="follow_button_text">Follow</string>
+    <string name="follow_text">Follow</string>
     <string name="pins_found_text">Pins Found</string>
     <string name="pins_dropped_text">Pins Dropped</string>
     <string name="following_text">Following</string>
@@ -19,5 +19,7 @@
     <string name="search_text">Search</string>
     <string name="profile_text">Profile</string>
     <string name="edit_profile_text">Edit Profile</string>
+    <string name="activity_text">Activity</string>
+    <string name="dropped_pins_text">Dropped Pins</string>
     <string name="zero">0</string>
 </resources>

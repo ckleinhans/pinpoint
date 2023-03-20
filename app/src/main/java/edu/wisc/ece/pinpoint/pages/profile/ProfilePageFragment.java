@@ -4,11 +4,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.imageview.ShapeableImageView;
@@ -20,6 +23,7 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class ProfilePageFragment extends Fragment {
     private FirebaseDriver firebase;
+    private NavController navController;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
     private TextView username;
@@ -47,6 +51,7 @@ public class ProfilePageFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        navController = Navigation.findNavController(view);
         username = requireView().findViewById(R.id.profile_username);
         followerCount = requireView().findViewById(R.id.profile_follower_count);
         followingCount = requireView().findViewById(R.id.profile_following_count);
@@ -54,23 +59,34 @@ public class ProfilePageFragment extends Fragment {
         pinsFoundCount = requireView().findViewById(R.id.profile_found_count);
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
+        Button button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
         String uid =
                 args != null ? ProfilePageFragmentArgs.fromBundle(getArguments()).getUid() : null;
         if (uid == null) {
-            requireView().findViewById(R.id.profile_follow).setVisibility(View.INVISIBLE);
-            requireView().findViewById(R.id.profile_edit).setVisibility(View.VISIBLE);
+            // UID is null so this is current user profile
             uid = firebase.getCurrentUser().getUid();
+            // Viewing user's own profile, button is for editing
+            button.setText(R.string.edit_profile_text);
+            button.setOnClickListener((buttonView) -> navController.navigate(
+                    ProfilePageFragmentDirections.editProfile()));
+        } else {
+            // Viewing someone else's profile, button is for following
+            button.setOnClickListener((buttonView) -> {
+                // TODO: implement user following
+            });
         }
         User cachedUser = firebase.getCachedUser(uid);
-        if (cachedUser != null) setUserData(cachedUser);
+        if (cachedUser != null) {
+            setUserData(cachedUser);
+        }
         firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult()));
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
-        tabLayout.addTab(tabLayout.newTab().setText("Activity"));
-        tabLayout.addTab(tabLayout.newTab().setText("Dropped Pins"));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.activity_text));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
         ProfileFragmentAdapter fragmentAdapter =
                 new ProfileFragmentAdapter(requireActivity().getSupportFragmentManager(),
                         tabLayout.getTabCount(), getLifecycle());
