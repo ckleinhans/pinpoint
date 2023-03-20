@@ -21,6 +21,9 @@
             android:value="${MAPS_API_KEY}" />
 
         <activity
+            android:name=".pinList"
+            android:exported="false" />
+        <activity
             android:name=".PinViewActivity"
             android:exported="false" />
         <activity
