@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -82,13 +83,36 @@ public class EditProfileFragment extends Fragment {
         // TODO: somehow validate location (implement required autocomplete)
 
         if (isValid) {
+            buttonView.setEnabled(false);
             String uid = firebase.getCurrentUser().getUid();
             User cachedUser = firebase.getCachedUser(uid);
-            cachedUser.setUsername(usernameInput.getText().toString());
-            cachedUser.setLocation(locationInput.getText().toString());
-            cachedUser.setBio(bioInput.getText().toString());
-            cachedUser.save(uid);
-            navController.navigate(EditProfileFragmentDirections.profile());
+
+            String oldUsername = cachedUser.getUsername();
+            String oldLocation = cachedUser.getLocation();
+            String oldBio = cachedUser.getBio();
+
+            String newUsername = usernameInput.getText().toString().trim();
+            String newLocation = locationInput.getText().toString().trim();
+            if (newLocation.equals("")) {
+                newLocation = null;
+            }
+            String newBio = bioInput.getText().toString().trim();
+            if (newBio.equals("")) {
+                newBio = null;
+            }
+            cachedUser.setUsername(newUsername).setLocation(newLocation).setBio(newBio);
+            cachedUser.save(uid).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    navController.navigate(EditProfileFragmentDirections.profile());
+                } else {
+                    cachedUser.setUsername(oldUsername);
+                    cachedUser.setLocation(oldLocation);
+                    cachedUser.setBio(oldBio);
+                    Toast.makeText(requireContext(), "Couldn't save profile. Try again later.",
+                            Toast.LENGTH_LONG).show();
+                    buttonView.setEnabled(true);
+                }
+            });
         }
     }
 }

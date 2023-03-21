@@ -44,24 +44,27 @@ public class User {
         return username;
     }
 
-    public void setUsername(@NonNull String username) {
+    public User setUsername(@NonNull String username) {
         this.username = username;
+        return this;
     }
 
     public String getBio() {
         return bio;
     }
 
-    public void setBio(String bio) {
+    public User setBio(String bio) {
         this.bio = bio;
+        return this;
     }
 
     public String getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public User setLocation(String location) {
         this.location = location;
+        return this;
     }
 
     public int getNumFollowers() {
