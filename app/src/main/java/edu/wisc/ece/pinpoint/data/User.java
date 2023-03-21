@@ -9,7 +9,6 @@ public class User {
     private String username;
     private String bio;
     private String location;
-    private String profilePicUrl;
     private int numFollowers;
     private int numFollowing;
     private int numPinsDropped;
@@ -52,14 +51,6 @@ public class User {
 
     public void setLocation(String location) {
         this.location = location;
-    }
-
-    public String getProfilePicUrl() {
-        return profilePicUrl;
-    }
-
-    public void setProfilePicUrl(String profilePicUrl) {
-        this.profilePicUrl = profilePicUrl;
     }
 
     public int getNumFollowers() {
