@@ -45,9 +45,9 @@ public class AuthActivity extends AppCompatActivity {
         authLauncher = this.registerForActivityResult(new FirebaseAuthUIActivityResultContract(),
                 (result) -> {
                     if (result.getResultCode() == RESULT_OK) {
-                        FirebaseUser user = firebase.getCurrentUser();
                         if (firebase.isNewUser()) {
                             // User is new, push user data to new node in DB
+                            FirebaseUser user = firebase.getCurrentUser();
                             User userData = new User(user.getDisplayName());
                             UserInfo providerData = user.getProviderData().get(1);
                             if (providerData.getPhotoUrl() != null) {

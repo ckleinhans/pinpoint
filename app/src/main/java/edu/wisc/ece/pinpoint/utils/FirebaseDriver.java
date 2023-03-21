@@ -89,7 +89,7 @@ public final class FirebaseDriver {
         }
         FirebaseUserMetadata metadata = auth.getCurrentUser().getMetadata();
         //noinspection ConstantConditions
-        return metadata.getCreationTimestamp() == metadata.getLastSignInTimestamp();
+        return metadata.getLastSignInTimestamp() - metadata.getCreationTimestamp() < 1000;
     }
 
     public Task<User> fetchUser(@NonNull String uid) {
