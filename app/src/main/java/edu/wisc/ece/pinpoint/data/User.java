@@ -12,6 +12,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Date;
 
+import edu.wisc.ece.pinpoint.R;
+
 public class User {
     private String username;
     private String bio;
@@ -108,7 +110,9 @@ public class User {
     }
 
     public void loadProfilePic(ImageView imageView, Fragment fragment) {
-        Glide.with(fragment).load(profilePicUrl).signature(new ObjectKey(profilePicTimestamp))
+        Glide.with(fragment).load(profilePicUrl).placeholder(R.drawable.ic_profile).signature(
+                        new ObjectKey(profilePicTimestamp != null ? profilePicTimestamp :
+                                "default"))
                 .circleCrop().into(imageView);
     }
 }
