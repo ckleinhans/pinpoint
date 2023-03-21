@@ -13,8 +13,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
-import com.firebase.ui.auth.IdpResponse;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserInfo;
 
 import java.util.Arrays;
 
@@ -36,16 +36,31 @@ public class AuthActivity extends AppCompatActivity {
         firebase = FirebaseDriver.getInstance();
         switcher = findViewById(R.id.view_switcher);
 
+        if (firebase.isLoggedIn()) {
+            Intent intent = new Intent(this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        }
+
         authLauncher = this.registerForActivityResult(new FirebaseAuthUIActivityResultContract(),
                 (result) -> {
                     if (result.getResultCode() == RESULT_OK) {
-                        IdpResponse response = result.getIdpResponse();
-                        if (response != null && response.isNewUser()) {
-                            FirebaseUser user = firebase.getCurrentUser();
-                            new User(user.getDisplayName()).save(user.getUid());
-                            if (!firebase.isVerified()) {
-                                firebase.sendEmailVerification(null);
+                        FirebaseUser user = firebase.getCurrentUser();
+                        if (firebase.isNewUser()) {
+                            // User is new, push user data to new node in DB
+                            User userData = new User(user.getDisplayName());
+                            UserInfo providerData = user.getProviderData().get(1);
+                            if (providerData.getPhotoUrl() != null) {
+                                userData.setProfilePicUrl(providerData.getPhotoUrl().toString());
                             }
+                            userData.save(user.getUid());
+                        }
+                        if (!firebase.isVerified()) {
+                            firebase.sendEmailVerification(null);
+                        } else {
+                            Intent intent = new Intent(this, MainActivity.class);
+                            startActivity(intent);
+                            finish();
                         }
                     }
                 });
@@ -60,11 +75,6 @@ public class AuthActivity extends AppCompatActivity {
         } else if (!firebase.isVerified()) {
             showView(R.id.verify_email_view);
             startAuthReloadHandler();
-        } else {
-            // User is logged in and verified
-            Intent intent = new Intent(this, MainActivity.class);
-            startActivity(intent);
-            finish();
         }
     }
 
@@ -129,6 +139,9 @@ public class AuthActivity extends AppCompatActivity {
         Runnable reloadAuth = new Runnable() {
             @Override
             public void run() {
+                if (!firebase.isLoggedIn()) {
+                    Log.d(TAG, "User logged out.");
+                }
                 Log.d(TAG, "Reloading user auth state...");
                 firebase.reloadAuth().addOnCompleteListener((reloadTask -> {
                     if (!firebase.isLoggedIn()) {

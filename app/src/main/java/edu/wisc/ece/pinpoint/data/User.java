@@ -1,9 +1,16 @@
 package edu.wisc.ece.pinpoint.data;
 
-import androidx.annotation.NonNull;
+import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.signature.ObjectKey;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Date;
 
 public class User {
     private String username;
@@ -14,6 +21,7 @@ public class User {
     private int numPinsDropped;
     private int numPinsFound;
     private String profilePicUrl;
+    private Date profilePicTimestamp;
 
     public User() {
     }
@@ -91,6 +99,16 @@ public class User {
     }
 
     public void setProfilePicUrl(String profilePicUrl) {
+        this.profilePicTimestamp = new Date();
         this.profilePicUrl = profilePicUrl;
+    }
+
+    public Date getProfilePicTimestamp() {
+        return profilePicTimestamp;
+    }
+
+    public void loadProfilePic(ImageView imageView, Fragment fragment) {
+        Glide.with(fragment).load(profilePicUrl).signature(new ObjectKey(profilePicTimestamp))
+                .circleCrop().into(imageView);
     }
 }

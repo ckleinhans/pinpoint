@@ -9,6 +9,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
@@ -79,6 +80,16 @@ public final class FirebaseDriver {
 
     public FirebaseUser getCurrentUser() {
         return auth.getCurrentUser();
+    }
+
+    public boolean isNewUser() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            throw new IllegalStateException("User must be logged in to check if they are new.");
+        }
+        FirebaseUserMetadata metadata = auth.getCurrentUser().getMetadata();
+        //noinspection ConstantConditions
+        return metadata.getCreationTimestamp() == metadata.getLastSignInTimestamp();
     }
 
     public Task<User> fetchUser(@NonNull String uid) {

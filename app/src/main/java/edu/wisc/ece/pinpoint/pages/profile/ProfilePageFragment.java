@@ -14,7 +14,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.tabs.TabLayout;
 
@@ -127,7 +126,7 @@ public class ProfilePageFragment extends Fragment {
         pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
         location.setText(user.getLocation());
         bio.setText(user.getBio());
-        if (user.getProfilePicUrl() != null)
-            Glide.with(this).load(user.getProfilePicUrl()).into(profilePic);
+        // TODO: don't think we need shaped image view since Glide can circle crop image for us
+        user.loadProfilePic(profilePic, this);
     }
 }
