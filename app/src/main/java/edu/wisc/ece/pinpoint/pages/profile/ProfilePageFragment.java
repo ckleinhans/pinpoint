@@ -127,7 +127,7 @@ public class ProfilePageFragment extends Fragment {
         pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
         location.setText(user.getLocation());
         bio.setText(user.getBio());
-        if (user.getProfilePicUrl() != null)
-            Glide.with(this).load(user.getProfilePicUrl()).into(profilePic);
+        // TODO: don't think we need shaped image view since Glide can circle crop image for us
+        user.loadProfilePic(profilePic, this);
     }
 }

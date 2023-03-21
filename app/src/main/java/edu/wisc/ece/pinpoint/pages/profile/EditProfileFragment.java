@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,7 +29,7 @@ public class EditProfileFragment extends Fragment {
     private EditText usernameInput;
     private EditText locationInput;
     private EditText bioInput;
-    // private SOMETHING profilePicUpload;
+    private ImageView profilePicUpload;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,7 +53,7 @@ public class EditProfileFragment extends Fragment {
         usernameInput = requireView().findViewById(R.id.profile_edit_username);
         locationInput = requireView().findViewById(R.id.profile_edit_location);
         bioInput = requireView().findViewById(R.id.profile_edit_bio);
-        // profilePicUpload = requireView().findViewById(R.id.SOMETHING);
+        profilePicUpload = requireView().findViewById(R.id.profile_edit_image);
 
         ImageButton cancelButton = requireView().findViewById(R.id.profile_edit_cancel);
         ImageButton saveButton = requireView().findViewById(R.id.profile_edit_save);
@@ -65,6 +66,8 @@ public class EditProfileFragment extends Fragment {
             usernameInput.setText(cachedUser.getUsername());
             locationInput.setText(cachedUser.getLocation());
             bioInput.setText(cachedUser.getBio());
+            // TODO: don't think we need shaped image view since Glide can circle crop image for us
+            cachedUser.loadProfilePic(profilePicUpload, this);
         }
     }
 
