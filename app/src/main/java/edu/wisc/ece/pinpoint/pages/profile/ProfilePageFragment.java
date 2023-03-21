@@ -14,6 +14,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.tabs.TabLayout;
 
@@ -59,6 +60,7 @@ public class ProfilePageFragment extends Fragment {
         pinsFoundCount = requireView().findViewById(R.id.profile_found_count);
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
+        profilePic = requireView().findViewById(R.id.profile_pic);
         Button button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
@@ -125,5 +127,7 @@ public class ProfilePageFragment extends Fragment {
         pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
         location.setText(user.getLocation());
         bio.setText(user.getBio());
+        if (user.getProfilePicUrl() != null)
+            Glide.with(this).load(user.getProfilePicUrl()).into(profilePic);
     }
 }

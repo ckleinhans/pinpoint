@@ -13,6 +13,7 @@ public class User {
     private int numFollowing;
     private int numPinsDropped;
     private int numPinsFound;
+    private String profilePicUrl;
 
     public User() {
     }
@@ -83,5 +84,13 @@ public class User {
 
     public void setNumPinsFound(int numPinsFound) {
         this.numPinsFound = numPinsFound;
+    }
+
+    public String getProfilePicUrl() {
+        return profilePicUrl;
+    }
+
+    public void setProfilePicUrl(String profilePicUrl) {
+        this.profilePicUrl = profilePicUrl;
     }
 }

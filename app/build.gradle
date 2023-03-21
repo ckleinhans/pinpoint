@@ -51,10 +51,14 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-functions'
-    // Use FirebaseUI authentication dependency
+    // Use FirebaseUI authentication & storage dependencies
     implementation 'com.firebaseui:firebase-ui-auth:8.0.2'
+    implementation 'com.firebaseui:firebase-ui-storage:7.2.0'
     // Dependency for the Google Play services authentication
     implementation 'com.google.android.gms:play-services-auth:20.4.1'
+    // Dependencies for Glide image handling library
+    implementation 'com.github.bumptech.glide:glide:4.15.1'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
     // Required only if Facebook login support is required
     // Find the latest Facebook SDK releases here: https://github.com/facebook/facebook-android-sdk/blob/master/CHANGELOG.md
     // implementation 'com.facebook.android:facebook-login:8.1.0'
