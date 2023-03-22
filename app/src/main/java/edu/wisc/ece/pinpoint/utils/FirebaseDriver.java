@@ -1,6 +1,6 @@
 package edu.wisc.ece.pinpoint.utils;
 
-import android.app.Activity;
+import android.content.Context;
 
 import androidx.annotation.NonNull;
 
@@ -74,8 +74,8 @@ public final class FirebaseDriver {
         return auth.getCurrentUser().reload();
     }
 
-    public Task<Void> logout(@NonNull Activity activity) {
-        return AuthUI.getInstance().signOut(activity);
+    public Task<Void> logout(@NonNull Context context) {
+        return AuthUI.getInstance().signOut(context);
     }
 
     public FirebaseUser getCurrentUser() {

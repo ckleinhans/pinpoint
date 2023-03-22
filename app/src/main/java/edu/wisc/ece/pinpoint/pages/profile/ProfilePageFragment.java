@@ -44,7 +44,6 @@ public class ProfilePageFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_profile_page, container, false);
     }
 
@@ -63,12 +62,10 @@ public class ProfilePageFragment extends Fragment {
         Button button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
-        String uid =
-                args != null ? ProfilePageFragmentArgs.fromBundle(getArguments()).getUid() : null;
+        String uid = args != null ? ProfilePageFragmentArgs.fromBundle(args).getUid() : null;
         if (uid == null) {
             // UID is null so this is current user profile
             uid = firebase.getCurrentUser().getUid();
-            // Viewing user's own profile, button is for editing
             button.setText(R.string.edit_profile_text);
             button.setOnClickListener((buttonView) -> navController.navigate(
                     ProfilePageFragmentDirections.editProfile()));
@@ -78,6 +75,7 @@ public class ProfilePageFragment extends Fragment {
                 // TODO: implement user following
             });
         }
+
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {
             setUserData(cachedUser);
@@ -89,8 +87,8 @@ public class ProfilePageFragment extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText(R.string.activity_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
         ProfileFragmentAdapter fragmentAdapter =
-                new ProfileFragmentAdapter(this.getChildFragmentManager(),
-                        tabLayout.getTabCount(), getLifecycle());
+                new ProfileFragmentAdapter(this.getChildFragmentManager(), tabLayout.getTabCount(),
+                        getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -119,6 +117,7 @@ public class ProfilePageFragment extends Fragment {
     }
 
     public void setUserData(@NonNull User user) {
+        user.loadProfilePic(profilePic, this);
         username.setText(user.getUsername());
         followerCount.setText(String.valueOf(user.getNumFollowers()));
         followingCount.setText(String.valueOf(user.getNumFollowing()));
@@ -136,7 +135,5 @@ public class ProfilePageFragment extends Fragment {
         } else {
             bio.setVisibility(View.VISIBLE);
         }
-        // TODO: don't think we need shaped image view since Glide can circle crop image for us
-        user.loadProfilePic(profilePic, this);
     }
 }

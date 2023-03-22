@@ -103,9 +103,14 @@ public class User {
         return profilePicUrl;
     }
 
-    public void setProfilePicUrl(String profilePicUrl) {
-        this.profilePicTimestamp = new Date();
+    public User setProfilePicUrl(String profilePicUrl) {
+        return this.setProfilePicUrl(profilePicUrl, true);
+    }
+
+    public User setProfilePicUrl(String profilePicUrl, boolean updateTimestamp) {
+        if (updateTimestamp) this.profilePicTimestamp = new Date();
         this.profilePicUrl = profilePicUrl;
+        return this;
     }
 
     public Date getProfilePicTimestamp() {

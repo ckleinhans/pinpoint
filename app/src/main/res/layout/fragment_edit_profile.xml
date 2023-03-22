@@ -23,10 +23,10 @@
             android:padding="4dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_check"
-            app:tint="?attr/colorOnPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorOnPrimary" />
 
         <ImageButton
             android:id="@+id/profile_edit_cancel"
@@ -38,13 +38,11 @@
             android:padding="4dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_back"
-            app:tint="?attr/colorOnPrimary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorOnPrimary" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
 
     <ImageView
@@ -52,6 +50,7 @@
         android:layout_width="125dp"
         android:layout_height="125dp"
         android:layout_marginTop="15dp"
+        android:contentDescription="@string/profile_pic_upload_text"
         android:src="@drawable/ic_profile"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -113,14 +112,12 @@
                 android:id="@+id/profile_edit_bio"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:gravity="top|start"
                 android:hint="@string/bio_text"
-                android:maxLength="50"
-                android:lines="3"
                 android:importantForAutofill="no"
                 android:inputType="textMultiLine"
-                android:gravity="top|left"/>
+                android:lines="3"
+                android:maxLength="50" />
         </com.google.android.material.textfield.TextInputLayout>
-
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
