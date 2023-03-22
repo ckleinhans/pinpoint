@@ -89,7 +89,7 @@ public class ProfilePageFragment extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText(R.string.activity_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
         ProfileFragmentAdapter fragmentAdapter =
-                new ProfileFragmentAdapter(requireActivity().getSupportFragmentManager(),
+                new ProfileFragmentAdapter(this.getChildFragmentManager(),
                         tabLayout.getTabCount(), getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
