@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,7 +15,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.tabs.TabLayout;
 
 import edu.wisc.ece.pinpoint.R;
@@ -33,7 +33,7 @@ public class ProfilePageFragment extends Fragment {
     private TextView pinsFoundCount;
     private TextView location;
     private TextView bio;
-    private ShapeableImageView profilePic;
+    private ImageView profilePic;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {

@@ -107,7 +107,6 @@ public class EditProfileFragment extends Fragment {
             usernameInput.setText(cachedUser.getUsername());
             locationInput.setText(cachedUser.getLocation());
             bioInput.setText(cachedUser.getBio());
-            // TODO: don't think we need shaped image view since Glide can circle crop image for us
             cachedUser.loadProfilePic(profilePicUpload, this);
         }
     }
@@ -124,7 +123,6 @@ public class EditProfileFragment extends Fragment {
 
     private void updatePicture(Uri uri, User cachedUser, String uid) {
         // Method must exist to execute actions without timing out
-        Toast.makeText(requireActivity(),uri.toString(),Toast.LENGTH_LONG).show();
         cachedUser.setProfilePicUrl(uri.toString());
         cachedUser.save(uid);
         Toast.makeText(requireActivity(),"Image successfully uploaded.", Toast.LENGTH_SHORT).show();

@@ -18,9 +18,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.imageview.ShapeableImageView
+    <ImageView
         android:id="@+id/profile_pic"
-        style="@style/circle_image_view"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:layout_margin="15dp"
