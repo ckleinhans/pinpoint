@@ -24,13 +24,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-
-import java.io.File;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.User;
