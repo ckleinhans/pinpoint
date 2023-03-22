@@ -131,6 +131,7 @@
         android:id="@+id/profile_bio"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:maxLines="3"
         android:layout_margin="15dp"
         android:textAlignment="center"
         android:textColor="?attr/colorOnBackground"

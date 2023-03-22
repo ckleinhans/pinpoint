@@ -101,9 +101,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/bio_text"
-                android:imeOptions="actionDone"
+                android:maxLength="50"
+                android:lines="3"
                 android:importantForAutofill="no"
-                android:inputType="textLongMessage" />
+                android:inputType="textMultiLine"
+                android:gravity="top|left"/>
         </com.google.android.material.textfield.TextInputLayout>
 
     </LinearLayout>
