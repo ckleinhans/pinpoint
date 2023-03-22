@@ -1,11 +1,13 @@
 package edu.wisc.ece.pinpoint.pages.profile;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -21,11 +23,14 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+
+import java.io.File;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.User;
@@ -42,6 +47,8 @@ public class EditProfileFragment extends Fragment {
     private EditText bioInput;
     private ImageView profilePicUpload;
     private ActivityResultLauncher<Intent> launcher;
+    private MenuInflater menuInflater;
+    private Uri photo;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -50,29 +57,8 @@ public class EditProfileFragment extends Fragment {
         // create the launcher that will obtain and upload image
         launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if(result.getResultCode() == Activity.RESULT_OK && result.getData() != null){
-                Uri photo = result.getData().getData();
-                // base storage reference created
-                StorageReference baseRef = FirebaseStorage.getInstance().getReference();
-                String uid = firebase.getCurrentUser().getUid();
-                User cachedUser = firebase.getCachedUser(uid);
-                // profile image reference
-                StorageReference pictureRef = baseRef.child("users/"+uid);
-                // upload photo
-                UploadTask uploadTask = pictureRef.putFile(photo);
-                uploadTask.addOnFailureListener((exception) -> {
-                    // Handle unsuccessful uploads
-                    Toast.makeText(requireActivity(),"Image upload failed.", Toast.LENGTH_SHORT).show();
-                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        pictureRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                updatePicture(uri, cachedUser, uid);
-                            }
-                        });
-                    }
-                });
+                photo = result.getData().getData();
+                Glide.with(requireContext()).load(photo).circleCrop().into(profilePicUpload);
             }
         });
     }
@@ -84,6 +70,7 @@ public class EditProfileFragment extends Fragment {
         return inflater.inflate(R.layout.fragment_edit_profile, container, false);
     }
 
+    @SuppressLint("RestrictedApi")
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -129,7 +116,7 @@ public class EditProfileFragment extends Fragment {
         navController.navigate(EditProfileFragmentDirections.profile());
     }
 
-    private void save(View buttonView) {
+    public void save(View buttonView) {
         boolean isValid = true;
         if (ValidationUtils.isEmpty(usernameInput)) {
             usernameInputLayout.setError(getString(R.string.missing_username));
@@ -149,27 +136,50 @@ public class EditProfileFragment extends Fragment {
             String oldBio = cachedUser.getBio();
 
             String newUsername = usernameInput.getText().toString().trim();
-            String newLocation = locationInput.getText().toString().trim();
-            if (newLocation.equals("")) {
-                newLocation = null;
+            String newLocation = locationInput.getText().toString().trim().equals("") ? null : locationInput.getText().toString().trim();
+            String newBio = bioInput.getText().toString().trim().equals("") ? null : bioInput.getText().toString().trim();
+            if (photo != null) {
+                // base storage reference created
+                StorageReference baseRef = FirebaseStorage.getInstance().getReference();
+                // profile image reference
+                StorageReference pictureRef = baseRef.child("users/"+uid);
+                // upload photo
+                UploadTask uploadTask = pictureRef.putFile(photo);
+                uploadTask.addOnFailureListener((exception) -> {
+                    // Handle unsuccessful uploads
+                    Toast.makeText(requireActivity(),"Image upload failed.", Toast.LENGTH_SHORT).show();
+                }).addOnSuccessListener(taskSnapshot -> pictureRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    updatePicture(uri, cachedUser, uid);
+                    cachedUser.setUsername(newUsername).setLocation(newLocation).setBio(newBio);
+                    cachedUser.save(uid).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            navController.navigate(EditProfileFragmentDirections.profile());
+                        } else {
+                            cachedUser.setUsername(oldUsername);
+                            cachedUser.setLocation(oldLocation);
+                            cachedUser.setBio(oldBio);
+                            Toast.makeText(requireContext(), "Couldn't save profile. Try again later.",
+                                    Toast.LENGTH_LONG).show();
+                            buttonView.setEnabled(true);
+                        }
+                    });
+                }));
             }
-            String newBio = bioInput.getText().toString().trim();
-            if (newBio.equals("")) {
-                newBio = null;
+            else {
+                cachedUser.setUsername(newUsername).setLocation(newLocation).setBio(newBio);
+                cachedUser.save(uid).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        navController.navigate(EditProfileFragmentDirections.profile());
+                    } else {
+                        cachedUser.setUsername(oldUsername);
+                        cachedUser.setLocation(oldLocation);
+                        cachedUser.setBio(oldBio);
+                        Toast.makeText(requireContext(), "Couldn't save profile. Try again later.",
+                                Toast.LENGTH_LONG).show();
+                        buttonView.setEnabled(true);
+                    }
+                });
             }
-            cachedUser.setUsername(newUsername).setLocation(newLocation).setBio(newBio);
-            cachedUser.save(uid).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    navController.navigate(EditProfileFragmentDirections.profile());
-                } else {
-                    cachedUser.setUsername(oldUsername);
-                    cachedUser.setLocation(oldLocation);
-                    cachedUser.setBio(oldBio);
-                    Toast.makeText(requireContext(), "Couldn't save profile. Try again later.",
-                            Toast.LENGTH_LONG).show();
-                    buttonView.setEnabled(true);
-                }
-            });
         }
     }
 }

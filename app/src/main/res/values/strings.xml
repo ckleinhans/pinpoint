@@ -27,4 +27,6 @@
     <!-- Fields for FirebaseUI Authentication -->
     <string name="fui_missing_first_and_last_name">@string/missing_username</string>
     <string name="fui_name_hint">@string/username_text</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_cancel">Cancel</string>
 </resources>
