@@ -1,18 +1,28 @@
 package edu.wisc.ece.pinpoint.utils;
 
-import android.app.Activity;
+import android.content.Context;
+
+import androidx.annotation.NonNull;
 
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.FirebaseUserMetadata;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
 
 import javax.annotation.Nullable;
+
+import edu.wisc.ece.pinpoint.data.User;
 
 public final class FirebaseDriver {
     private static FirebaseDriver instance;
     private final FirebaseAuth auth;
+    private final FirebaseFirestore db;
+    private final HashMap<String, User> users;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -20,6 +30,8 @@ public final class FirebaseDriver {
         }
         instance = this;
         auth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        users = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -62,7 +74,33 @@ public final class FirebaseDriver {
         return auth.getCurrentUser().reload();
     }
 
-    public Task<Void> logout(Activity activity) {
-        return AuthUI.getInstance().signOut(activity);
+    public Task<Void> logout(@NonNull Context context) {
+        return AuthUI.getInstance().signOut(context);
+    }
+
+    public FirebaseUser getCurrentUser() {
+        return auth.getCurrentUser();
+    }
+
+    public boolean isNewUser() {
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            throw new IllegalStateException("User must be logged in to check if they are new.");
+        }
+        FirebaseUserMetadata metadata = auth.getCurrentUser().getMetadata();
+        //noinspection ConstantConditions
+        return metadata.getLastSignInTimestamp() - metadata.getCreationTimestamp() < 1000;
+    }
+
+    public Task<User> fetchUser(@NonNull String uid) {
+        return db.collection("users").document(uid).get().continueWith(task -> {
+            User user = task.getResult().toObject(User.class);
+            users.put(uid, user);
+            return user;
+        });
+    }
+
+    public User getCachedUser(@NonNull String uid) {
+        return users.get(uid);
     }
 }
