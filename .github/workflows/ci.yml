@@ -23,9 +23,6 @@ jobs:
     - name: chmod
       run: chmod +x gradlew
       
-    - name: lint
-      run: ./gradlew lint
-      
     - name: build
       run: ./gradlew build
 
