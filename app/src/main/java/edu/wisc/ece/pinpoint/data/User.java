@@ -12,6 +12,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Date;
 
+import edu.wisc.ece.pinpoint.R;
+
 public class User {
     private String username;
     private String bio;
@@ -42,24 +44,27 @@ public class User {
         return username;
     }
 
-    public void setUsername(@NonNull String username) {
+    public User setUsername(@NonNull String username) {
         this.username = username;
+        return this;
     }
 
     public String getBio() {
         return bio;
     }
 
-    public void setBio(String bio) {
+    public User setBio(String bio) {
         this.bio = bio;
+        return this;
     }
 
     public String getLocation() {
         return location;
     }
 
-    public void setLocation(String location) {
+    public User setLocation(String location) {
         this.location = location;
+        return this;
     }
 
     public int getNumFollowers() {
@@ -98,9 +103,14 @@ public class User {
         return profilePicUrl;
     }
 
-    public void setProfilePicUrl(String profilePicUrl) {
-        this.profilePicTimestamp = new Date();
+    public User setProfilePicUrl(String profilePicUrl) {
+        return this.setProfilePicUrl(profilePicUrl, true);
+    }
+
+    public User setProfilePicUrl(String profilePicUrl, boolean updateTimestamp) {
+        if (updateTimestamp) this.profilePicTimestamp = new Date();
         this.profilePicUrl = profilePicUrl;
+        return this;
     }
 
     public Date getProfilePicTimestamp() {
@@ -108,7 +118,9 @@ public class User {
     }
 
     public void loadProfilePic(ImageView imageView, Fragment fragment) {
-        Glide.with(fragment).load(profilePicUrl).signature(new ObjectKey(profilePicTimestamp))
+        Glide.with(fragment).load(profilePicUrl).placeholder(R.drawable.ic_profile).signature(
+                        new ObjectKey(profilePicTimestamp != null ? profilePicTimestamp :
+                                "default"))
                 .circleCrop().into(imageView);
     }
 }

@@ -1,4 +1,8 @@
 <resources>
+    <!-- Fields for FirebaseUI Authentication -->
+    <string name="fui_missing_first_and_last_name">@string/missing_username</string>
+    <string name="fui_name_hint">@string/username_text</string>
+
     <string name="app_name">PinPoint</string>
     <string name="follow_text">Follow</string>
     <string name="pins_found_text">Pins Found</string>
@@ -23,8 +27,8 @@
     <string name="back_text">Back</string>
     <string name="done_text">Done</string>
     <string name="missing_username">Please enter a username.</string>
-
-    <!-- Fields for FirebaseUI Authentication -->
-    <string name="fui_missing_first_and_last_name">@string/missing_username</string>
-    <string name="fui_name_hint">@string/username_text</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_cancel">Cancel</string>
+    <string name="profile_pic_upload_text">Profile Picture Upload</string>
+    <string name="profile_pic_text">Profile Picture</string>
 </resources>

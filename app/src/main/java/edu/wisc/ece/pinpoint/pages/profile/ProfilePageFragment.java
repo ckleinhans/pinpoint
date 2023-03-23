@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,7 +15,6 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.material.imageview.ShapeableImageView;
 import com.google.android.material.tabs.TabLayout;
 
 import edu.wisc.ece.pinpoint.R;
@@ -33,7 +33,7 @@ public class ProfilePageFragment extends Fragment {
     private TextView pinsFoundCount;
     private TextView location;
     private TextView bio;
-    private ShapeableImageView profilePic;
+    private ImageView profilePic;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,7 +44,6 @@ public class ProfilePageFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_profile_page, container, false);
     }
 
@@ -63,12 +62,10 @@ public class ProfilePageFragment extends Fragment {
         Button button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
-        String uid =
-                args != null ? ProfilePageFragmentArgs.fromBundle(getArguments()).getUid() : null;
+        String uid = args != null ? ProfilePageFragmentArgs.fromBundle(args).getUid() : null;
         if (uid == null) {
             // UID is null so this is current user profile
             uid = firebase.getCurrentUser().getUid();
-            // Viewing user's own profile, button is for editing
             button.setText(R.string.edit_profile_text);
             button.setOnClickListener((buttonView) -> navController.navigate(
                     ProfilePageFragmentDirections.editProfile()));
@@ -78,6 +75,7 @@ public class ProfilePageFragment extends Fragment {
                 // TODO: implement user following
             });
         }
+
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {
             setUserData(cachedUser);
@@ -89,8 +87,8 @@ public class ProfilePageFragment extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText(R.string.activity_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
         ProfileFragmentAdapter fragmentAdapter =
-                new ProfileFragmentAdapter(requireActivity().getSupportFragmentManager(),
-                        tabLayout.getTabCount(), getLifecycle());
+                new ProfileFragmentAdapter(this.getChildFragmentManager(), tabLayout.getTabCount(),
+                        getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -119,6 +117,7 @@ public class ProfilePageFragment extends Fragment {
     }
 
     public void setUserData(@NonNull User user) {
+        user.loadProfilePic(profilePic, this);
         username.setText(user.getUsername());
         followerCount.setText(String.valueOf(user.getNumFollowers()));
         followingCount.setText(String.valueOf(user.getNumFollowing()));
@@ -126,7 +125,15 @@ public class ProfilePageFragment extends Fragment {
         pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
         location.setText(user.getLocation());
         bio.setText(user.getBio());
-        // TODO: don't think we need shaped image view since Glide can circle crop image for us
-        user.loadProfilePic(profilePic, this);
+        if (user.getLocation() == null) {
+            location.setVisibility(View.GONE);
+        } else {
+            location.setVisibility(View.VISIBLE);
+        }
+        if (user.getBio() == null) {
+            bio.setVisibility(View.GONE);
+        } else {
+            bio.setVisibility(View.VISIBLE);
+        }
     }
 }
