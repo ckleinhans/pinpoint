@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.pages.profile.SettingsFragment;
 
 public class SettingsContainerFragment extends Fragment {
 
