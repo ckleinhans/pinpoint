@@ -31,4 +31,6 @@
     <string name="profile_cancel">Cancel</string>
     <string name="profile_pic_upload_text">Profile Picture Upload</string>
     <string name="profile_pic_text">Profile Picture</string>
+    <string name="settings_text">Settings</string>
+    <string name="feed_logout">Log Out</string>
 </resources>

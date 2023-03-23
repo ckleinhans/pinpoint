@@ -1,22 +1,30 @@
 package edu.wisc.ece.pinpoint.pages.profile;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
+import com.google.android.gms.auth.api.Auth;
 import com.google.android.material.tabs.TabLayout;
 
+import edu.wisc.ece.pinpoint.AuthActivity;
+import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -34,6 +42,7 @@ public class ProfilePageFragment extends Fragment {
     private TextView location;
     private TextView bio;
     private ImageView profilePic;
+    private ImageButton settingsButton;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,6 +68,7 @@ public class ProfilePageFragment extends Fragment {
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
         profilePic = requireView().findViewById(R.id.profile_pic);
+        settingsButton = requireView().findViewById(R.id.profile_settings);
         Button button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
@@ -113,6 +123,25 @@ public class ProfilePageFragment extends Fragment {
                 //noinspection ConstantConditions
                 tabLayout.getTabAt(position).select();
             }
+        });
+        settingsButton.setOnClickListener(clickedView -> {
+            PopupMenu popupMenu = new PopupMenu(requireContext(), settingsButton);
+
+            popupMenu.getMenuInflater().inflate(R.menu.profile_settings, popupMenu.getMenu());
+            popupMenu.setOnMenuItemClickListener(menuItem -> {
+                switch(menuItem.getItemId()){
+                    case R.id.settingsLogout:
+                        firebase.logout(requireContext());
+                        Intent intent = new Intent(requireContext(), AuthActivity.class);
+                        startActivity(intent);
+                        requireActivity().finish();
+                        return true;
+                    default:
+                        return false;
+                }
+            });
+            // Showing the popup menu
+            popupMenu.show();
         });
     }
 
