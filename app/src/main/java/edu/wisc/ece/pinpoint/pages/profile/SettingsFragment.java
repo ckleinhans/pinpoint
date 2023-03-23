@@ -3,13 +3,12 @@ package edu.wisc.ece.pinpoint.pages.profile;
 import android.content.Intent;
 import android.os.Bundle;
 
-import edu.wisc.ece.pinpoint.AuthActivity;
-import edu.wisc.ece.pinpoint.R;
-
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 
-import com.google.firebase.auth.FirebaseAuth;
+import edu.wisc.ece.pinpoint.AuthActivity;
+import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
     @Override
@@ -17,10 +16,11 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         setPreferencesFromResource(R.xml.settings, rootKey);
         Preference logOut = getPreferenceManager().findPreference("logout");
         logOut.setOnPreferenceClickListener(preference -> {
-            FirebaseAuth.getInstance().signOut();
-            Intent intent = new Intent(requireContext(), AuthActivity.class);
-            startActivity(intent);
-            requireActivity().finish();
+            FirebaseDriver.getInstance().logout(requireContext()).addOnCompleteListener(task -> {
+                Intent intent = new Intent(requireContext(), AuthActivity.class);
+                startActivity(intent);
+                requireActivity().finish();
+            });
             return true;
         });
     }
