@@ -12,6 +12,9 @@
         android:theme="@style/Theme.Pinpoint"
         tools:targetApi="31">
         <activity
+            android:name=".pages.profile.SettingsContainerFragment"
+            android:exported="false" />
+        <activity
             android:name=".AuthActivity"
             android:exported="true">
             <intent-filter>

@@ -58,6 +58,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:20.4.1'
     // Dependency for Glide image handling library
     implementation 'com.github.bumptech.glide:glide:4.15.1'
+    // Dependency for settings menu
+    implementation 'androidx.preference:preference:1.0.0-rc02'
     // Required only if Facebook login support is required
     // Find the latest Facebook SDK releases here: https://github.com/facebook/facebook-android-sdk/blob/master/CHANGELOG.md
     // implementation 'com.facebook.android:facebook-login:8.1.0'

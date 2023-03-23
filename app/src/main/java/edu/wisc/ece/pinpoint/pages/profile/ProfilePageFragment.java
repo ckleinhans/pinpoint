@@ -1,30 +1,25 @@
 package edu.wisc.ece.pinpoint.pages.profile;
 
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.google.android.gms.auth.api.Auth;
 import com.google.android.material.tabs.TabLayout;
 
-import edu.wisc.ece.pinpoint.AuthActivity;
-import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -97,7 +92,7 @@ public class ProfilePageFragment extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText(R.string.activity_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
         ProfileFragmentAdapter fragmentAdapter =
-                new ProfileFragmentAdapter(this.getChildFragmentManager(), tabLayout.getTabCount(),
+                new ProfileFragmentAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -124,24 +119,10 @@ public class ProfilePageFragment extends Fragment {
                 tabLayout.getTabAt(position).select();
             }
         });
-        settingsButton.setOnClickListener(clickedView -> {
-            PopupMenu popupMenu = new PopupMenu(requireContext(), settingsButton);
 
-            popupMenu.getMenuInflater().inflate(R.menu.profile_settings, popupMenu.getMenu());
-            popupMenu.setOnMenuItemClickListener(menuItem -> {
-                switch(menuItem.getItemId()){
-                    case R.id.settingsLogout:
-                        firebase.logout(requireContext());
-                        Intent intent = new Intent(requireContext(), AuthActivity.class);
-                        startActivity(intent);
-                        requireActivity().finish();
-                        return true;
-                    default:
-                        return false;
-                }
-            });
-            // Showing the popup menu
-            popupMenu.show();
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
+        settingsButton.setOnClickListener(clickedView -> {
+            navController.navigate(ProfilePageFragmentDirections.settingsContainer());
         });
     }
 
