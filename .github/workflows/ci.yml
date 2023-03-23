@@ -23,6 +23,11 @@ jobs:
     - name: chmod
       run: chmod +x gradlew
       
+    - name: get API key
+      env:
+        MAPS_API_KEY: ${{ secrets.MAPS_API_KEY }}
+      run: echo MAPS_API_KEY="$MAPS_API_KEY" > ./local.properties
+      
     - name: build
       run: ./gradlew build
 
