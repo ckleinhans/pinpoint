@@ -1,5 +1,5 @@
 package edu.wisc.ece.pinpoint;
-import androidx.appcompat.app.AppCompatDelegate;
+
 import android.os.Bundle;
 import android.view.View;
 
@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onMapButtonClick(View view) {
-        navController.navigate(R.id.navbarMap);
+        navController.navigate(R.id.navbar_map);
 
         // TODO: temporary use map button to log user out, remove later
         firebase.logout(MainActivity.this);

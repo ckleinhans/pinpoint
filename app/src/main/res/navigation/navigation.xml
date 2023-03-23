@@ -3,20 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/navigation"
-    app:startDestination="@id/navbarMap">
+    app:startDestination="@id/navbar_map">
     <fragment
-        android:id="@+id/navbarMap"
+        android:id="@+id/navbar_map"
         android:name="edu.wisc.ece.pinpoint.pages.map.MapFragment"
         android:label="fragment_map"
         tools:layout="@layout/fragment_map" />
     <fragment
-        android:id="@+id/navbarProfile"
+        android:id="@+id/navbar_profile"
         android:name="edu.wisc.ece.pinpoint.pages.profile.ProfilePageFragment"
         android:label="fragment_profile_page"
         tools:layout="@layout/fragment_profile_page">
         <action
             android:id="@+id/editProfile"
-            app:destination="@id/editProfileFragment" />
+            app:destination="@id/edit_profile_fragment" />
         <argument
             android:name="uid"
             android:defaultValue="@null"
@@ -24,14 +24,14 @@
             app:nullable="true" />
     </fragment>
     <fragment
-        android:id="@+id/editProfileFragment"
+        android:id="@+id/edit_profile_fragment"
         android:name="edu.wisc.ece.pinpoint.pages.profile.EditProfileFragment"
         android:label="fragment_edit_profile"
         tools:layout="@layout/fragment_edit_profile" />
     <action
         android:id="@+id/map"
-        app:destination="@id/navbarMap" />
+        app:destination="@id/navbar_map" />
     <action
         android:id="@+id/profile"
-        app:destination="@id/navbarProfile" />
+        app:destination="@id/navbar_profile" />
 </navigation>
