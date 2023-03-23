@@ -43,8 +43,6 @@
                     android:ellipsize="end"
                     android:maxLines="2"
                     android:textAlignment="textStart"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
                     android:text="time"
                     />
@@ -103,7 +101,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                tools:ignore="MissingConstraints"
                 android:text="Hello"
                 android:textColor="@color/black"
                 tools:ignore="MissingConstraints"
@@ -132,8 +129,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="18dp"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:text="Bhuvi : my favourite place on earth" />
@@ -158,8 +153,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:drawablePadding="12dp"
-                    android:gravity="center_vertical"
-                    android:textColor="@color/black"
                     tools:text="12 likes" />
 
 
@@ -172,8 +165,6 @@
                     android:drawablePadding="12dp"
                     android:padding="8dp"
                     android:gravity="center_vertical"
-                    android:textColor="@color/black"
-
                     tools:text="86 comments" />
 
 
