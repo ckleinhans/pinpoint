@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -13,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
@@ -59,6 +61,7 @@ public class ProfilePageFragment extends Fragment {
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
         profilePic = requireView().findViewById(R.id.profile_pic);
+        ImageButton settingsButton = requireView().findViewById(R.id.profile_settings);
         Button button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
@@ -75,6 +78,7 @@ public class ProfilePageFragment extends Fragment {
                 // TODO: implement user following
             });
         }
+        settingsButton.setOnClickListener(clickedView -> navController.navigate(ProfilePageFragmentDirections.settingsContainer()));
 
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {
@@ -87,7 +91,7 @@ public class ProfilePageFragment extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText(R.string.activity_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
         ProfileFragmentAdapter fragmentAdapter =
-                new ProfileFragmentAdapter(this.getChildFragmentManager(), tabLayout.getTabCount(),
+                new ProfileFragmentAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {

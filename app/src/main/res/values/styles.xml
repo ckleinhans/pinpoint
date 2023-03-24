@@ -4,4 +4,22 @@
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">50%</item>
     </style>
+    <style name="TextAppearance.Pinpoint.Numbers" parent="TextAppearance.Pinpoint.ThickText">
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0</item>
+        <item name="android:typeface">monospace</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
+    <style name="TextAppearance.Pinpoint.ThickText" parent="TextAppearance.Pinpoint.Default">
+        <item name="fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">20sp</item>
+    </style>
+    <style name="TextAppearance.Pinpoint.Default" parent="TextAppearance.AppCompat">
+        <item name="fontFamily">sans-serif-light</item>
+        <item name="android:textColor">?attr/colorOnBackground</item>
+    </style>
+    <style name="ButtonStyle.Pinpoint.Default" parent="Widget.MaterialComponents.Button">
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="backgroundTint">?attr/colorPrimary</item>
+    </style>
 </resources>

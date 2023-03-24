@@ -22,6 +22,9 @@
             android:defaultValue="@null"
             app:argType="string"
             app:nullable="true" />
+        <action
+            android:id="@+id/settingsContainer"
+            app:destination="@id/settingsContainerFragment" />
     </fragment>
     <fragment
         android:id="@+id/editProfileFragment"
@@ -34,4 +37,9 @@
     <action
         android:id="@+id/profile"
         app:destination="@id/navbarProfile" />
+    <fragment
+        android:id="@+id/settingsContainerFragment"
+        android:name="edu.wisc.ece.pinpoint.pages.profile.SettingsContainerFragment"
+        android:label="fragment_settings_container"
+        tools:layout="@layout/fragment_settings_container" />
 </navigation>

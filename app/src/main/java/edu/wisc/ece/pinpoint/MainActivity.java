@@ -1,5 +1,4 @@
 package edu.wisc.ece.pinpoint;
-import androidx.appcompat.app.AppCompatDelegate;
 import android.os.Bundle;
 import android.view.View;
 
@@ -8,7 +7,9 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
 
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
@@ -23,14 +24,23 @@ public class MainActivity extends AppCompatActivity {
         firebase = FirebaseDriver.getInstance();
         navController = Navigation.findNavController(this, R.id.activity_main_nav_host_fragment);
         BottomNavigationView navBar = findViewById(R.id.navBar);
+        BottomAppBar navBarContainer = findViewById(R.id.bottomBar);
+        FloatingActionButton mapButton = findViewById(R.id.mapButton);
         navBar.getMenu().getItem(2).setEnabled(false);
         NavigationUI.setupWithNavController(navBar, navController);
+
+        navController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
+            if (navDestination.getId() == R.id.settingsContainerFragment) {
+                navBarContainer.setVisibility(View.GONE);
+                mapButton.setVisibility(View.GONE);
+            } else {
+                navBarContainer.setVisibility(View.VISIBLE);
+                mapButton.setVisibility(View.VISIBLE);
+            }
+        });
     }
 
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbarMap);
-
-        // TODO: temporary use map button to log user out, remove later
-        firebase.logout(MainActivity.this);
     }
 }
