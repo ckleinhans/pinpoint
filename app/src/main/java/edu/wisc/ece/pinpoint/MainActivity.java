@@ -12,17 +12,13 @@ import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
-
 public class MainActivity extends AppCompatActivity {
-    private FirebaseDriver firebase;
     private NavController navController;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        firebase = FirebaseDriver.getInstance();
         navController = Navigation.findNavController(this, R.id.activity_main_nav_host_fragment);
         BottomNavigationView navBar = findViewById(R.id.navBar);
         BottomAppBar navBarContainer = findViewById(R.id.bottomBar);
@@ -31,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navBar, navController);
 
         navController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
-            if (navDestination.getId() == R.id.settingsContainerFragment) {
+            if (navDestination.getId() == R.id.settings_container_fragment) {
                 navBarContainer.setVisibility(View.GONE);
                 mapButton.setVisibility(View.GONE);
             } else {
