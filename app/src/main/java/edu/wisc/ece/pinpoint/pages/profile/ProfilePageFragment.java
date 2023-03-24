@@ -1,6 +1,5 @@
 package edu.wisc.ece.pinpoint.pages.profile;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,7 +36,6 @@ public class ProfilePageFragment extends Fragment {
     private TextView location;
     private TextView bio;
     private ImageView profilePic;
-    private ImageButton settingsButton;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,7 +61,7 @@ public class ProfilePageFragment extends Fragment {
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
         profilePic = requireView().findViewById(R.id.profile_pic);
-        settingsButton = requireView().findViewById(R.id.profile_settings);
+        ImageButton settingsButton = requireView().findViewById(R.id.profile_settings);
         Button button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
@@ -80,6 +78,7 @@ public class ProfilePageFragment extends Fragment {
                 // TODO: implement user following
             });
         }
+        settingsButton.setOnClickListener(clickedView -> navController.navigate(ProfilePageFragmentDirections.settingsContainer()));
 
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {
@@ -118,11 +117,6 @@ public class ProfilePageFragment extends Fragment {
                 //noinspection ConstantConditions
                 tabLayout.getTabAt(position).select();
             }
-        });
-
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
-        settingsButton.setOnClickListener(clickedView -> {
-            navController.navigate(ProfilePageFragmentDirections.settingsContainer());
         });
     }
 

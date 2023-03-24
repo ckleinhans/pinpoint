@@ -2,8 +2,8 @@
 <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
     <Preference
         app:key="logout"
-        app:title="@string/log_out_text"
-        app:icon="@drawable/ic_profile"/>
+        app:title="@string/logout_text"
+        app:icon="@drawable/ic_logout" />
     <!--TODO: add more settings-->
 
 </androidx.preference.PreferenceScreen>

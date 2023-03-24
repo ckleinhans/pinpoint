@@ -14,7 +14,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
-            android:id="@+id/edit_profile"
+            android:id="@+id/settings_title"
             android:text="@string/settings_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -48,6 +48,6 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/top_bar"/>
+        app:layout_constraintTop_toBottomOf="@id/top_bar" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -14,7 +14,7 @@
     <string name="bio_text">Bio</string>
     <string name="verify_email_text">Verify your account by clicking the link sent to your email.</string>
     <string name="resend_email_text">Resend email</string>
-    <string name="logout_text">Logout</string>
+    <string name="logout_text">Log Out</string>
     <string name="map_button_text">Map Button</string>
     <string name="feed_text">Feed</string>
     <string name="leaderboard_text">Leaderboard</string>
@@ -32,5 +32,4 @@
     <string name="profile_pic_upload_text">Profile Picture Upload</string>
     <string name="profile_pic_text">Profile Picture</string>
     <string name="settings_text">Settings</string>
-    <string name="log_out_text">Log Out</string>
 </resources>
