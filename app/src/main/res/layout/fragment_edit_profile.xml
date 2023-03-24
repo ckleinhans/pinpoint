@@ -13,6 +13,19 @@
         android:background="?attr/colorPrimary"
         app:layout_constraintTop_toTopOf="parent">
 
+        <TextView
+            android:id="@+id/edit_profile"
+            android:text="@string/edit_profile_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:textAlignment="center"
+            android:textColor="?attr/colorOnPrimary"
+            style="@style/TextAppearance.Pinpoint.ThickText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <ImageButton
             android:id="@+id/profile_edit_save"
             style="@style/Widget.AppCompat.Button.Borderless"
