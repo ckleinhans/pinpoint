@@ -31,5 +31,6 @@
     <string name="profile_cancel">Cancel</string>
     <string name="profile_pic_upload_text">Profile Picture Upload</string>
     <string name="profile_pic_text">Profile Picture</string>
+    <string name="location_error_text">Couldn\'t get location information. Try again later.</string>
     <string name="settings_text">Settings</string>
 </resources>

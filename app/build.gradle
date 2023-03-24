@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'com.google.gms.google-services'
     id 'androidx.navigation.safeargs'
+    id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
 }
 
 android {
@@ -40,24 +41,23 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    // Import the Firebase BoM (when using the BoM, you don't specify versions in Firebase library dependencies)
+    // Import Firebase BoM (when using BoM don't specify versions in Firebase library dependencies)
     implementation platform('com.google.firebase:firebase-bom:31.2.2')
-    // Add the dependency for the Firebase SDK for Google Analytics
+    // Firebase product dependencies (https://firebase.google.com/docs/android/setup#available-libraries)
     implementation 'com.google.firebase:firebase-analytics'
-    // Add the dependencies for other Firebase products
-    // See https://firebase.google.com/docs/android/setup#available-libraries
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-functions'
-    // Use FirebaseUI authentication & storage dependencies
+    // FirebaseUI authentication dependency
     implementation 'com.firebaseui:firebase-ui-auth:8.0.2'
-    implementation 'com.firebaseui:firebase-ui-storage:7.2.0'
-    // Dependency for the Google Play services authentication
+    // Google Play services authentication dependency
     implementation 'com.google.android.gms:play-services-auth:20.4.1'
-    // Dependency for Glide image handling library
+    // Glide image handling library dependency
     implementation 'com.github.bumptech.glide:glide:4.15.1'
+    // Google Places API dependency
+    implementation 'com.google.android.libraries.places:places:3.0.0'
     // Dependency for settings menu
     implementation 'androidx.preference:preference:1.2.0'
     // Required only if Facebook login support is required
