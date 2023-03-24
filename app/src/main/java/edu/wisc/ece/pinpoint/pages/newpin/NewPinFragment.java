@@ -7,26 +7,30 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.widget.ViewPager2;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.pages.profile.ProfileFragmentAdapter;
+import edu.wisc.ece.pinpoint.data.Pin;
+import edu.wisc.ece.pinpoint.data.Pin.PinType;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link NewPinFragment#newInstance} factory method to
- * create an instance of this fragment.
- *
- */
 public class NewPinFragment extends Fragment {
 
+    private static final String TAG = Pin.class.getName();
 
     private TabLayout newpin_tabLayout;
     private ViewPager2 newpin_viewPager;
@@ -34,6 +38,8 @@ public class NewPinFragment extends Fragment {
     private ScrollView newpin_scrollview;
 
     private EditText newpin_inputeditlayout;
+
+    private Button dropButton;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -56,6 +62,9 @@ public class NewPinFragment extends Fragment {
                 new NewPinFragmentAdapter(this.getChildFragmentManager(),
                         newpin_tabLayout.getTabCount(), getLifecycle());
         newpin_viewPager.setAdapter(fragmentAdapter);
+
+        dropButton = requireView().findViewById(R.id.drop_pin_button);
+        dropButton.setOnClickListener(v -> createNewPin());
 
         //Force the screen to scroll to the bottom after the caption text input gets focus.
         //Post delay is required as the scroll does not do anything if the fragment hasn't been pushed
@@ -106,5 +115,27 @@ public class NewPinFragment extends Fragment {
 
     }
 
+    private void createNewPin() {
+        EditText contentContainer = requireView().findViewById(R.id.newpin_textcontent_editlayout);
+        String content = String.valueOf(contentContainer.getText());
+        String caption = String.valueOf(newpin_inputeditlayout.getText());
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        // TODO: determine and set PinType based on currently selected tab fragment
+        Pin p = new Pin(caption, user.getUid(), PinType.TEXT, content);
+        Task<DocumentReference> ret = p.save();
+        ret.addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
+                Toast.makeText(getContext(), "Successfully dropped Pin!", Toast.LENGTH_SHORT).show();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Error adding document", e);
+                Toast.makeText(getContext(), "Error dropping Pin...", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 
 }
