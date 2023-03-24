@@ -26,13 +26,13 @@ import androidx.navigation.Navigation;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.libraries.places.api.model.Place;
-import com.google.android.libraries.places.api.model.PlaceTypes;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -77,8 +77,11 @@ public class EditProfileFragment extends Fragment {
                             Intent data = result.getData();
                             if (resultCode == RESULT_OK && data != null) {
                                 locationInputLayout.setErrorEnabled(false);
-                                locationInput.setText(
-                                        Autocomplete.getPlaceFromIntent(data).getAddress());
+                                String address = Autocomplete.getPlaceFromIntent(data).getAddress();
+                                if (address != null) {
+                                    address = address.replaceAll("[, ]?\\d{5}", "");
+                                }
+                                locationInput.setText(address);
                                 bioInput.requestFocus();
                             } else if (resultCode != RESULT_CANCELED) {
                                 locationInputLayout.setError(
@@ -109,6 +112,8 @@ public class EditProfileFragment extends Fragment {
         // Make location input open autocomplete picker instead of allowing typing
         locationInput.setKeyListener(null);
         locationInput.setOnFocusChangeListener(this::launchLocationAutocomplete);
+        locationInput.setOnClickListener(
+                (locationView) -> launchLocationAutocomplete(locationView, true));
 
         cancelButton.setOnClickListener(
                 (buttonView) -> navController.navigate(EditProfileFragmentDirections.profile()));
@@ -189,7 +194,8 @@ public class EditProfileFragment extends Fragment {
 
     private void launchLocationAutocomplete(View view, boolean isFocused) {
         if (isFocused) {
-            List<String> placesFilter = Collections.singletonList(PlaceTypes.REGIONS);
+            List<String> placesFilter = Arrays.asList("locality", "sublocality", "colloquial_area",
+                    "administrative_area_level_2", "administrative_area_level_3");
             List<Place.Field> requestedFields = Collections.singletonList(Place.Field.ADDRESS);
             locationAutocompleteLauncher.launch(
                     new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY,
