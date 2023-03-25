@@ -21,6 +21,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
@@ -116,7 +117,7 @@ public class EditProfileFragment extends Fragment {
                 (locationView) -> launchLocationAutocomplete(locationView, true));
 
         cancelButton.setOnClickListener(
-                (buttonView) -> navController.navigate(EditProfileFragmentDirections.profile()));
+                (buttonView) -> navController.navigate((NavDirections) EditProfileFragmentDirections.profile()));
         saveButton.setOnClickListener(this::save);
         profilePicUpload.setOnClickListener(this::uploadPicture);
 
@@ -154,7 +155,7 @@ public class EditProfileFragment extends Fragment {
 
         OnCompleteListener<Void> saveUserDataListener = task -> {
             if (task.isSuccessful()) {
-                navController.navigate(EditProfileFragmentDirections.profile());
+                navController.navigate((NavDirections) EditProfileFragmentDirections.profile());
             } else {
                 cachedUser.setUsername(oldUsername).setLocation(oldLocation).setBio(oldBio)
                         .setProfilePicUrl(oldProfilePicUrl, false);

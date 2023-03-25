@@ -41,8 +41,9 @@
         android:id="@+id/settings_container_fragment"
         android:name="edu.wisc.ece.pinpoint.pages.profile.SettingsContainerFragment"
         android:label="fragment_settings_container"
-        tools:layout="@layout/fragment_settings_container" />
-        tools:layout="@layout/fragment_profile_page" />
+        tools:layout="@layout/fragment_settings_container"
+        />
+<!--       /> tools:layout="@layout/fragment_profile_page" />-->
     <fragment
         android:id="@+id/navbarSearch"
         android:name="edu.wisc.ece.pinpoint.pages.pinList.pinListFragment"

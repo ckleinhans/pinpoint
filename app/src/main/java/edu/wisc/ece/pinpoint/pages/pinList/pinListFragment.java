@@ -55,12 +55,16 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavDirections;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.ArrayList;
+import androidx.navigation.NavController;
 
 import edu.wisc.ece.pinpoint.R;
 
@@ -68,6 +72,9 @@ public class pinListFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private RecyclerViewAdapter adapter;
+    NavController navController;
+    Button button;
+    TextView view;
 
     private ArrayList<RecyclerData> recyclerDataArrayList;
 
@@ -115,7 +122,23 @@ public class pinListFragment extends Fragment {
             recyclerView.setAdapter(adapter);
             recyclerView.setItemAnimator(new DefaultItemAnimator());
 
+            view = rootView.findViewById(R.id.idCourseRV);
+
+            view.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    openPinView();
+                }
+            });
+
+
         return rootView;
+    }
+
+        public void openPinView(){
+      NavDirections directions =  pinListFragmentDirections.actionNavbarSearchToPinViewPage();
+        navController.navigate(directions);
+
     }
 
 

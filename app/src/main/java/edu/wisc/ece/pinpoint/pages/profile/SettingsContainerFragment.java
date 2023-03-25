@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
+import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
 
 import android.os.Bundle;
@@ -35,6 +36,6 @@ public class SettingsContainerFragment extends Fragment {
         NavController navController = Navigation.findNavController(view);
         ImageButton cancelButton = requireView().findViewById(R.id.settings_cancel);
         cancelButton.setOnClickListener(
-                (buttonView) -> navController.navigate(SettingsContainerFragmentDirections.profile()));
+                (buttonView) -> navController.navigate((NavDirections) SettingsContainerFragmentDirections.profile()));
     }
 }
