@@ -72,9 +72,7 @@ public class pinListFragment extends Fragment {
 
     private RecyclerView recyclerView;
     private RecyclerViewAdapter adapter;
-    NavController navController;
-    Button button;
-    TextView view;
+
 
     private ArrayList<RecyclerData> recyclerDataArrayList;
 
@@ -122,24 +120,13 @@ public class pinListFragment extends Fragment {
             recyclerView.setAdapter(adapter);
             recyclerView.setItemAnimator(new DefaultItemAnimator());
 
-            view = rootView.findViewById(R.id.idCourseRV);
 
-            view.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    openPinView();
-                }
-            });
 
 
         return rootView;
     }
 
-        public void openPinView(){
-      NavDirections directions =  pinListFragmentDirections.actionNavbarSearchToPinViewPage();
-        navController.navigate(directions);
 
-    }
 
 
     }
