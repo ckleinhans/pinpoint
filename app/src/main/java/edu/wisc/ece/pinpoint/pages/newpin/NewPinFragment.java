@@ -20,21 +20,31 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.GeoPoint;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.LocationDriver;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
 public class NewPinFragment extends Fragment {
     private static final String TAG = NewPinFragment.class.getName();
     private FirebaseDriver firebase;
+    private LocationDriver locationDriver;
     private NavController navController;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
     private EditText captionInput;
     private Button dropButton;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        firebase = FirebaseDriver.getInstance();
+        locationDriver = LocationDriver.getInstance(requireContext());
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -44,9 +54,7 @@ public class NewPinFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        firebase = FirebaseDriver.getInstance();
         navController = Navigation.findNavController(view);
-
         captionInput = requireView().findViewById(R.id.newpin_caption_input);
 
         ImageButton cancelButton = requireView().findViewById(R.id.newpin_cancel);
@@ -94,7 +102,7 @@ public class NewPinFragment extends Fragment {
         dropButton.setEnabled(false);
         int currentTabIndex = viewPager.getCurrentItem();
 
-        String content = null;
+        String content;
         if (currentTabIndex == 0) {
             // Text content pin
             EditText textContentInput = requireView().findViewById(R.id.newpin_text_content_input);
@@ -110,21 +118,31 @@ public class NewPinFragment extends Fragment {
             content = String.valueOf(textContentInput.getText());
         } else {
             // TODO: get locally stored image URL for content
+            content = "IMAGE PLACEHOLDER";
         }
 
         PinType type = currentTabIndex == 0 ? PinType.TEXT : PinType.IMAGE;
         String caption = String.valueOf(captionInput.getText());
         FirebaseUser user = firebase.getCurrentUser();
-        Pin p = new Pin(caption, user.getUid(), type, content);
 
-        p.save().addOnSuccessListener(documentReference -> {
-            Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
-            Toast.makeText(requireContext(), "Successfully dropped Pin!", Toast.LENGTH_SHORT)
-                    .show();
-            // TODO: navigate user to pin view page
+        locationDriver.getCurrentLocation(requireContext()).addOnSuccessListener(location -> {
+            GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+            Pin p = new Pin(caption, user.getUid(), type, content, geoPoint);
+            p.save().addOnSuccessListener(documentReference -> {
+                Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
+                Toast.makeText(requireContext(), "Successfully dropped Pin!", Toast.LENGTH_SHORT)
+                        .show();
+                // TODO: navigate user to pin view page
+            }).addOnFailureListener(e -> {
+                Log.w(TAG, "Error adding document", e);
+                Toast.makeText(requireContext(), "Error dropping Pin...", Toast.LENGTH_SHORT)
+                        .show();
+                dropButton.setEnabled(true);
+            });
         }).addOnFailureListener(e -> {
-            Log.w(TAG, "Error adding document", e);
-            Toast.makeText(requireContext(), "Error dropping Pin...", Toast.LENGTH_SHORT).show();
+            Log.w(TAG, "Error getting user location", e);
+            Toast.makeText(requireContext(), "Error getting location...", Toast.LENGTH_SHORT)
+                    .show();
             dropButton.setEnabled(true);
         });
     }
