@@ -1,9 +1,14 @@
-package edu.wisc.ece.pinpoint.pages.pinList;
+package edu.wisc.ece.pinpoint.pages.pins;
 
 public class RecyclerData {
 
     private String title;
     private int imgid;
+
+    public RecyclerData(String title, int imgid) {
+        this.title = title;
+        this.imgid = imgid;
+    }
 
     public String getTitle() {
         return title;
@@ -18,11 +23,6 @@ public class RecyclerData {
     }
 
     public void setImgid(int imgid) {
-        this.imgid = imgid;
-    }
-
-    public RecyclerData(String title, int imgid) {
-        this.title = title;
         this.imgid = imgid;
     }
 }

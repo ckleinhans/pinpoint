@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -36,17 +35,14 @@
                 app:layout_constraintTop_toTopOf="@id/avatar_image_view">
 
                 <TextView
-                    android:id="@+id/display_name_text_view"
+                    android:id="@+id/pin_username"
                     style="@style/TextAppearance.AppCompat.Body1"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:ellipsize="end"
                     android:maxLines="2"
                     android:textAlignment="textStart"
-                    app:layout_constraintStart_toStartOf="parent"
-                    android:text="time"
-                    />
-
+                    app:layout_constraintStart_toStartOf="parent" />
             </LinearLayout>
 
             <LinearLayout
@@ -59,7 +55,7 @@
                 app:layout_constraintTop_toBottomOf="@id/layout_posted_by">
 
                 <TextView
-                    android:id="@+id/post_time_text"
+                    android:id="@+id/pin_post_time"
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -68,12 +64,8 @@
                     android:gravity="center_vertical"
                     android:maxLines="1"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    android:text="name"
-                    />
-
+                    app:layout_constraintTop_toTopOf="parent" />
             </LinearLayout>
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -87,30 +79,24 @@
                 android:layout_height="0dp"
                 android:adjustViewBounds="true"
                 android:background="@color/black"
+                android:contentDescription="@string/pin_image_text"
                 android:src="@drawable/oldnote"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintDimensionRatio="H,1:1"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-
-                />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
-                android:id="@+id/messageView"
+                android:id="@+id/pin_text_content"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="Hello"
                 android:textColor="@color/black"
                 tools:ignore="MissingConstraints"
                 tools:layout_editor_absoluteX="123dp"
-                tools:layout_editor_absoluteY="74dp"
-                />
-
-
+                tools:layout_editor_absoluteY="74dp" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -124,53 +110,43 @@
                 tools:ignore="MissingConstraints">
 
                 <TextView
-                    android:id="@+id/description_textview"
+                    android:id="@+id/pin_caption"
                     style="@style/TextAppearance.Material3.BodyMedium"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="18dp"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:text="Bhuvi : my favourite place on earth" />
-
+                    app:layout_constraintTop_toTopOf="parent" />
             </LinearLayout>
-
 
             <LinearLayout
                 android:id="@+id/post_action_view"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
                 android:layout_marginStart="12dp"
+                android:layout_marginEnd="16dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
                 app:layout_constraintTop_toBottomOf="@id/reaction_status_view">
 
                 <TextView
-                    android:padding="8dp"
-                    android:id="@+id/like_count_textview"
+                    android:id="@+id/pin_like_count"
                     style="@style/TextAppearance.AppCompat.Body1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:drawablePadding="12dp"
-                    tools:text="12 likes" />
-
+                    android:padding="8dp" />
 
                 <TextView
-                    android:id="@+id/comment_count_textview"
+                    android:id="@+id/pin_comment_count"
                     style="@style/TextAppearance.AppCompat.Body1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="24dp"
                     android:drawablePadding="12dp"
-                    android:padding="8dp"
                     android:gravity="center_vertical"
-                    tools:text="86 comments" />
-
-
+                    android:padding="8dp" />
             </LinearLayout>
-
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

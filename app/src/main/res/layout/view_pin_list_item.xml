@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/pinlist_item"
     android:layout_width="match_parent"
     android:layout_height="120dp"
     android:layout_gravity="center"
@@ -15,19 +15,20 @@
         android:orientation="vertical">
 
         <ImageView
-            android:id="@+id/idIVcourseIV"
+            android:id="@+id/pinlist_item_image"
             android:layout_width="80dp"
             android:layout_height="80dp"
             android:layout_gravity="center"
+            android:contentDescription="@string/pin_thumbnail_text"
             android:src="@mipmap/ic_launcher" />
 
         <Button
-            android:id="@+id/idTVCourse"
+            android:id="@+id/pinlist_item_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:text="@string/app_name"
-            android:textAlignment="center"
-            android:layout_gravity="center"/>
+            android:textAlignment="center" />
 
     </LinearLayout>
 

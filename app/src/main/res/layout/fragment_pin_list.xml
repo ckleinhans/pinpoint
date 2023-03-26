@@ -1,22 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--XMl Layout for RecyclerView-->
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    >
+    tools:context=".pages.pins.PinListFragment">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/idCourseRV"
+        android:id="@+id/pinlist_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="?attr/actionBarSize"
         tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="4dp">
-
-    </androidx.recyclerview.widget.RecyclerView>
-
+        tools:layout_editor_absoluteX="4dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>
