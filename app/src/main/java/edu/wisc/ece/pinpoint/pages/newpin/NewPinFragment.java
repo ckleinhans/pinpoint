@@ -18,12 +18,14 @@ import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseUser;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
 public class NewPinFragment extends Fragment {
     private static final String TAG = NewPinFragment.class.getName();
@@ -31,7 +33,6 @@ public class NewPinFragment extends Fragment {
     private NavController navController;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
-    private EditText textContentInput;
     private EditText captionInput;
     private Button dropButton;
 
@@ -47,7 +48,6 @@ public class NewPinFragment extends Fragment {
         navController = Navigation.findNavController(view);
 
         captionInput = requireView().findViewById(R.id.newpin_caption_input);
-        textContentInput = requireView().findViewById(R.id.newpin_text_content_input);
 
         ImageButton cancelButton = requireView().findViewById(R.id.newpin_cancel);
         cancelButton.setOnClickListener(
@@ -92,12 +92,31 @@ public class NewPinFragment extends Fragment {
 
     private void createNewPin() {
         dropButton.setEnabled(false);
-        String content = String.valueOf(textContentInput.getText());
+        int currentTabIndex = viewPager.getCurrentItem();
+
+        String content = null;
+        if (currentTabIndex == 0) {
+            // Text content pin
+            EditText textContentInput = requireView().findViewById(R.id.newpin_text_content_input);
+            TextInputLayout textContentLayout =
+                    requireView().findViewById(R.id.newpin_text_content_input_layout);
+            if (ValidationUtils.isEmpty(textContentInput)) {
+                textContentLayout.setError(getString(R.string.empty_pin_text));
+                dropButton.setEnabled(true);
+                return;
+            } else {
+                textContentLayout.setErrorEnabled(false);
+            }
+            content = String.valueOf(textContentInput.getText());
+        } else {
+            // TODO: get locally stored image URL for content
+        }
+
+        PinType type = currentTabIndex == 0 ? PinType.TEXT : PinType.IMAGE;
         String caption = String.valueOf(captionInput.getText());
         FirebaseUser user = firebase.getCurrentUser();
-        // TODO: add input validation (prevent empty pins, etc)
-        // TODO: determine and set PinType based on currently selected tab fragment
-        Pin p = new Pin(caption, user.getUid(), PinType.TEXT, content);
+        Pin p = new Pin(caption, user.getUid(), type, content);
+
         p.save().addOnSuccessListener(documentReference -> {
             Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
             Toast.makeText(requireContext(), "Successfully dropped Pin!", Toast.LENGTH_SHORT)

@@ -42,4 +42,5 @@
     <string name="new_pin_text">New Pin</string>
     <string name="image_text">Image</string>
     <string name="text_text">Text</string>
+    <string name="empty_pin_text">You can\'t post an empty pin!</string>
 </resources>
