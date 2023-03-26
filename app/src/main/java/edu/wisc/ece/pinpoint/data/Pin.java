@@ -2,6 +2,11 @@ package edu.wisc.ece.pinpoint.data;
 
 import android.location.Location;
 
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import androidx.annotation.NonNull;
 
 import com.google.firebase.firestore.GeoPoint;

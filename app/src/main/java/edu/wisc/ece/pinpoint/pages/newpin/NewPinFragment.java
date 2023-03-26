@@ -21,6 +21,8 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.GeoPoint;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Pin;
@@ -99,7 +101,6 @@ public class NewPinFragment extends Fragment {
             }
         });
 
-
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -135,6 +136,7 @@ public class NewPinFragment extends Fragment {
 
         PinType type = currentTabIndex == 0 ? PinType.TEXT : PinType.IMAGE;
         String caption = String.valueOf(captionInput.getText());
+        FirebaseUser user = firebase.getCurrentUser();
 
         locationDriver.getCurrentLocation(requireContext()).addOnCompleteListener(task -> {
             if (!task.isSuccessful() || task.getResult() == null) {
