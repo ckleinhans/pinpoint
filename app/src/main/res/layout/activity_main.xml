@@ -33,9 +33,9 @@
             android:background="@android:color/transparent"
             android:outlineSpotShadowColor="@android:color/transparent"
             app:elevation="0dp"
+            app:itemBackground="@color/transparent"
             app:itemHorizontalTranslationEnabled="false"
             app:itemIconTint="?attr/colorBackgroundFloating"
-            app:itemBackground="@color/transparent"
             app:itemRippleColor="@android:color/transparent"
             app:itemTextColor="?attr/colorOnPrimary"
             app:menu="@menu/nav_bar" />
@@ -49,10 +49,10 @@
         android:contentDescription="@string/map_button_text"
         android:onClick="onMapButtonClick"
         android:src="@drawable/ic_map"
-        app:tint="?attr/colorOnSecondary"
         app:backgroundTint="?attr/colorSecondary"
         app:fabCustomSize="56dp"
         app:layout_anchor="@id/navBar"
-        app:maxImageSize="32dp" />
+        app:maxImageSize="32dp"
+        app:tint="?attr/colorOnSecondary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
