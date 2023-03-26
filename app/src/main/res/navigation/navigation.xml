@@ -31,6 +31,7 @@
             android:id="@+id/settingsContainer"
             app:destination="@id/settings_container_fragment" />
     </fragment>
+
     <fragment
         android:id="@+id/edit_profile_fragment"
         android:name="edu.wisc.ece.pinpoint.pages.profile.EditProfileFragment"
@@ -50,4 +51,24 @@
         android:name="edu.wisc.ece.pinpoint.pages.profile.SettingsContainerFragment"
         android:label="fragment_settings_container"
         tools:layout="@layout/fragment_settings_container" />
+    <fragment
+        android:id="@+id/navbar_feed"
+        android:name="edu.wisc.ece.pinpoint.pages.pins.PinListFragment"
+        android:label="fragment_pin_list"
+        tools:layout="@layout/fragment_pin_list" />
+    <fragment
+        android:id="@+id/pin_view"
+        android:name="edu.wisc.ece.pinpoint.pages.pins.PinViewFragment"
+        android:label="fragment_pin_view"
+        tools:layout="@layout/fragment_pin_view">
+        <argument
+            android:name="pid"
+            app:argType="string" />
+    </fragment>
+    <action
+        android:id="@+id/feed"
+        app:destination="@id/navbar_feed" />
+    <action
+        android:id="@+id/pinView"
+        app:destination="@id/pin_view" />
 </navigation>

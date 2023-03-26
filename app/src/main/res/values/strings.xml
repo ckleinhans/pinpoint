@@ -33,6 +33,8 @@
     <string name="profile_pic_text">Profile Picture</string>
     <string name="location_error_text">Couldn\'t get location information. Try again later.</string>
     <string name="settings_text">Settings</string>
+    <string name="pin_thumbnail_text">Pin Thumbnail</string>
+    <string name="pin_image_text">Pin Image</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="drop_pin_button_text">Drop Pin - $200</string>
     <!-- TODO: Remove or change this placeholder text -->
