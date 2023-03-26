@@ -16,6 +16,7 @@ import java.util.HashMap;
 
 import javax.annotation.Nullable;
 
+import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 
 public final class FirebaseDriver {
@@ -23,6 +24,7 @@ public final class FirebaseDriver {
     private final FirebaseAuth auth;
     private final FirebaseFirestore db;
     private final HashMap<String, User> users;
+    private final HashMap<String, Pin> pins;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -32,6 +34,7 @@ public final class FirebaseDriver {
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         users = new HashMap<>();
+        pins = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -102,5 +105,17 @@ public final class FirebaseDriver {
 
     public User getCachedUser(@NonNull String uid) {
         return users.get(uid);
+    }
+
+    public Task<Pin> fetchPin(@NonNull String pid) {
+        return db.collection("pins").document(pid).get().continueWith(task -> {
+            Pin pin = task.getResult().toObject(Pin.class);
+            pins.put(pid, pin);
+            return pin;
+        });
+    }
+
+    public Pin getCachedPin(@NonNull String pid) {
+        return pins.get(pid);
     }
 }
