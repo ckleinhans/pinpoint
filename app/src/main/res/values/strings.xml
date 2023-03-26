@@ -34,10 +34,12 @@
     <string name="location_error_text">Couldn\'t get location information. Try again later.</string>
     <string name="settings_text">Settings</string>
     <!-- TODO: Remove or change this placeholder text -->
-    <string name="drop_pin_button_text">Drop Pin</string>
+    <string name="drop_pin_button_text">Drop Pin - $200</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="caption_hint">Type here</string>
-    <string name="newpin_caption_title">Caption</string>
-    <string name="newpin_textcontent_title">Pin Content</string>
+    <string name="caption_text">Caption</string>
+    <string name="pin_content_text">Write your Pin here!</string>
+    <string name="new_pin_text">New Pin</string>
+    <string name="image_text">Image</string>
+    <string name="text_text">Text</string>
 </resources>

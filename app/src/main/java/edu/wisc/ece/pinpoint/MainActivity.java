@@ -12,7 +12,13 @@ import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
+    private static final List<Integer> hiddenNavbarFragments =
+            Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
+                    R.id.navbar_newpin);
     private NavController navController;
 
     @Override
@@ -27,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationUI.setupWithNavController(navBar, navController);
 
         navController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
-            if (navDestination.getId() == R.id.settings_container_fragment) {
+            if (hiddenNavbarFragments.contains(navDestination.getId())) {
                 navBarContainer.setVisibility(View.GONE);
                 mapButton.setVisibility(View.GONE);
             } else {

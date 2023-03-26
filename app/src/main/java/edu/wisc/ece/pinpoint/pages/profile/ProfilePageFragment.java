@@ -14,7 +14,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
@@ -78,7 +77,8 @@ public class ProfilePageFragment extends Fragment {
                 // TODO: implement user following
             });
         }
-        settingsButton.setOnClickListener(clickedView -> navController.navigate(ProfilePageFragmentDirections.settingsContainer()));
+        settingsButton.setOnClickListener(clickedView -> navController.navigate(
+                ProfilePageFragmentDirections.settingsContainer()));
 
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {

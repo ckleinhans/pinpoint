@@ -43,7 +43,7 @@
         android:id="@+id/profile"
         app:destination="@id/navbar_profile" />
     <action
-        android:id="@+id/navbar_search"
+        android:id="@+id/newpin"
         app:destination="@id/navbar_newpin" />
     <fragment
         android:id="@+id/settings_container_fragment"

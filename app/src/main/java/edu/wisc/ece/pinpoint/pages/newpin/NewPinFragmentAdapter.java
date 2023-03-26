@@ -11,7 +11,7 @@ public class NewPinFragmentAdapter extends FragmentStateAdapter {
     private final int tabCount;
 
     public NewPinFragmentAdapter(@NonNull FragmentManager fragmentManager, int tabs,
-                                  @NonNull Lifecycle lifecycle) {
+                                 @NonNull Lifecycle lifecycle) {
         super(fragmentManager, lifecycle);
         tabCount = tabs;
     }
