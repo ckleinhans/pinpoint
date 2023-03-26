@@ -35,7 +35,6 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     public void onBindViewHolder(@NonNull PinListViewHolder holder, int position) {
         // Set the data to textview and imageview.
         RecyclerData recyclerData = pinList.get(position);
-        holder.pinButton.setText(recyclerData.getTitle());
         holder.pinImage.setImageResource(recyclerData.getImgid());
     }
 
@@ -51,12 +50,12 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     // View Holder Class to handle Recycler View.
     public class PinListViewHolder extends RecyclerView.ViewHolder {
 
-        private final Button pinButton;
+       // private final Button pinButton;
         private final ImageView pinImage;
 
         public PinListViewHolder(@NonNull View itemView) {
             super(itemView);
-            pinButton = itemView.findViewById(R.id.pinlist_item_button);
+
             pinImage = itemView.findViewById(R.id.pinlist_item_image);
 
             itemView.findViewById(R.id.pinlist_item).setOnClickListener(view -> openPinView());
