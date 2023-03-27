@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.newpin;
 
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -8,10 +9,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ScrollView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -33,6 +36,7 @@ public class NewPinFragment extends Fragment {
     private static final String TAG = NewPinFragment.class.getName();
     private FirebaseDriver firebase;
     private LocationDriver locationDriver;
+    private NestedScrollView scrollView;
     private NavController navController;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
@@ -55,6 +59,7 @@ public class NewPinFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
+        scrollView = requireView().findViewById(R.id.newpin_scrollview);
         captionInput = requireView().findViewById(R.id.newpin_caption_input);
 
         ImageButton cancelButton = requireView().findViewById(R.id.newpin_cancel);
@@ -87,6 +92,29 @@ public class NewPinFragment extends Fragment {
                 // Mandatory override intentionally blank, will not implement onTabReselected
             }
         });
+
+        captionInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+
+                                                  @Override
+                                                  public void onFocusChange(View v, boolean hasFocus) {
+                                                      if (hasFocus) {
+                                                          scrollView.postDelayed(new Runnable() {
+                                                              public void run() {
+                                                                  scrollView.scrollTo(0, Resources.getSystem().getDisplayMetrics().heightPixels);
+                                                              }
+                                                          }, 100);
+                                                      }
+                                                      else{
+                                                          scrollView.postDelayed(new Runnable() {
+                                                              public void run() {
+                                                                  scrollView.scrollTo(0, 0);
+                                                              }
+                                                          }, 100);
+                                                      }
+                                                  }
+                                              });
+
+
 
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
