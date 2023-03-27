@@ -126,6 +126,12 @@ public class NewPinFragment extends Fragment {
         FirebaseUser user = firebase.getCurrentUser();
 
         locationDriver.getCurrentLocation(requireContext()).addOnSuccessListener(location -> {
+            if (location == null) {
+                Toast.makeText(requireContext(),
+                        "Couldn't get your location. Check your location settings!",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
             Pin p = new Pin(caption, user.getUid(), type, content, geoPoint);
             p.save().addOnSuccessListener(documentReference -> {
