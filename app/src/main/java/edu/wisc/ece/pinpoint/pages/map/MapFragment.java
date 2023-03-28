@@ -12,6 +12,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
 import edu.wisc.ece.pinpoint.R;
 
 public class MapFragment extends Fragment {
@@ -20,6 +27,7 @@ public class MapFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Code for requesting location
         locationPermissionRequest =
                 registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
                         result -> {
@@ -43,7 +51,24 @@ public class MapFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_map, container, false);
+        View view = inflater.inflate(R.layout.fragment_map, container, false);
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.google_map);
+        supportMapFragment.getMapAsync(googleMap -> googleMap.setOnMapClickListener(latLng -> {
+            // When clicked on map
+            // Initialize marker options
+            MarkerOptions markerOptions=new MarkerOptions();
+            // Set position of marker
+            markerOptions.position(latLng);
+            // Set title of marker
+            markerOptions.title(latLng.latitude+" : "+latLng.longitude);
+            // Remove all marker
+            googleMap.clear();
+            // Animating to zoom the marker
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,10));
+            // Add marker on map
+            googleMap.addMarker(markerOptions);
+        }));
+        return view;
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
