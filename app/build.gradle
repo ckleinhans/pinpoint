@@ -60,8 +60,10 @@ dependencies {
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
     // Google Places API dependency
     implementation 'com.google.android.libraries.places:places:3.0.0'
-    // Dependency for settings menu
+    // Settings menu dependency
     implementation 'androidx.preference:preference:1.2.0'
+    // Google Maps API dependency
+    implementation 'com.google.android.gms:play-services-maps:18.1.0'
     // Required only if Facebook login support is required
     // Find the latest Facebook SDK releases here: https://github.com/facebook/facebook-android-sdk/blob/master/CHANGELOG.md
     // implementation 'com.facebook.android:facebook-login:8.1.0'
