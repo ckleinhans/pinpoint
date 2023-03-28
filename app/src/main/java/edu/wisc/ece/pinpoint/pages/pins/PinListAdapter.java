@@ -3,26 +3,23 @@ package edu.wisc.ece.pinpoint.pages.pins;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
-import edu.wisc.ece.pinpoint.NavigationDirections;
 import edu.wisc.ece.pinpoint.R;
 
 public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListViewHolder> {
     private final ArrayList<RecyclerData> pinList;
     NavController navController;
 
-    public PinListAdapter(ArrayList<RecyclerData> pinList) {
+    public PinListAdapter(ArrayList<RecyclerData> pinList, NavController navController) {
         this.pinList = pinList;
-      // this.navController = navController;
+        this.navController = navController;
     }
 
     @NonNull
