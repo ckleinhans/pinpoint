@@ -58,7 +58,7 @@ public class AuthActivity extends AppCompatActivity {
                         if (!firebase.isVerified()) {
                             firebase.sendEmailVerification(null);
                         } else {
-                            Intent intent = new Intent(this, MainActivity.class);
+                            Intent intent = new Intent(AuthActivity.this, MainActivity.class);
                             startActivity(intent);
                             finish();
                         }

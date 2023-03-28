@@ -6,6 +6,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -20,19 +21,21 @@ public class Pin {
     private String content;
     private PinType type;
     private Date timestamp;
+    private GeoPoint location;
 
     public Pin() {
     }
 
-    public Pin(String caption, String authorUID, PinType type, String content) {
+    public Pin(String caption, String authorUID, PinType type, String content, GeoPoint location) {
         this.caption = caption;
         this.authorUID = authorUID;
         this.type = type;
         this.content = content;
         this.timestamp = new Date();
+        this.location = location;
     }
 
-    public String getAuthorID() {
+    public String getAuthorUID() {
         return authorUID;
     }
 
@@ -48,6 +51,14 @@ public class Pin {
         return type;
     }
 
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public GeoPoint getLocation() {
+        return location;
+    }
+
     public Task<DocumentReference> save() {
         Map<String, Object> pin = new HashMap<>();
         pin.put("caption", this.caption);
@@ -55,14 +66,11 @@ public class Pin {
         pin.put("content", this.content);
         pin.put("type", this.type);
         pin.put("timestamp", FieldValue.serverTimestamp());
+        pin.put("location", location);
 
         Log.d(TAG, "Saving the following pin to firestore: " + pin);
 
         return FirebaseFirestore.getInstance().collection("pins").add(pin);
-    }
-
-    public Date getTimestamp() {
-        return timestamp;
     }
 
     public enum PinType {
