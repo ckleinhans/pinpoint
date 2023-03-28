@@ -6,9 +6,9 @@
     app:startDestination="@id/navbar_map">
     <fragment
         android:id="@+id/navbar_map"
-        android:name="edu.wisc.ece.pinpoint.pages.map.MapFragment"
+        android:name="edu.wisc.ece.pinpoint.pages.map.MapContainerFragment"
         android:label="fragment_map"
-        tools:layout="@layout/fragment_map" />
+        tools:layout="@layout/fragment_map_container" />
     <fragment
         android:id="@+id/navbar_newpin"
         android:name="edu.wisc.ece.pinpoint.pages.newpin.NewPinFragment"
