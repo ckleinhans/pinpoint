@@ -19,13 +19,14 @@ import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 
+import java.io.File;
+
 import edu.wisc.ece.pinpoint.R;
 
 public class NewPinImageContentFragment extends Fragment {
 
     private ActivityResultLauncher<Intent> photoPickerLauncher;
     private Uri photo;
-
     private ImageView imageContentUpload;
 
     @Override
@@ -59,8 +60,11 @@ public class NewPinImageContentFragment extends Fragment {
     }
 
     private void uploadPicture(View view) {
+
+        File f = new File(android.os.Environment.getExternalStorageDirectory(), "temp.jpg");
+
         // launch gallery opening intent
         photoPickerLauncher.launch(
-                new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI));
+                new Intent(MediaStore.ACTION_IMAGE_CAPTURE).putExtra("return-data", true).putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f)));
     }
 }
