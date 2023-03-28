@@ -9,6 +9,7 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import edu.wisc.ece.pinpoint.pages.profile.ActivityFragment;
 import edu.wisc.ece.pinpoint.pages.profile.DroppedPinsFragment;
+import edu.wisc.ece.pinpoint.pages.profile.EditProfileFragment;
 
 public class PinTabAdapter extends FragmentStateAdapter {
     private final int tabCount;
@@ -22,7 +23,7 @@ public class PinTabAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        return position == 0 ? new DroppedPinsFragment() : new PinListFragment();
+        return position == 0 ?  new PinListFragment() : new DroppedPinsFragment() ;
     }
 
     @Override

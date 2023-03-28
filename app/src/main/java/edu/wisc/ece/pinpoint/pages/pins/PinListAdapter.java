@@ -19,9 +19,9 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     private final ArrayList<RecyclerData> pinList;
     NavController navController;
 
-    public PinListAdapter(ArrayList<RecyclerData> pinList, NavController navController) {
+    public PinListAdapter(ArrayList<RecyclerData> pinList) {
         this.pinList = pinList;
-        this.navController = navController;
+       // this.navController = navController;
     }
 
     @NonNull
@@ -45,7 +45,8 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     }
 
     public void openPinView() {
-        navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView("PLACEHOLDER"));
+        //navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView("PLACEHOLDER"));
+        
     }
 
     // View Holder Class to handle Recycler View.

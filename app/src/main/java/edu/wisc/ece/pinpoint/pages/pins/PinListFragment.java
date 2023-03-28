@@ -13,14 +13,10 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
-
-import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
-
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.pages.profile.ProfileFragmentAdapter;
+
 
 public class PinListFragment extends Fragment {
 
@@ -72,8 +68,7 @@ public class PinListFragment extends Fragment {
         GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 3);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.pinlist_recycler_view);
 
-        PinListAdapter adapter =
-                new PinListAdapter(recyclerDataArrayList, Navigation.findNavController(view));
+        PinListAdapter adapter = new PinListAdapter(recyclerDataArrayList);
 
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
