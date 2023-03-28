@@ -38,8 +38,8 @@ public class PinListTab extends Fragment {
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
-        tabLayout.addTab(tabLayout.newTab().setText(R.string.activity_text));
-        tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
+        tabLayout.addTab(tabLayout.newTab().setText("DROPPED PINS"));
+        tabLayout.addTab(tabLayout.newTab().setText("COLLECTED PINS"));
         PinTabAdapter fragmentAdapter =
                 new PinTabAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());

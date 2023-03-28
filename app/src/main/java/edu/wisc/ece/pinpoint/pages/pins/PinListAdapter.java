@@ -8,6 +8,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
 
     public PinListAdapter(ArrayList<RecyclerData> pinList) {
         this.pinList = pinList;
-       // this.navController = navController;
+      // this.navController = navController;
     }
 
     @NonNull
@@ -45,7 +46,8 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     }
 
     public void openPinView() {
-        //navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView("PLACEHOLDER"));
+
+        navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView("PLACEHOLDER"));
         
     }
 
@@ -59,6 +61,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
             super(itemView);
 
             pinImage = itemView.findViewById(R.id.pinlist_item_image);
+
 
             itemView.findViewById(R.id.pinlist_item).setOnClickListener(view -> openPinView());
         }

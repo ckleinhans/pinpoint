@@ -68,6 +68,8 @@ public class PinListFragment extends Fragment {
         GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 3);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.pinlist_recycler_view);
 
+
+
         PinListAdapter adapter = new PinListAdapter(recyclerDataArrayList);
 
         recyclerView.setLayoutManager(layoutManager);
