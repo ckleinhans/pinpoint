@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 
+import edu.wisc.ece.pinpoint.NavigationDirections;
 import edu.wisc.ece.pinpoint.R;
 
 public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListViewHolder> {
@@ -44,7 +45,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     }
 
     public void openPinView() {
-        navController.navigate(PinListFragmentDirections.pinView("PLACEHOLDER"));
+        navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView("PLACEHOLDER"));
     }
 
     // View Holder Class to handle Recycler View.

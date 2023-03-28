@@ -8,16 +8,24 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
+
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.pages.profile.ProfileFragmentAdapter;
 
 public class PinListFragment extends Fragment {
+
+
+    private NavController navController;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,11 +71,14 @@ public class PinListFragment extends Fragment {
 
         GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 3);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.pinlist_recycler_view);
+
         PinListAdapter adapter =
                 new PinListAdapter(recyclerDataArrayList, Navigation.findNavController(view));
 
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
+
+
     }
 }

@@ -3,14 +3,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".pages.pins.PinListFragment">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".pages.pins.PinListFragment"
+    >
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/pinlist_recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingBottom="90dp"
+        android:layout_width="415dp"
+        android:layout_height="733dp"
         android:clipToPadding="false"
+        android:paddingTop="90dp"
+        android:paddingBottom="90dp"
         tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="4dp" />
+        tools:layout_editor_absoluteX="-2dp"
+        tools:layout_editor_absoluteY="-2dp" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
