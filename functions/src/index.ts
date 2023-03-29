@@ -144,3 +144,6 @@ async function getPinsNearby(
 
   return snapshot.docs;
 }
+
+const isLoggedIn = (context: functions.https.CallableContext) =>
+  context && context.auth && context.auth.uid;
