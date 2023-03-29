@@ -18,6 +18,7 @@ import java.util.List;
 
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
+import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
 public class MainActivity extends AppCompatActivity {
     private static final List<Integer> hiddenNavbarFragments =
@@ -33,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navBar = findViewById(R.id.navBar);
         BottomAppBar navBarContainer = findViewById(R.id.bottomBar);
         FloatingActionButton mapButton = findViewById(R.id.mapButton);
+        NotificationDriver.getInstance(this);
         navBar.getMenu().getItem(2).setEnabled(false);
         NavigationUI.setupWithNavController(navBar, navController);
 

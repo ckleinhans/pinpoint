@@ -27,6 +27,7 @@ import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
+import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
 public class NewPinFragment extends Fragment {
@@ -138,6 +139,8 @@ public class NewPinFragment extends Fragment {
                 Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
                 Toast.makeText(requireContext(), "Successfully dropped Pin!", Toast.LENGTH_SHORT)
                         .show();
+                NotificationDriver notifDriver = NotificationDriver.getInstance(null);
+                notifDriver.sendOneShot("New Pin Dropped!", "You have successfully dropped a new Pin.");
                 // TODO: navigate user to pin view page
             }).addOnFailureListener(e -> {
                 Log.w(TAG, "Error adding document", e);
