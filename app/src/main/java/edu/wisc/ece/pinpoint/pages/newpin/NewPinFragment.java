@@ -20,10 +20,8 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.GeoPoint;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
@@ -125,31 +123,22 @@ public class NewPinFragment extends Fragment {
         String caption = String.valueOf(captionInput.getText());
         FirebaseUser user = firebase.getCurrentUser();
 
-        locationDriver.getCurrentLocation(requireContext()).addOnSuccessListener(location -> {
-            if (location == null) {
-                Toast.makeText(requireContext(),
-                        "Couldn't get your location. Check your location settings!",
-                        Toast.LENGTH_LONG).show();
-                return;
+        locationDriver.getCurrentLocation(requireContext()).addOnCompleteListener(task -> {
+            if (!task.isSuccessful() || task.getResult() == null) {
+                Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_LONG)
+                        .show();
+            } else {
+                firebase.dropPin(content, type, task.getResult(), caption).addOnSuccessListener(
+                                // TODO: remove log and navigate user to pin view page
+                                pid -> Log.d(TAG, "DocumentSnapshot written with ID: " + pid))
+                        .addOnFailureListener(e -> {
+                            Log.w(TAG, "Error adding document", e);
+                            Toast.makeText(requireContext(),
+                                    "Something went wrong dropping your pin. Try again later.",
+                                    Toast.LENGTH_LONG).show();
+                            dropButton.setEnabled(true);
+                        });
             }
-            GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
-            Pin p = new Pin(caption, user.getUid(), type, content, geoPoint);
-            p.save().addOnSuccessListener(documentReference -> {
-                Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
-                Toast.makeText(requireContext(), "Successfully dropped Pin!", Toast.LENGTH_SHORT)
-                        .show();
-                // TODO: navigate user to pin view page
-            }).addOnFailureListener(e -> {
-                Log.w(TAG, "Error adding document", e);
-                Toast.makeText(requireContext(), "Error dropping Pin...", Toast.LENGTH_SHORT)
-                        .show();
-                dropButton.setEnabled(true);
-            });
-        }).addOnFailureListener(e -> {
-            Log.w(TAG, "Error getting user location", e);
-            Toast.makeText(requireContext(), "Error getting location...", Toast.LENGTH_SHORT)
-                    .show();
-            dropButton.setEnabled(true);
         });
     }
 }

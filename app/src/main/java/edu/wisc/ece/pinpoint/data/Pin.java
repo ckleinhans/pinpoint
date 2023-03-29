@@ -1,16 +1,8 @@
 package edu.wisc.ece.pinpoint.data;
 
-import android.util.Log;
-
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Pin {
     private static final String TAG = Pin.class.getName();
@@ -57,20 +49,6 @@ public class Pin {
 
     public GeoPoint getLocation() {
         return location;
-    }
-
-    public Task<DocumentReference> save() {
-        Map<String, Object> pin = new HashMap<>();
-        pin.put("caption", this.caption);
-        pin.put("authorUID", this.authorUID);
-        pin.put("content", this.content);
-        pin.put("type", this.type);
-        pin.put("timestamp", FieldValue.serverTimestamp());
-        pin.put("location", location);
-
-        Log.d(TAG, "Saving the following pin to firestore: " + pin);
-
-        return FirebaseFirestore.getInstance().collection("pins").add(pin);
     }
 
     public enum PinType {

@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.functions.FirebaseFunctions;
 
 import java.util.HashMap;
@@ -120,6 +121,28 @@ public final class FirebaseDriver {
         });
     }
 
+    public Pin getCachedPin(@NonNull String pid) {
+        return pins.get(pid);
+    }
+
+    public Task<String> dropPin(@NonNull String content, @NonNull Pin.PinType type,
+                                @NonNull Location location, String caption) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("content", content);
+        data.put("type", type.toString());
+        data.put("latitude", location.getLatitude());
+        data.put("longitude", location.getLongitude());
+        data.put("caption", caption);
+
+        return functions.getHttpsCallable("dropPin").call(data).continueWith(task -> {
+            String pid = (String) task.getResult().getData();
+            Pin newPin = new Pin(caption, auth.getUid(), type, content,
+                    new GeoPoint(location.getLatitude(), location.getLongitude()));
+            pins.put(pid, newPin);
+            return pid;
+        });
+    }
+
     public Task<Map<String, Object>> fetchNearbyPins(@NonNull Location location) {
         Map<String, Object> data = new HashMap<>();
         data.put("latitude", location.getLatitude());
@@ -127,9 +150,5 @@ public final class FirebaseDriver {
 
         return functions.getHttpsCallable("getNearbyPins").call(data)
                 .continueWith(task -> (Map<String, Object>) task.getResult().getData());
-    }
-
-    public Pin getCachedPin(@NonNull String pid) {
-        return pins.get(pid);
     }
 }
