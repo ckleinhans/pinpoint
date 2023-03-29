@@ -59,7 +59,6 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
 
             pinImage = itemView.findViewById(R.id.pinlist_item_image);
 
-
             itemView.findViewById(R.id.pinlist_item).setOnClickListener(view -> openPinView());
         }
 
