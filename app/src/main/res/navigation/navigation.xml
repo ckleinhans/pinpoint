@@ -8,9 +8,13 @@
         android:id="@+id/navbar_map"
         android:name="edu.wisc.ece.pinpoint.pages.map.MapContainerFragment"
         android:label="fragment_map"
-        tools:layout="@layout/fragment_map_container" />
+        tools:layout="@layout/fragment_map_container" >
+        <action
+            android:id="@+id/newPin"
+            app:destination="@id/new_pin_fragment" />
+    </fragment>
     <fragment
-        android:id="@+id/navbar_newpin"
+        android:id="@+id/new_pin_fragment"
         android:name="edu.wisc.ece.pinpoint.pages.newpin.NewPinFragment"
         android:label="fragment_new_pin"
         tools:layout="@layout/fragment_new_pin" />
@@ -43,9 +47,6 @@
     <action
         android:id="@+id/profile"
         app:destination="@id/navbar_profile" />
-    <action
-        android:id="@+id/newpin"
-        app:destination="@id/navbar_newpin" />
     <fragment
         android:id="@+id/settings_container_fragment"
         android:name="edu.wisc.ece.pinpoint.pages.profile.SettingsContainerFragment"

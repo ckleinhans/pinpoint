@@ -12,9 +12,9 @@
         android:id="@+id/navbar_map"
         android:title="" />
     <item
-        android:id="@+id/navbar_newpin"
-        android:icon="@drawable/ic_search"
-        android:title="@string/search_text" />
+        android:id="@+id/navbar_board"
+        android:icon="@drawable/ic_board"
+        android:title="@string/board_text" />
     <item
         android:id="@+id/navbar_profile"
         android:icon="@drawable/ic_profile"
