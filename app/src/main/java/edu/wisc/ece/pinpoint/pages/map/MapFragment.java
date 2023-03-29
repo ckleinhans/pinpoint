@@ -1,16 +1,14 @@
 package edu.wisc.ece.pinpoint.pages.map;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.drawable.Drawable;
+import android.app.Activity;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,13 +19,10 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 
 import edu.wisc.ece.pinpoint.R;
@@ -38,7 +33,8 @@ public class MapFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(requireActivity());
+        fusedLocationProviderClient = LocationServices
+                .getFusedLocationProviderClient(requireActivity());
     }
 
     @Override
@@ -46,8 +42,10 @@ public class MapFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment\
         View view = inflater.inflate(R.layout.fragment_map, container, false);
-        SupportMapFragment supportMapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.google_map);
+        SupportMapFragment supportMapFragment =
+                (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.google_map);
         supportMapFragment.getMapAsync(googleMap -> {
+            styleMap(googleMap);
             getDeviceLocation(googleMap);
             loadPins(googleMap);
             googleMap.setOnInfoWindowClickListener(marker -> {
@@ -55,6 +53,28 @@ public class MapFragment extends Fragment {
             });
         });
         return view;
+    }
+
+    private void styleMap(GoogleMap map){
+        if(getActivity() != null){
+            int nightModeFlags =
+                    requireActivity().getResources().getConfiguration().uiMode &
+                            Configuration.UI_MODE_NIGHT_MASK;
+            switch (nightModeFlags) {
+                case Configuration.UI_MODE_NIGHT_YES:
+                    map.setMapStyle(MapStyleOptions
+                            .loadRawResourceStyle(requireContext(), R.raw.map_style_dark));
+                    break;
+
+                case Configuration.UI_MODE_NIGHT_NO:
+                    map.setMapStyle(MapStyleOptions
+                            .loadRawResourceStyle(requireContext(), R.raw.map_style_light));
+                    break;
+
+                case Configuration.UI_MODE_NIGHT_UNDEFINED:
+                    break;
+            }
+        }
     }
 
     private void loadPins(GoogleMap map){
@@ -77,17 +97,19 @@ public class MapFragment extends Fragment {
                 map.setMyLocationEnabled(true);
                 map.getUiSettings().setMyLocationButtonEnabled(true);
                 Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
-                locationResult.addOnCompleteListener(requireActivity(), task -> {
-                    if (task.isSuccessful()) {
-                        // Set the map's camera position to the current location of the device.
-                        lastKnownLocation = task.getResult();
-                        if (lastKnownLocation != null) {
-                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(lastKnownLocation.getLatitude(),
-                                            lastKnownLocation.getLongitude()), 16));
+                if(getActivity() != null) {
+                    locationResult.addOnCompleteListener(requireActivity(), task -> {
+                        if (task.isSuccessful()) {
+                            // Set the map's camera position to the current location of the device.
+                            lastKnownLocation = task.getResult();
+                            if (lastKnownLocation != null) {
+                                map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(lastKnownLocation.getLatitude(),
+                                                lastKnownLocation.getLongitude()), 16));
+                            }
                         }
-                    }
-                });
+                    });
+                }
         } catch (SecurityException e)  {
         }
     }
