@@ -52,6 +52,11 @@ export const dropPin = functions.https.onCall(
       .collection("private")
       .doc(context.auth.uid);
     const pinRef = firestore().collection("pins").doc();
+    const droppedRef = firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .collection("dropped")
+      .doc(pinRef.id);
 
     // Perform validation & updates in transaction to enforce all or none
     await firestore().runTransaction(async (t) => {
@@ -82,6 +87,7 @@ export const dropPin = functions.https.onCall(
         timestamp: new Date(),
       };
       t.create(pinRef, pin);
+      t.create(droppedRef, { cost });
     });
     return pinRef.id;
   }
