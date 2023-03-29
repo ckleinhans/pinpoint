@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
-                    R.id.navbar_newpin);
+                    R.id.new_pin_fragment);
     private NavController navController;
 
     @Override

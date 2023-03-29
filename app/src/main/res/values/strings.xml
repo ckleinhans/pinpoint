@@ -18,7 +18,7 @@
     <string name="map_button_text">Map Button</string>
     <string name="feed_text">Feed</string>
     <string name="leaderboard_text">Leaderboard</string>
-    <string name="search_text">Search</string>
+    <string name="board_text">Pin Board</string>
     <string name="profile_text">Profile</string>
     <string name="edit_profile_text">Edit Profile</string>
     <string name="activity_text">Activity</string>

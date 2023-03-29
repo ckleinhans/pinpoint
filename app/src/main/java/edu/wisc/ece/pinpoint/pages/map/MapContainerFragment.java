@@ -5,14 +5,20 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.pages.profile.ProfilePageFragmentDirections;
 
 public class MapContainerFragment extends Fragment {
     private ActivityResultLauncher<String[]> locationPermissionRequest;
@@ -54,5 +60,9 @@ public class MapContainerFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         locationPermissionRequest.launch(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION});
+        NavController navController = Navigation.findNavController(view);
+        FloatingActionButton newPinButton = requireView().findViewById(R.id.newPinButton);
+        newPinButton.setOnClickListener((buttonView) -> navController.navigate(
+                MapContainerFragmentDirections.newPin()));
     }
 }
