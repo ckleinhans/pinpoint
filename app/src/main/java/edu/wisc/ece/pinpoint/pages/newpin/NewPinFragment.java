@@ -92,26 +92,14 @@ public class NewPinFragment extends Fragment {
             }
         });
 
-        captionInput.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-
-                                                  @Override
-                                                  public void onFocusChange(View v, boolean hasFocus) {
-                                                      if (hasFocus) {
-                                                          scrollView.postDelayed(new Runnable() {
-                                                              public void run() {
-                                                                  scrollView.scrollTo(0, Resources.getSystem().getDisplayMetrics().heightPixels);
-                                                              }
-                                                          }, 100);
-                                                      }
-                                                      else{
-                                                          scrollView.post(new Runnable() {
-                                                              public void run() {
-                                                                  scrollView.scrollTo(0, 0);
-                                                              }
-                                                          });
-                                                      }
-                                                  }
-                                              });
+        captionInput.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                scrollView.postDelayed(() -> scrollView.scrollTo(0, Resources.getSystem().getDisplayMetrics().heightPixels), 100);
+            }
+            else{
+                scrollView.post(() -> scrollView.scrollTo(0, 0));
+            }
+        });
 
 
 

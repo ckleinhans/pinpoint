@@ -30,8 +30,7 @@ import edu.wisc.ece.pinpoint.BuildConfig;
 import edu.wisc.ece.pinpoint.R;
 
 public class NewPinImageContentFragment extends Fragment {
-
-    private int imageOpenType = 0;
+    
     private ActivityResultLauncher<Intent> photoTakerLauncher;
     private ActivityResultLauncher<Intent> photoPickerLauncher;
     private File photoFile;
@@ -74,18 +73,13 @@ public class NewPinImageContentFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         h = new Handler(Looper.getMainLooper());
-        takePictureRunnable = () -> takePicture(getView());
-        uploadPictureRunnable = () -> uploadPicture(getView());
+        takePictureRunnable = this::takePicture;
+        uploadPictureRunnable = this::uploadPicture;
         imageContentUpload = requireView().findViewById(R.id.newpin_addimageicon);
-        imageContentUpload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                showSelectDialog();
-            }
-        });
+        imageContentUpload.setOnClickListener(view1 -> showSelectDialog());
     }
 
-    private void takePicture(View view) {
+    private void takePicture() {
 
         Intent pictureIntent = new Intent(
                 MediaStore.ACTION_IMAGE_CAPTURE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -108,7 +102,7 @@ public class NewPinImageContentFragment extends Fragment {
         photoTakerLauncher.launch(pictureIntent);
     }
 
-    private void uploadPicture(View view) {
+    private void uploadPicture() {
         // launch gallery opening intent
         photoPickerLauncher.launch(
                 new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI));
