@@ -105,11 +105,11 @@ public class NewPinFragment extends Fragment {
                                                           }, 100);
                                                       }
                                                       else{
-                                                          scrollView.postDelayed(new Runnable() {
+                                                          scrollView.post(new Runnable() {
                                                               public void run() {
                                                                   scrollView.scrollTo(0, 0);
                                                               }
-                                                          }, 100);
+                                                          });
                                                       }
                                                   }
                                               });

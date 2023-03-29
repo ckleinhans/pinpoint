@@ -45,4 +45,8 @@
     <string name="image_text">Image</string>
     <string name="text_text">Text</string>
     <string name="empty_pin_text">You can\'t post an empty pin!</string>
+    <string name="choose_image_title">Choose Image</string>
+    <string name="choose_image_dialog_message">Choose how you would like to select your image.</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
 </resources>
