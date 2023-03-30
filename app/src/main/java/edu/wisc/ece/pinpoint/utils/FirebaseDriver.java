@@ -13,7 +13,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-
 import com.google.firebase.functions.FirebaseFunctions;
 
 import java.util.HashMap;
@@ -120,15 +119,6 @@ public final class FirebaseDriver {
             pins.put(pid, pin);
             return pin;
         });
-    }
-
-    public Task<Map<String, Object>> fetchNearbyPins(@NonNull Location location) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("latitude", location.getLatitude());
-        data.put("longitude", location.getLongitude());
-
-        return functions.getHttpsCallable("getNearbyPins").call(data)
-                .continueWith(task -> (Map<String, Object>) task.getResult().getData());
     }
 
     public Pin getCachedPin(@NonNull String pid) {
