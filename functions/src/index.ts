@@ -7,6 +7,20 @@ const EARTH_RADIUS_MILES = 3959;
 const ONE_MILE_LATITUDE_DEGREES = 0.014492753623188;
 const NUM_MILES_NEARBY = 2;
 
+enum PinType {
+  TEXT,
+  IMAGE,
+}
+
+type Pin = {
+  caption: string;
+  content: string;
+  type: PinType;
+  location: GeoPoint;
+  authorUID: string;
+  timestamp: Date;
+};
+
 admin.initializeApp();
 
 export const getNearbyPins = functions.https.onCall(
@@ -47,6 +61,15 @@ export const dropPin = functions.https.onCall(
       );
     }
 
+    const pin: Pin = {
+      caption,
+      content,
+      type,
+      location: new GeoPoint(latitude, longitude),
+      authorUID: context.auth.uid,
+      timestamp: new Date(),
+    };
+
     // Get document references for reading/writing
     const privateDataRef = firestore()
       .collection("private")
@@ -78,14 +101,6 @@ export const dropPin = functions.https.onCall(
 
       // Deduct currency & create pin
       t.update(privateDataRef, { currency: privateData.currency - cost });
-      const pin = {
-        content,
-        type,
-        caption,
-        authorUID: context.auth?.uid,
-        location: new GeoPoint(latitude, longitude),
-        timestamp: new Date(),
-      };
       t.create(pinRef, pin);
       t.create(droppedRef, { cost });
     });
