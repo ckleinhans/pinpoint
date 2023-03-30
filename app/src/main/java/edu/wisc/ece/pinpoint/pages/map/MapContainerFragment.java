@@ -1,11 +1,14 @@
 package edu.wisc.ece.pinpoint.pages.map;
 
 import android.Manifest;
+import android.content.Context;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -19,6 +22,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.pages.profile.ProfilePageFragmentDirections;
+import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
 public class MapContainerFragment extends Fragment {
     private ActivityResultLauncher<String[]> locationPermissionRequest;
@@ -62,7 +66,15 @@ public class MapContainerFragment extends Fragment {
                 Manifest.permission.ACCESS_COARSE_LOCATION});
         NavController navController = Navigation.findNavController(view);
         FloatingActionButton newPinButton = requireView().findViewById(R.id.newPinButton);
-        newPinButton.setOnClickListener((buttonView) -> navController.navigate(
-                MapContainerFragmentDirections.newPin()));
+        newPinButton.setOnClickListener((buttonView) -> {
+            if (LocationDriver.getInstance(requireActivity()).hasFineLocation(requireContext()) & LocationDriver.getInstance(requireActivity()).hasLocationOn(requireContext())) {
+                navController.navigate(MapContainerFragmentDirections.newPin());
+            }
+            else {
+                Toast.makeText(requireContext(),
+                        "PinPoint needs precise location permissions to drop pins.",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

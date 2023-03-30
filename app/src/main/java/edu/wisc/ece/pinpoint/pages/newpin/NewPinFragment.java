@@ -132,6 +132,12 @@ public class NewPinFragment extends Fragment {
                         Toast.LENGTH_LONG).show();
                 return;
             }
+            else if (!locationDriver.hasFineLocation(requireContext())) {
+                Toast.makeText(requireContext(),
+                        "PinPoint needs precise location permissions to drop pins.",
+                        Toast.LENGTH_LONG).show();
+                return;
+            }
             GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
             Pin p = new Pin(caption, user.getUid(), type, content, geoPoint);
             p.save().addOnSuccessListener(documentReference -> {
