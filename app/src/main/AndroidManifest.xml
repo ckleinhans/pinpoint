@@ -11,19 +11,9 @@
     <uses-feature android:name="android.hardware.camera"
         android:required="true" />
     <queries>
-        <intent>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data android:scheme="https" />
-        </intent>
         <!-- Camera -->
         <intent>
             <action android:name="android.media.action.IMAGE_CAPTURE" />
-        </intent>
-
-        <!-- Gallery -->
-        <intent>
-            <action android:name="android.intent.action.GET_CONTENT" />
         </intent>
     </queries>
     <application
@@ -34,8 +24,6 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.Pinpoint"
-        android:enableOnBackInvokedCallback="true"
-
         tools:targetApi="31">
         <meta-data
             android:name="com.google.android.gms.version"

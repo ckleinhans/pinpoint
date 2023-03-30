@@ -14,6 +14,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Toast;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
@@ -88,7 +90,9 @@ public class NewPinImageContentFragment extends Fragment {
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                // Error occurred while creating the File
+                Toast toast = Toast.makeText(this.getContext(), getString(R.string.file_creation_failed_message), Toast.LENGTH_SHORT);
+                toast.show();
+                return;
             }
             if (photoFile != null) {
                 photo_uri = FileProvider.getUriForFile(this.getContext(),
