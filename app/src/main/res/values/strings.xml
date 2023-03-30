@@ -45,4 +45,6 @@
     <string name="image_text">Image</string>
     <string name="text_text">Text</string>
     <string name="empty_pin_text">You can\'t post an empty pin!</string>
+    <string name="pin_author_profile_picture_text">Pin Author Profile Picture</string>
+    <string name="view_pin_text">View Pin</string>
 </resources>

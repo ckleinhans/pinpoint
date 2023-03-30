@@ -1,7 +1,11 @@
 package edu.wisc.ece.pinpoint.data;
 
 import android.util.Log;
+import android.widget.ImageView;
 
+import androidx.fragment.app.Fragment;
+
+import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
@@ -11,6 +15,8 @@ import com.google.firebase.firestore.GeoPoint;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import edu.wisc.ece.pinpoint.R;
 
 public class Pin {
     private static final String TAG = Pin.class.getName();
@@ -71,6 +77,12 @@ public class Pin {
         Log.d(TAG, "Saving the following pin to firestore: " + pin);
 
         return FirebaseFirestore.getInstance().collection("pins").add(pin);
+    }
+
+    public void loadPinPic(ImageView imageView, Fragment fragment) {
+        if (type == PinType.TEXT) return;
+        // TODO: choose a placeholder for the pin pic
+        Glide.with(fragment).load(content).placeholder(R.drawable.ic_profile).into(imageView);
     }
 
     public enum PinType {
