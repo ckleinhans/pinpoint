@@ -101,23 +101,25 @@ public class MapFragment extends Fragment {
                 map.setMyLocationEnabled(true);
                 map.getUiSettings().setMyLocationButtonEnabled(true);
                 if(getActivity() != null) {
-                    // Get location and nearby undiscovered pins
-                    Task<Location> locationResult = LocationDriver.getInstance(requireActivity())
-                            .getLastLocation(requireContext()).addOnSuccessListener(location ->
-                                    FirebaseDriver.getInstance().fetchNearbyPins(location)
-                                    .addOnSuccessListener(pins -> pins.forEach((key, val) ->
-                                            loadUndiscoveredPins(key, val, map))));
-                    locationResult.addOnCompleteListener(requireActivity(), task -> {
-                        if (task.isSuccessful()) {
-                            // Set the map's camera position to the current location of the device.
-                            lastKnownLocation = task.getResult();
-                            if (lastKnownLocation != null) {
-                                map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                        new LatLng(lastKnownLocation.getLatitude(),
-                                                lastKnownLocation.getLongitude()), 16));
+                    if(LocationDriver.getInstance(getActivity()).hasLocationOn(requireContext())) {
+                        // Get location and nearby undiscovered pins
+                        Task<Location> locationResult = LocationDriver.getInstance(requireActivity())
+                                .getLastLocation(requireContext()).addOnSuccessListener(location ->
+                                        FirebaseDriver.getInstance().fetchNearbyPins(location)
+                                                .addOnSuccessListener(pins -> pins.forEach((key, val) ->
+                                                        loadUndiscoveredPins(key, val, map))));
+                        locationResult.addOnCompleteListener(requireActivity(), task -> {
+                            if (task.isSuccessful()) {
+                                // Set the map's camera position to the current location of the device.
+                                lastKnownLocation = task.getResult();
+                                if (lastKnownLocation != null) {
+                                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                            new LatLng(lastKnownLocation.getLatitude(),
+                                                    lastKnownLocation.getLongitude()), 16));
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
         } catch (SecurityException e)  {
         }
