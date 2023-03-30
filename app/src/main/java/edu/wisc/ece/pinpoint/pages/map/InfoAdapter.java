@@ -37,6 +37,7 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     }
 
     private void setInfoTitle(@NonNull Marker marker){
+        // TODO: SET CONTENTS ACCORDING TO TAG -> PIN ID
         TextView tv = view.findViewById(R.id.infoTitle);
         tv.setText(marker.getTitle());
     }

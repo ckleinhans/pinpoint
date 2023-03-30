@@ -22,19 +22,19 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
 public class MapFragment extends Fragment {
-    private FusedLocationProviderClient fusedLocationProviderClient;
     private Location lastKnownLocation;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        fusedLocationProviderClient = LocationServices
-                .getFusedLocationProviderClient(requireActivity());
     }
 
     @Override
@@ -47,7 +47,6 @@ public class MapFragment extends Fragment {
         supportMapFragment.getMapAsync(googleMap -> {
             styleMap(googleMap);
             getDeviceLocation(googleMap);
-            loadPins(googleMap);
             googleMap.setOnInfoWindowClickListener(marker -> {
                 Toast.makeText(requireContext(), "Window clicked", Toast.LENGTH_SHORT).show();
             });
@@ -78,15 +77,19 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void loadPins(GoogleMap map){
-        LatLng unionSouth = new LatLng(43.0719999, -89.4098351);
-
-        MarkerOptions uSouthMap = new MarkerOptions()
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW))
+    private void loadUndiscoveredPins(Object key, Object val, GoogleMap map){
+        // TODO: check if nearby pin ID is in user collection. if it is, don't add from here. Add from followup fetch of found pins
+        String valString = val.toString();
+        LatLng pinLocation = new LatLng(Double.parseDouble(
+                valString.substring(valString.lastIndexOf("=")+1,valString.indexOf("}"))),
+                Double.parseDouble(val.toString().substring(valString.indexOf("=")+1,val.toString()
+                        .indexOf(","))));
+        Marker pinMarker = map.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
                 .alpha(0.5f)
-                .position(unionSouth)
-                .title("Union South Boyyyyyyy");
-        map.addMarker(uSouthMap);
+                .position(pinLocation)
+                .title("Undiscovered Pin"));
+        pinMarker.setTag(key.toString());
     }
 
     private void getDeviceLocation(GoogleMap map) {
@@ -97,8 +100,13 @@ public class MapFragment extends Fragment {
         try {
                 map.setMyLocationEnabled(true);
                 map.getUiSettings().setMyLocationButtonEnabled(true);
-                Task<Location> locationResult = fusedLocationProviderClient.getLastLocation();
                 if(getActivity() != null) {
+                    // Get location and nearby undiscovered pins
+                    Task<Location> locationResult = LocationDriver.getInstance(requireActivity())
+                            .getLastLocation(requireContext()).addOnSuccessListener(location ->
+                                    FirebaseDriver.getInstance().fetchNearbyPins(location)
+                                    .addOnSuccessListener(pins -> pins.forEach((key, val) ->
+                                            loadUndiscoveredPins(key, val, map))));
                     locationResult.addOnCompleteListener(requireActivity(), task -> {
                         if (task.isSuccessful()) {
                             // Set the map's camera position to the current location of the device.
