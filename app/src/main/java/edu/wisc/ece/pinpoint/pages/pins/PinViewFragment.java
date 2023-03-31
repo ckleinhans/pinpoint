@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -56,7 +56,7 @@ public class PinViewFragment extends Fragment {
         commentCount = requireView().findViewById(R.id.pin_comment_count);
         textContent = requireView().findViewById(R.id.pin_text_content);
         imageContent = requireView().findViewById(R.id.pin_image_content);
-        Button backButton = requireView().findViewById(R.id.pin_view_back_button);
+        ImageButton backButton = requireView().findViewById(R.id.pin_view_back_button);
 
         backButton.setOnClickListener((v) -> navController.popBackStack());
 

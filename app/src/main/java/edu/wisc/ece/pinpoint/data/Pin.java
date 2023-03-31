@@ -81,8 +81,7 @@ public class Pin {
 
     public void loadPinPic(ImageView imageView, Fragment fragment) {
         if (type == PinType.TEXT) return;
-        // TODO: choose a placeholder for the pin pic
-        Glide.with(fragment).load(content).placeholder(R.drawable.ic_profile).into(imageView);
+        Glide.with(fragment).load(content).placeholder(R.drawable.ic_camera).into(imageView);
     }
 
     public enum PinType {
