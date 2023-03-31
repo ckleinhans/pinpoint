@@ -23,10 +23,10 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
-import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
 public class NewPinFragment extends Fragment {
@@ -92,13 +92,12 @@ public class NewPinFragment extends Fragment {
 
         captionInput.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
-                scrollView.postDelayed(() -> scrollView.scrollTo(0, Resources.getSystem().getDisplayMetrics().heightPixels), 100);
-            }
-            else{
+                scrollView.postDelayed(() -> scrollView.scrollTo(0,
+                        Resources.getSystem().getDisplayMetrics().heightPixels), 100);
+            } else {
                 scrollView.post(() -> scrollView.scrollTo(0, 0));
             }
         });
-
 
 
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
@@ -142,18 +141,15 @@ public class NewPinFragment extends Fragment {
                 Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_LONG)
                         .show();
             } else {
-                firebase.dropPin(content, type, task.getResult(), caption).addOnSuccessListener(
-                                // TODO: remove log and navigate user to pin view page
-                                pid -> {
-                                  Log.d(TAG, "DocumentSnapshot written with ID: " + pid);
-                                  NotificationDriver notifDriver = NotificationDriver.getInstance(null);
-                                  notifDriver.sendOneShot("New Pin Dropped!", "You have successfully dropped a new Pin.");
-                                })
-                        .addOnFailureListener(e -> {
+                firebase.dropPin(new Pin(content, type, task.getResult(), caption))
+                        .addOnSuccessListener(pid -> {
+                            // TODO: remove log and navigate user to pin view page
+                            Log.d(TAG, "DocumentSnapshot written with ID: " + pid);
+                            Toast.makeText(requireContext(), R.string.drop_pin_text,
+                                    Toast.LENGTH_SHORT).show();
+                        }).addOnFailureListener(e -> {
                             Log.w(TAG, "Error adding document", e);
-                            Toast.makeText(requireContext(),
-                                    "Something went wrong dropping your pin. Try again later.",
-                                    Toast.LENGTH_LONG).show();
+                            Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show();
                             dropButton.setEnabled(true);
                         });
             }
