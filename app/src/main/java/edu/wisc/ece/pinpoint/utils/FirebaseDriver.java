@@ -1,18 +1,25 @@
 package edu.wisc.ece.pinpoint.utils;
 
 import android.content.Context;
+import android.text.style.TabStopSpan;
 
 import androidx.annotation.NonNull;
 
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -112,6 +119,57 @@ public final class FirebaseDriver {
             Pin pin = task.getResult().toObject(Pin.class);
             pins.put(pid, pin);
             return pin;
+        });
+    }
+
+    public Task<Map<String, Pin>> getFoundPins() {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pins");
+        }
+        return db.collection("users").document(auth.getUid()).collection("found").get().continueWithTask(task -> {
+            List<Task<DocumentSnapshot>> foundPins = new ArrayList<>();
+
+            for (final Iterator<DocumentSnapshot> i = task.getResult().getDocuments().iterator(); i.hasNext(); ) {
+                String pinId = i.next().getId();
+                foundPins.add((db.collection("pins").document(pinId).get()));
+
+            }
+            return Tasks.whenAllComplete(foundPins).continueWith(task1 -> {
+                Map<String, Pin> found = new HashMap<>();
+                for (final Iterator<Task<?>> i = task1.getResult().iterator(); i.hasNext(); ) {
+                    DocumentSnapshot foundPinDoc = (DocumentSnapshot) i.next().getResult();
+                    Pin p = foundPinDoc.toObject(Pin.class);
+                    pins.put(foundPinDoc.getId(), p);
+                    found.put(foundPinDoc.getId(), p);
+                }
+                return found;
+            });
+
+        });
+    }
+    public Task<Map<String, Pin>> getDroppedPins(){
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pins");
+        }
+        return db.collection("users").document(auth.getUid()).collection("dropped").get().continueWithTask(task -> {
+            List<Task<DocumentSnapshot>> droppedPins = new ArrayList<>();
+
+            for (final Iterator<DocumentSnapshot> i = task.getResult().getDocuments().iterator(); i.hasNext(); ) {
+                String pinId = i.next().getId();
+                droppedPins.add((db.collection("pins").document(pinId).get()));
+
+            }
+            return Tasks.whenAllComplete(droppedPins).continueWith(task1 -> {
+                Map<String, Pin> found = new HashMap<>();
+                for (final Iterator<Task<?>> i = task1.getResult().iterator(); i.hasNext(); ) {
+                    DocumentSnapshot droppedPinDoc = (DocumentSnapshot) i.next().getResult();
+                    Pin p = droppedPinDoc.toObject(Pin.class);
+                    pins.put(droppedPinDoc.getId(), p);
+                    found.put(droppedPinDoc.getId(), p);
+                }
+                return found;
+            });
+
         });
     }
 

@@ -1,28 +1,24 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
+import edu.wisc.ece.pinpoint.data.Pin;
+
 public class RecyclerData {
 
-    private String title;
-    private int imgid;
+    private String pinId;
+    private Pin pin;
 
-    public RecyclerData(String title, int imgid) {
-        this.title = title;
-        this.imgid = imgid;
+    public RecyclerData(String pinId, Pin pin) {
+        this.pinId = pinId;
+        this.pin = pin;
     }
 
-    public String getTitle() {
-        return title;
+    public String getId() {
+
+        return pinId;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public Pin getPin(){
+        return pin;
     }
 
-    public int getImgid() {
-        return imgid;
-    }
-
-    public void setImgid(int imgid) {
-        this.imgid = imgid;
-    }
 }

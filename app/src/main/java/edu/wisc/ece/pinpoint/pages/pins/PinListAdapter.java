@@ -4,8 +4,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -34,7 +36,8 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     public void onBindViewHolder(@NonNull PinListViewHolder holder, int position) {
         // Set the data to textview and imageview.
         RecyclerData recyclerData = pinList.get(position);
-        holder.pinImage.setImageResource(recyclerData.getImgid());
+        holder.item.setOnClickListener(view ->  navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView(recyclerData.getId())));
+
     }
 
     @Override
@@ -42,24 +45,17 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         return pinList.size();
     }
 
-    public void openPinView() {
 
-        navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView("PLACEHOLDER"));
-        
-    }
 
     // View Holder Class to handle Recycler View.
     public class PinListViewHolder extends RecyclerView.ViewHolder {
 
-       // private final Button pinButton;
-        private final ImageView pinImage;
+        private final CardView item;
 
         public PinListViewHolder(@NonNull View itemView) {
             super(itemView);
 
-            pinImage = itemView.findViewById(R.id.pinlist_item_image);
-
-            itemView.findViewById(R.id.pinlist_item).setOnClickListener(view -> openPinView());
+            item = itemView.findViewById(R.id.pinlist_item);
         }
 
     }
