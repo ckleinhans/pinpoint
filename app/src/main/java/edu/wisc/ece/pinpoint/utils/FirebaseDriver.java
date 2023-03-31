@@ -120,6 +120,18 @@ public final class FirebaseDriver {
         });
     }
 
+    public Pin getCachedPin(@NonNull String pid) {
+        return pins.get(pid);
+    }
+
+    public Task<String> dropPin(Pin newPin) {
+        return functions.getHttpsCallable("dropPin").call(newPin.serialize()).continueWith(task -> {
+            String pid = (String) task.getResult().getData();
+            pins.put(pid, newPin);
+            return pid;
+        });
+    }
+
     public Task<Map<String, Object>> fetchNearbyPins(@NonNull Location location) {
         Map<String, Object> data = new HashMap<>();
         data.put("latitude", location.getLatitude());
@@ -127,9 +139,5 @@ public final class FirebaseDriver {
 
         return functions.getHttpsCallable("getNearbyPins").call(data)
                 .continueWith(task -> (Map<String, Object>) task.getResult().getData());
-    }
-
-    public Pin getCachedPin(@NonNull String pid) {
-        return pins.get(pid);
     }
 }
