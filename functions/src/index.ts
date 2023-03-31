@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import { firestore } from "firebase-admin";
 import { GeoPoint } from "firebase-admin/firestore";
+import { Storage } from "firebase-admin/lib/storage/storage";
 import * as functions from "firebase-functions";
 
 const EARTH_RADIUS_MILES = 3959;
@@ -14,7 +15,7 @@ enum PinType {
 
 type Pin = {
   caption: string;
-  content: string;
+  textContent?: string;
   type: PinType;
   location: GeoPoint;
   authorUID: string;
@@ -22,6 +23,7 @@ type Pin = {
 };
 
 admin.initializeApp();
+const bucket = admin.storage().bucket();
 
 export const getNearbyPins = functions.https.onCall(
   // Validate auth status and args
@@ -46,7 +48,7 @@ export const getNearbyPins = functions.https.onCall(
 
 // TODO: add anti-spoof check before dropping pin
 export const dropPin = functions.https.onCall(
-  async ({ content, caption, type, latitude, longitude }, context) => {
+  async ({ textContent, caption, type, latitude, longitude }, context) => {
     // Validate auth status and args
     if (!context || !context.auth || !context.auth.uid) {
       throw new functions.https.HttpsError(
@@ -54,21 +56,27 @@ export const dropPin = functions.https.onCall(
         "dropPin must be called while authenticated."
       );
     }
-    if (!content || !type || !latitude || !longitude) {
+    if (
+      !type ||
+      !latitude ||
+      !longitude ||
+      (type == PinType.TEXT && !textContent)
+    ) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "dropPin must be called with content, type, latitude, and longitude."
+        "dropPin must be called with proper arguments."
       );
     }
 
     const pin: Pin = {
       caption,
-      content,
       type,
       location: new GeoPoint(latitude, longitude),
       authorUID: context.auth.uid,
       timestamp: new Date(),
     };
+
+    if (type == PinType.TEXT) pin.textContent = textContent;
 
     // Get document references for reading/writing
     const privateDataRef = firestore()
@@ -103,6 +111,12 @@ export const dropPin = functions.https.onCall(
       t.update(privateDataRef, { currency: privateData.currency - cost });
       t.create(pinRef, pin);
       t.create(droppedRef, { cost });
+
+      // If image pin, move temp uploaded image to permanent pin image path
+      if (pin.type == PinType.IMAGE) {
+        // TODO: is there a way to check this file exists? Not sure
+        await moveFile(`temp/${pin.authorUID}`, `pins/${pinRef.id}`);
+      }
     });
     return pinRef.id;
   }
@@ -145,5 +159,9 @@ async function getPinsNearby(
   return snapshot.docs;
 }
 
-const isLoggedIn = (context: functions.https.CallableContext) =>
-  context && context.auth && context.auth.uid;
+async function moveFile(oldPath: string, newPath: string) {
+  const oldFile = bucket.file(oldPath);
+  const destinationFile = bucket.file(newPath);
+
+  await oldFile.move(destinationFile);
+}

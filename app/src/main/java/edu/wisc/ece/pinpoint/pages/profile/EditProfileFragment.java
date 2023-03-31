@@ -166,7 +166,7 @@ public class EditProfileFragment extends Fragment {
 
         if (photo != null) {
             StorageReference pictureRef =
-                    FirebaseStorage.getInstance().getReference().child("users/" + uid);
+                    FirebaseStorage.getInstance().getReference("users").child(uid);
             pictureRef.putFile(photo).addOnCompleteListener((task) -> {
                 if (task.isSuccessful()) {
                     pictureRef.getDownloadUrl().addOnSuccessListener(uri -> {

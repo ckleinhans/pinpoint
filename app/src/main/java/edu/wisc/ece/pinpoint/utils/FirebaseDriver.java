@@ -2,8 +2,11 @@ package edu.wisc.ece.pinpoint.utils;
 
 import android.content.Context;
 import android.location.Location;
+import android.net.Uri;
+import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -13,12 +16,17 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.GlideApp;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 
@@ -26,6 +34,7 @@ public final class FirebaseDriver {
     private static FirebaseDriver instance;
     private final FirebaseAuth auth;
     private final FirebaseFirestore db;
+    private final FirebaseStorage storage;
     private final FirebaseFunctions functions;
     private final HashMap<String, User> users;
     private final HashMap<String, Pin> pins;
@@ -37,6 +46,7 @@ public final class FirebaseDriver {
         instance = this;
         auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        storage = FirebaseStorage.getInstance();
         functions = FirebaseFunctions.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
@@ -122,6 +132,19 @@ public final class FirebaseDriver {
 
     public Pin getCachedPin(@NonNull String pid) {
         return pins.get(pid);
+    }
+
+    public UploadTask uploadPinImage(Uri localUri) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to upload pin images.");
+        }
+        return storage.getReference("temp").child(auth.getUid()).putFile(localUri);
+    }
+
+    public void loadPinImage(ImageView imageView, Fragment fragment, String pid) {
+        StorageReference ref = FirebaseStorage.getInstance().getReference("pins").child(pid);
+        GlideApp.with(fragment).load(ref).placeholder(R.drawable.ic_camera).centerCrop()
+                .into(imageView);
     }
 
     public Task<String> dropPin(Pin newPin) {
