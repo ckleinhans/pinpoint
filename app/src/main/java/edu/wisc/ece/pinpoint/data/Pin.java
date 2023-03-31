@@ -1,22 +1,16 @@
 package edu.wisc.ece.pinpoint.data;
 
-import android.util.Log;
-import android.widget.ImageView;
+import android.location.Location;
 
-import androidx.fragment.app.Fragment;
+import androidx.annotation.NonNull;
 
-import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class Pin {
     private static final String TAG = Pin.class.getName();
@@ -32,13 +26,14 @@ public class Pin {
     public Pin() {
     }
 
-    public Pin(String caption, String authorUID, PinType type, String content, GeoPoint location) {
+    public Pin(@NonNull String content, @NonNull PinType type, @NonNull Location location,
+               String caption) {
         this.caption = caption;
-        this.authorUID = authorUID;
+        this.authorUID = FirebaseDriver.getInstance().getCurrentUser().getUid();
         this.type = type;
         this.content = content;
         this.timestamp = new Date();
-        this.location = location;
+        this.location = new GeoPoint(location.getLatitude(), location.getLongitude());
     }
 
     public String getAuthorUID() {
@@ -65,18 +60,14 @@ public class Pin {
         return location;
     }
 
-    public Task<DocumentReference> save() {
-        Map<String, Object> pin = new HashMap<>();
-        pin.put("caption", this.caption);
-        pin.put("authorUID", this.authorUID);
-        pin.put("content", this.content);
-        pin.put("type", this.type);
-        pin.put("timestamp", FieldValue.serverTimestamp());
-        pin.put("location", location);
-
-        Log.d(TAG, "Saving the following pin to firestore: " + pin);
-
-        return FirebaseFirestore.getInstance().collection("pins").add(pin);
+    public Map<String, Object> serialize() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("content", content);
+        data.put("type", type.toString());
+        data.put("latitude", location.getLatitude());
+        data.put("longitude", location.getLongitude());
+        data.put("caption", caption);
+        return data;
     }
 
     public void loadPinPic(ImageView imageView, Fragment fragment) {

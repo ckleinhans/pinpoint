@@ -31,7 +31,7 @@
     <string name="profile_cancel">Cancel</string>
     <string name="profile_pic_upload_text">Profile Picture Upload</string>
     <string name="profile_pic_text">Profile Picture</string>
-    <string name="location_error_text">Couldn\'t get location information. Try again later.</string>
+    <string name="location_error_text">Couldn\'t get your location. Check your location settings.</string>
     <string name="settings_text">Settings</string>
     <string name="pin_thumbnail_text">Pin Thumbnail</string>
     <string name="pin_image_text">Pin Image</string>
@@ -52,4 +52,5 @@
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
     <string name="file_creation_failed_message">File Creation Failed! Please try again.</string>
+    <string name="drop_pin_text">Pin successfully dropped!</string>
 </resources>
