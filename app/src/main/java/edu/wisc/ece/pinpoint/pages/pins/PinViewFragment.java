@@ -70,8 +70,10 @@ public class PinViewFragment extends Fragment {
         Pin cachedPin = firebase.getCachedPin(pid);
         if (cachedPin != null) {
             setPinData(cachedPin);
+        } else {
+            // Since pin data shouldn't change, only fetch if not cached
+            firebase.fetchPin(pid).addOnCompleteListener(task -> setPinData(task.getResult()));
         }
-        firebase.fetchPin(pid).addOnCompleteListener(task -> setPinData(task.getResult()));
     }
 
     public void setPinData(Pin pin) {
@@ -79,6 +81,7 @@ public class PinViewFragment extends Fragment {
         if (cachedAuthor != null) {
             setPinAuthorData(cachedAuthor);
         } else {
+            // Since only using author for profile pic & username, only fetch if not cached
             firebase.fetchUser(pin.getAuthorUID())
                     .addOnCompleteListener(task -> setPinAuthorData(task.getResult()));
         }
@@ -89,7 +92,8 @@ public class PinViewFragment extends Fragment {
         foundCount.setText("12 finds");
         commentCount.setText("20 Comments");
         if (pin.getType() == Pin.PinType.IMAGE) {
-            pin.loadPinPic(imageContent, this);
+            // TODO: uncomment line once image pin logic implemented
+            // pin.loadPinPic(imageContent, this);
         } else {
             textContent.setText(pin.getContent());
         }
