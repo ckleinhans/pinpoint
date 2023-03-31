@@ -51,12 +51,5 @@ public class MainActivity extends AppCompatActivity {
 
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbar_map);
-        // Uncomment to test cloud function
-        /*LocationDriver.getInstance(this).getCurrentLocation(this).addOnSuccessListener(
-                location -> FirebaseDriver.getInstance().fetchNearbyPins(location)
-                        .addOnSuccessListener(pins -> pins.forEach(
-                                (key, val) -> Log.d("PIN ID: " + key, String.valueOf(val)))));
-
-         */
     }
 }
