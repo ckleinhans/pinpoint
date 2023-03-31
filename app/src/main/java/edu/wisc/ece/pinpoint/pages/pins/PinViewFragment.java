@@ -31,6 +31,7 @@ public class PinViewFragment extends Fragment {
     private TextView commentCount;
     private TextView textContent;
     private ImageView imageContent;
+    private String pid;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -62,7 +63,7 @@ public class PinViewFragment extends Fragment {
 
         // Fetch pin data & load using argument
         Bundle args = getArguments();
-        String pid = args != null ? PinViewFragmentArgs.fromBundle(args).getPid() : null;
+        pid = args != null ? PinViewFragmentArgs.fromBundle(args).getPid() : null;
         if (pid == null) {
             navController.popBackStack();
             return;
@@ -92,10 +93,9 @@ public class PinViewFragment extends Fragment {
         foundCount.setText("12 finds");
         commentCount.setText("20 Comments");
         if (pin.getType() == Pin.PinType.IMAGE) {
-            // TODO: uncomment line once image pin logic implemented
-            // pin.loadPinPic(imageContent, this);
+            firebase.loadPinImage(imageContent, this, pid);
         } else {
-            textContent.setText(pin.getContent());
+            textContent.setText(pin.getTextContent());
         }
     }
 

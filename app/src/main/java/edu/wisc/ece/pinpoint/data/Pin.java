@@ -2,11 +2,6 @@ package edu.wisc.ece.pinpoint.data;
 
 import android.location.Location;
 
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FieldValue;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.GeoPoint;
 import androidx.annotation.NonNull;
 
 import com.google.firebase.firestore.GeoPoint;
@@ -75,11 +70,6 @@ public class Pin {
         data.put("longitude", location.getLongitude());
         data.put("caption", caption);
         return data;
-    }
-
-    public void loadPinPic(ImageView imageView, Fragment fragment) {
-        if (type == PinType.TEXT) return;
-        Glide.with(fragment).load(content).placeholder(R.drawable.ic_camera).into(imageView);
     }
 
     public enum PinType {

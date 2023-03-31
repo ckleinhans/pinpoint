@@ -30,7 +30,7 @@ import edu.wisc.ece.pinpoint.data.GlideApp;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 
-public final class FirebaseDriver {
+public class FirebaseDriver {
     private static FirebaseDriver instance;
     private final FirebaseAuth auth;
     private final FirebaseFirestore db;
@@ -134,11 +134,11 @@ public final class FirebaseDriver {
         return pins.get(pid);
     }
 
-    public UploadTask uploadPinImage(Uri localUri) {
+    public UploadTask uploadPinImage(Uri localUri, String pid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to upload pin images.");
         }
-        return storage.getReference("temp").child(auth.getUid()).putFile(localUri);
+        return storage.getReference("pins").child(pid).putFile(localUri);
     }
 
     public void loadPinImage(ImageView imageView, Fragment fragment, String pid) {

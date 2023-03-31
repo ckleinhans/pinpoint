@@ -1,7 +1,6 @@
 import * as admin from "firebase-admin";
 import { firestore } from "firebase-admin";
 import { GeoPoint } from "firebase-admin/firestore";
-import { Storage } from "firebase-admin/lib/storage/storage";
 import * as functions from "firebase-functions";
 
 const EARTH_RADIUS_MILES = 3959;
@@ -23,7 +22,6 @@ type Pin = {
 };
 
 admin.initializeApp();
-const bucket = admin.storage().bucket();
 
 export const getNearbyPins = functions.https.onCall(
   // Validate auth status and args
@@ -111,12 +109,6 @@ export const dropPin = functions.https.onCall(
       t.update(privateDataRef, { currency: privateData.currency - cost });
       t.create(pinRef, pin);
       t.create(droppedRef, { cost });
-
-      // If image pin, move temp uploaded image to permanent pin image path
-      if (pin.type == PinType.IMAGE) {
-        // TODO: is there a way to check this file exists? Not sure
-        await moveFile(`temp/${pin.authorUID}`, `pins/${pinRef.id}`);
-      }
     });
     return pinRef.id;
   }
@@ -157,11 +149,4 @@ async function getPinsNearby(
   const snapshot = await (transaction ? transaction.get(query) : query.get());
 
   return snapshot.docs;
-}
-
-async function moveFile(oldPath: string, newPath: string) {
-  const oldFile = bucket.file(oldPath);
-  const destinationFile = bucket.file(newPath);
-
-  await oldFile.move(destinationFile);
 }
