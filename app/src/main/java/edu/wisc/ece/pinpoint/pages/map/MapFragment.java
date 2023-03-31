@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.map;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.location.Location;
@@ -48,7 +49,7 @@ public class MapFragment extends Fragment {
             styleMap(googleMap);
             getDeviceLocation(googleMap);
             googleMap.setOnInfoWindowClickListener(marker -> {
-                Toast.makeText(requireContext(), "Window clicked", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "Window clicked for marker "+marker.getTag().toString(), Toast.LENGTH_SHORT).show();
             });
         });
         return view;
@@ -87,41 +88,34 @@ public class MapFragment extends Fragment {
         Marker pinMarker = map.addMarker(new MarkerOptions()
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
                 .alpha(0.5f)
-                .position(pinLocation)
-                .title("Undiscovered Pin"));
+                .position(pinLocation));
         pinMarker.setTag(key.toString());
     }
 
+    @SuppressLint("MissingPermission")
     private void getDeviceLocation(GoogleMap map) {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
-        try {
-                map.setMyLocationEnabled(true);
-                map.getUiSettings().setMyLocationButtonEnabled(true);
-                if(getActivity() != null) {
-                    if(LocationDriver.getInstance(getActivity()).hasLocationOn(requireContext())) {
-                        // Get location and nearby undiscovered pins
-                        Task<Location> locationResult = LocationDriver.getInstance(requireActivity())
-                                .getLastLocation(requireContext()).addOnSuccessListener(location ->
-                                        FirebaseDriver.getInstance().fetchNearbyPins(location)
-                                                .addOnSuccessListener(pins -> pins.forEach((key, val) ->
-                                                        loadUndiscoveredPins(key, val, map))));
-                        locationResult.addOnCompleteListener(requireActivity(), task -> {
-                            if (task.isSuccessful()) {
-                                // Set the map's camera position to the current location of the device.
-                                lastKnownLocation = task.getResult();
-                                if (lastKnownLocation != null) {
-                                    map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                            new LatLng(lastKnownLocation.getLatitude(),
-                                                    lastKnownLocation.getLongitude()), 16));
-                                }
-                            }
-                        });
+        map.setMyLocationEnabled(true);
+        map.getUiSettings().setMyLocationButtonEnabled(true);
+        if(getActivity() != null) {
+            if(LocationDriver.getInstance(getActivity()).hasLocationOn(requireContext())) {
+                // Get location and nearby undiscovered pins
+                Task<Location> locationResult = LocationDriver.getInstance(requireActivity())
+                        .getLastLocation(requireContext()).addOnSuccessListener(location ->
+                                FirebaseDriver.getInstance().fetchNearbyPins(location)
+                                        .addOnSuccessListener(pins -> pins.forEach((key, val) ->
+                                                loadUndiscoveredPins(key, val, map))));
+                locationResult.addOnCompleteListener(requireActivity(), task -> {
+                    if (task.isSuccessful()) {
+                        // Set the map's camera position to the current location of the device.
+                        lastKnownLocation = task.getResult();
+                        if (lastKnownLocation != null) {
+                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                    new LatLng(lastKnownLocation.getLatitude(),
+                                            lastKnownLocation.getLongitude()), 16));
+                        }
                     }
-                }
-        } catch (SecurityException e)  {
+                });
+            }
         }
     }
 }
