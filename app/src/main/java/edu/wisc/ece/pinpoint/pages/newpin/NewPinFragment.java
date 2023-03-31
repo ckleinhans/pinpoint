@@ -1,6 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.newpin;
 
 import android.content.res.Resources;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,6 +22,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseUser;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Pin;
@@ -35,6 +37,7 @@ public class NewPinFragment extends Fragment {
     private LocationDriver locationDriver;
     private NestedScrollView scrollView;
     private NavController navController;
+    private NewPinFragmentAdapter fragmentAdapter;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
     private EditText captionInput;
@@ -60,8 +63,7 @@ public class NewPinFragment extends Fragment {
         captionInput = requireView().findViewById(R.id.newpin_caption_input);
 
         ImageButton cancelButton = requireView().findViewById(R.id.newpin_cancel);
-        cancelButton.setOnClickListener(
-                v -> navController.navigate(NewPinFragmentDirections.map()));
+        cancelButton.setOnClickListener(v -> navController.popBackStack());
         dropButton = requireView().findViewById(R.id.drop_pin_button);
         dropButton.setOnClickListener(v -> createNewPin());
 
@@ -69,8 +71,8 @@ public class NewPinFragment extends Fragment {
         viewPager = requireView().findViewById(R.id.newpin_view_pager);
         tabLayout.addTab(tabLayout.newTab().setText(R.string.text_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.image_text));
-        NewPinFragmentAdapter fragmentAdapter =
-                new NewPinFragmentAdapter(this.getChildFragmentManager(), tabLayout.getTabCount(),
+        fragmentAdapter =
+                new NewPinFragmentAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -128,8 +130,8 @@ public class NewPinFragment extends Fragment {
             }
             content = String.valueOf(textContentInput.getText());
         } else {
-            // TODO: get locally stored image URL for content
-            content = "IMAGE PLACEHOLDER";
+            content = fragmentAdapter.getImageContentFragment().photo_uri.toString();
+            // TODO: return if no image uploaded
         }
 
         PinType type = currentTabIndex == 0 ? PinType.TEXT : PinType.IMAGE;
