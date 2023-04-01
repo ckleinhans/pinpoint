@@ -154,6 +154,7 @@ public class NewPinFragment extends Fragment {
                 dropButton.setEnabled(true);
             }).addOnSuccessListener(pid -> {
                 if (pin.getType() == PinType.IMAGE) {
+                    Log.d(TAG, pid);
                     firebase.uploadPinImage(fragmentAdapter.getImageContentFragment().photo_uri,
                             pid).addOnCompleteListener(uploadTask -> {
                         if (!uploadTask.isSuccessful()) {

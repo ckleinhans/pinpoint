@@ -44,7 +44,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
 
     public void openPinView() {
         // Hardcoded pin ID for testing purposes
-        navController.navigate(PinListFragmentDirections.pinView("57uAc4DnqyBNdN6hn3NP"));
+        navController.navigate(PinListFragmentDirections.pinView("ED1YF9O2ktfSgQVfHyhf"));
     }
 
     // View Holder Class to handle Recycler View.

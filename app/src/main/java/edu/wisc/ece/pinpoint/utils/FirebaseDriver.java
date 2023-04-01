@@ -142,7 +142,7 @@ public class FirebaseDriver {
     }
 
     public void loadPinImage(ImageView imageView, Fragment fragment, String pid) {
-        StorageReference ref = FirebaseStorage.getInstance().getReference("pins").child(pid);
+        StorageReference ref = storage.getReference("pins").child(pid);
         GlideApp.with(fragment).load(ref).placeholder(R.drawable.ic_camera).centerCrop()
                 .into(imageView);
     }
