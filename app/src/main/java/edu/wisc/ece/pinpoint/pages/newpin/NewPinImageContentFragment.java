@@ -39,7 +39,6 @@ public class NewPinImageContentFragment extends Fragment {
     public Uri photo_uri;
     private ActivityResultLauncher<Intent> photoTakerLauncher;
     private ActivityResultLauncher<Intent> photoPickerLauncher;
-    private File photoFile;
     private Handler h;
     private Runnable takePictureRunnable;
     private Runnable uploadPictureRunnable;
@@ -86,6 +85,7 @@ public class NewPinImageContentFragment extends Fragment {
     }
 
     private void takePicture() {
+        File photoFile;
         Intent pictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).addFlags(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION);
         if (pictureIntent.resolveActivity(requireContext().getPackageManager()) != null) {
@@ -93,7 +93,7 @@ public class NewPinImageContentFragment extends Fragment {
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                Toast toast = Toast.makeText(this.getContext(),
+                Toast toast = Toast.makeText(requireContext(),
                         getString(R.string.file_creation_failed_message), Toast.LENGTH_SHORT);
                 toast.show();
                 return;
@@ -122,7 +122,7 @@ public class NewPinImageContentFragment extends Fragment {
     }
 
     private void showSelectDialog() {
-        new AlertDialog.Builder(this.getContext()).setTitle(R.string.choose_image_title)
+        new AlertDialog.Builder(requireContext()).setTitle(R.string.choose_image_title)
                 .setMessage(R.string.choose_image_dialog_message)
                 // Specifying a listener allows you to take an action before dismissing the dialog.
                 // The dialog is automatically dismissed when a dialog button is clicked.
