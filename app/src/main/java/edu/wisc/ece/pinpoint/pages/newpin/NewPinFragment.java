@@ -35,10 +35,12 @@ public class NewPinFragment extends Fragment {
     private LocationDriver locationDriver;
     private NestedScrollView scrollView;
     private NavController navController;
+    private NewPinFragmentAdapter fragmentAdapter;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
     private EditText captionInput;
     private Button dropButton;
+    private EditText textContentInput;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,8 +62,7 @@ public class NewPinFragment extends Fragment {
         captionInput = requireView().findViewById(R.id.newpin_caption_input);
 
         ImageButton cancelButton = requireView().findViewById(R.id.newpin_cancel);
-        cancelButton.setOnClickListener(
-                v -> navController.navigate(NewPinFragmentDirections.map()));
+        cancelButton.setOnClickListener(v -> navController.popBackStack());
         dropButton = requireView().findViewById(R.id.drop_pin_button);
         dropButton.setOnClickListener(v -> createNewPin());
 
@@ -69,8 +70,8 @@ public class NewPinFragment extends Fragment {
         viewPager = requireView().findViewById(R.id.newpin_view_pager);
         tabLayout.addTab(tabLayout.newTab().setText(R.string.text_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.image_text));
-        NewPinFragmentAdapter fragmentAdapter =
-                new NewPinFragmentAdapter(this.getChildFragmentManager(), tabLayout.getTabCount(),
+        fragmentAdapter =
+                new NewPinFragmentAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
@@ -99,7 +100,6 @@ public class NewPinFragment extends Fragment {
             }
         });
 
-
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
             public void onPageSelected(int position) {
@@ -112,12 +112,11 @@ public class NewPinFragment extends Fragment {
 
     private void createNewPin() {
         dropButton.setEnabled(false);
-        int currentTabIndex = viewPager.getCurrentItem();
+        PinType type = viewPager.getCurrentItem() == 0 ? PinType.TEXT : PinType.IMAGE;
+        String caption = captionInput.getText().toString();
 
-        String content;
-        if (currentTabIndex == 0) {
-            // Text content pin
-            EditText textContentInput = requireView().findViewById(R.id.newpin_text_content_input);
+        if (type == PinType.TEXT) {
+            textContentInput = requireView().findViewById(R.id.newpin_text_content_input);
             TextInputLayout textContentLayout =
                     requireView().findViewById(R.id.newpin_text_content_input_layout);
             if (ValidationUtils.isEmpty(textContentInput)) {
@@ -127,32 +126,58 @@ public class NewPinFragment extends Fragment {
             } else {
                 textContentLayout.setErrorEnabled(false);
             }
-            content = String.valueOf(textContentInput.getText());
         } else {
-            // TODO: get locally stored image URL for content
-            content = "IMAGE PLACEHOLDER";
+            // type == IMAGE
+            if (fragmentAdapter.getImageContentFragment().photo_uri == null) {
+                Toast.makeText(requireContext(), R.string.empty_pin_text, Toast.LENGTH_SHORT)
+                        .show();
+                dropButton.setEnabled(true);
+                return;
+            }
         }
 
-        PinType type = currentTabIndex == 0 ? PinType.TEXT : PinType.IMAGE;
-        String caption = String.valueOf(captionInput.getText());
-
-        locationDriver.getCurrentLocation(requireContext()).addOnCompleteListener(task -> {
-            if (!task.isSuccessful() || task.getResult() == null) {
+        locationDriver.getCurrentLocation(requireContext()).addOnCompleteListener(locationTask -> {
+            if (!locationTask.isSuccessful() || locationTask.getResult() == null) {
                 Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_LONG)
                         .show();
-            } else {
-                firebase.dropPin(new Pin(content, type, task.getResult(), caption))
-                        .addOnSuccessListener(pid -> {
-                            // TODO: remove log and navigate user to pin view page
-                            Log.d(TAG, "DocumentSnapshot written with ID: " + pid);
-                            Toast.makeText(requireContext(), R.string.drop_pin_text,
-                                    Toast.LENGTH_SHORT).show();
-                        }).addOnFailureListener(e -> {
-                            Log.w(TAG, "Error adding document", e);
-                            Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                            dropButton.setEnabled(true);
-                        });
+                dropButton.setEnabled(true);
+                return;
             }
+
+            String textContent =
+                    type == PinType.TEXT ? textContentInput.getText().toString() : null;
+            Pin pin = new Pin(textContent, type, locationTask.getResult(), caption);
+
+            firebase.dropPin(pin).addOnFailureListener(e -> {
+                Log.w(TAG, "Error adding pin document", e);
+                Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+                dropButton.setEnabled(true);
+            }).addOnSuccessListener(pid -> {
+                if (pin.getType() == PinType.IMAGE) {
+                    Log.d(TAG, pid);
+                    firebase.uploadPinImage(fragmentAdapter.getImageContentFragment().photo_uri,
+                            pid).addOnCompleteListener(uploadTask -> {
+                        if (!uploadTask.isSuccessful()) {
+                            // TODO: create cloud function to delete pin & restore currency
+                            Toast.makeText(requireContext(), R.string.photo_upload_error_message,
+                                    Toast.LENGTH_LONG).show();
+                            dropButton.setEnabled(true);
+                            return;
+                        }
+                        Toast.makeText(requireContext(), R.string.drop_pin_text, Toast.LENGTH_LONG)
+                                .show();
+                        navController.navigate(NewPinFragmentDirections.pinView(pid));
+                    });
+                } else {
+                    Toast.makeText(requireContext(), R.string.drop_pin_text, Toast.LENGTH_LONG)
+                            .show();
+                    navController.navigate(NewPinFragmentDirections.pinView(pid));
+                }
+            });
         });
+    }
+
+    private void dropPin(@NonNull Pin pin) {
+
     }
 }

@@ -50,12 +50,14 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage'
     implementation 'com.google.firebase:firebase-messaging'
     implementation 'com.google.firebase:firebase-functions'
-    // FirebaseUI authentication dependency
+    // FirebaseUI authentication & storage dependency
     implementation 'com.firebaseui:firebase-ui-auth:8.0.2'
+    implementation 'com.firebaseui:firebase-ui-storage:8.0.2'
     // Google Play services authentication dependency
     implementation 'com.google.android.gms:play-services-auth:20.4.1'
     // Glide image handling library dependency
     implementation 'com.github.bumptech.glide:glide:4.15.1'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
     // Google Places API dependency
     implementation 'com.google.android.libraries.places:places:3.0.0'
     // Dependency for settings menu

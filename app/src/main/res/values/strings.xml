@@ -45,10 +45,13 @@
     <string name="image_text">Image</string>
     <string name="text_text">Text</string>
     <string name="empty_pin_text">You can\'t post an empty pin!</string>
+    <string name="pin_author_profile_picture_text">Pin Author Profile Picture</string>
+    <string name="view_pin_text">View Pin</string>
     <string name="choose_image_title">Choose Image</string>
     <string name="choose_image_dialog_message">Choose how you would like to select your image.</string>
     <string name="camera">Camera</string>
     <string name="gallery">Gallery</string>
-    <string name="file_creation_failed_message">File Creation Failed! Please try again.</string>
+    <string name="file_creation_failed_message">Something went wrong taking your photo. Please try again!</string>
     <string name="drop_pin_text">Pin successfully dropped!</string>
+    <string name="photo_upload_error_message">Something went wrong uploading your photo! Try again later.</string>
 </resources>

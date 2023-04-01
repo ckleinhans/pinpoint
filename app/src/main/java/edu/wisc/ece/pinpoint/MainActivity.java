@@ -1,7 +1,6 @@
 package edu.wisc.ece.pinpoint;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,8 +15,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.Arrays;
 import java.util.List;
 
-import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
-import edu.wisc.ece.pinpoint.utils.LocationDriver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
 public class MainActivity extends AppCompatActivity {
@@ -52,9 +49,9 @@ public class MainActivity extends AppCompatActivity {
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbar_map);
         // Uncomment to test cloud function
-        LocationDriver.getInstance(this).getCurrentLocation(this).addOnSuccessListener(
-                location -> FirebaseDriver.getInstance().fetchNearbyPins(location)
-                        .addOnSuccessListener(pins -> pins.forEach(
-                                (key, val) -> Log.d("PIN ID: " + key, String.valueOf(val)))));
+//        LocationDriver.getInstance(this).getCurrentLocation(this).addOnSuccessListener(
+//                location -> FirebaseDriver.getInstance().fetchNearbyPins(location)
+//                        .addOnSuccessListener(pins -> pins.forEach(
+//                                (key, val) -> Log.d("PIN ID: " + key, String.valueOf(val)))));
     }
 }
