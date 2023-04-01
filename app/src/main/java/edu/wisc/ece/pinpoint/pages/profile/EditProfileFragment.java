@@ -66,7 +66,6 @@ public class EditProfileFragment extends Fragment {
     private ActivityResultLauncher<Intent> photoPickerLauncher;
     private ActivityResultLauncher<Intent> locationAutocompleteLauncher;
     private Uri photo;
-    private File photoFile;
     private Handler h;
     private Runnable takePictureRunnable;
     private Runnable uploadPictureRunnable;
@@ -233,23 +232,22 @@ public class EditProfileFragment extends Fragment {
 
     private void takePicture() {
 
+        File photoFile;
         Intent pictureIntent = new Intent(
                 MediaStore.ACTION_IMAGE_CAPTURE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        if(pictureIntent.resolveActivity(this.getContext().getPackageManager()) != null){
+        if(pictureIntent.resolveActivity(requireContext().getPackageManager()) != null){
             //Create a file to store the image
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                Toast toast = Toast.makeText(this.getContext(), getString(R.string.file_creation_failed_message), Toast.LENGTH_SHORT);
+                Toast toast = Toast.makeText(requireContext(), getString(R.string.file_creation_failed_message), Toast.LENGTH_SHORT);
                 toast.show();
                 return;
             }
-            if (photoFile != null) {
-                photo = FileProvider.getUriForFile(this.getContext(),
+                photo = FileProvider.getUriForFile(requireContext(),
                         BuildConfig.APPLICATION_ID + ".fileprovider", photoFile);
                 pictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
                         photo);
-            }
         }
 
         // launch gallery opening intent
@@ -262,18 +260,17 @@ public class EditProfileFragment extends Fragment {
                         Locale.getDefault()).format(new Date());
         String imageFileName = "IMG_" + timeStamp + "_";
         File storageDir =
-                this.getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File tmpFile = File.createTempFile(
+                requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
 
-        return tmpFile;
     }
 
     private void showSelectDialog(){
-        new AlertDialog.Builder(this.getContext())
+        new AlertDialog.Builder(requireContext())
                 .setTitle(R.string.choose_image_title)
                 .setMessage(R.string.choose_image_dialog_message)
                 // Specifying a listener allows you to take an action before dismissing the dialog.
