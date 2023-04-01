@@ -36,8 +36,8 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     public void onBindViewHolder(@NonNull PinListViewHolder holder, int position) {
         // Set the data to textview and imageview.
         RecyclerData recyclerData = pinList.get(position);
+        // TODO: clean up nav directions call
         holder.item.setOnClickListener(view ->  navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView(recyclerData.getId())));
-
     }
 
     @Override
@@ -45,18 +45,13 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         return pinList.size();
     }
 
-
-
     // View Holder Class to handle Recycler View.
     public class PinListViewHolder extends RecyclerView.ViewHolder {
-
         private final CardView item;
 
         public PinListViewHolder(@NonNull View itemView) {
             super(itemView);
-
             item = itemView.findViewById(R.id.pinlist_item);
         }
-
     }
 }
