@@ -51,6 +51,7 @@ public class ProfilePageFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         navController = Navigation.findNavController(view);
         username = requireView().findViewById(R.id.profile_username);
         followerCount = requireView().findViewById(R.id.profile_follower_count);

@@ -3,7 +3,6 @@ package edu.wisc.ece.pinpoint.pages.pins;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -44,13 +43,12 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     }
 
     public void openPinView() {
-        navController.navigate(PinListFragmentDirections.pinView("PLACEHOLDER"));
+        // Hardcoded pin ID for testing purposes
+        navController.navigate(PinListFragmentDirections.pinView("ED1YF9O2ktfSgQVfHyhf"));
     }
 
     // View Holder Class to handle Recycler View.
     public class PinListViewHolder extends RecyclerView.ViewHolder {
-
-       // private final Button pinButton;
         private final ImageView pinImage;
 
         public PinListViewHolder(@NonNull View itemView) {

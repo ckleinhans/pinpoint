@@ -18,7 +18,7 @@ public class Pin {
     private String caption;
     // contents will be a text if PinType == TEXT
     // or a URL to an image if PinType == IMAGE
-    private String content;
+    private String textContent;
     private PinType type;
     private Date timestamp;
     private GeoPoint location;
@@ -26,12 +26,12 @@ public class Pin {
     public Pin() {
     }
 
-    public Pin(@NonNull String content, @NonNull PinType type, @NonNull Location location,
+    public Pin(String textContent, @NonNull PinType type, @NonNull Location location,
                String caption) {
         this.caption = caption;
         this.authorUID = FirebaseDriver.getInstance().getCurrentUser().getUid();
         this.type = type;
-        this.content = content;
+        this.textContent = textContent;
         this.timestamp = new Date();
         this.location = new GeoPoint(location.getLatitude(), location.getLongitude());
     }
@@ -44,8 +44,8 @@ public class Pin {
         return caption;
     }
 
-    public String getContent() {
-        return content;
+    public String getTextContent() {
+        return textContent;
     }
 
     public PinType getType() {
@@ -62,7 +62,9 @@ public class Pin {
 
     public Map<String, Object> serialize() {
         Map<String, Object> data = new HashMap<>();
-        data.put("content", content);
+        if (type == PinType.TEXT) {
+            data.put("content", textContent);
+        }
         data.put("type", type.toString());
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());

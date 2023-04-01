@@ -14,7 +14,7 @@ enum PinType {
 
 type Pin = {
   caption: string;
-  content: string;
+  textContent?: string;
   type: PinType;
   location: GeoPoint;
   authorUID: string;
@@ -46,7 +46,7 @@ export const getNearbyPins = functions.https.onCall(
 
 // TODO: add anti-spoof check before dropping pin
 export const dropPin = functions.https.onCall(
-  async ({ content, caption, type, latitude, longitude }, context) => {
+  async ({ textContent, caption, type, latitude, longitude }, context) => {
     // Validate auth status and args
     if (!context || !context.auth || !context.auth.uid) {
       throw new functions.https.HttpsError(
@@ -54,21 +54,27 @@ export const dropPin = functions.https.onCall(
         "dropPin must be called while authenticated."
       );
     }
-    if (!content || !type || !latitude || !longitude) {
+    if (
+      !type ||
+      !latitude ||
+      !longitude ||
+      (type == PinType.TEXT && !textContent)
+    ) {
       throw new functions.https.HttpsError(
         "invalid-argument",
-        "dropPin must be called with content, type, latitude, and longitude."
+        "dropPin must be called with proper arguments."
       );
     }
 
     const pin: Pin = {
       caption,
-      content,
       type,
       location: new GeoPoint(latitude, longitude),
       authorUID: context.auth.uid,
       timestamp: new Date(),
     };
+
+    if (type == PinType.TEXT) pin.textContent = textContent;
 
     // Get document references for reading/writing
     const privateDataRef = firestore()
