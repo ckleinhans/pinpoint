@@ -85,6 +85,7 @@ public class MapFragment extends Fragment {
                 valString.substring(valString.lastIndexOf("=")+1,valString.indexOf("}"))),
                 Double.parseDouble(val.toString().substring(valString.indexOf("=")+1,val.toString()
                         .indexOf(","))));
+        // TODO: maybe change color based on type of undiscovered pin (stranger->red, friend->green, NFC->cyan)
         Marker pinMarker = map.addMarker(new MarkerOptions()
                 .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
                 .alpha(0.5f)
