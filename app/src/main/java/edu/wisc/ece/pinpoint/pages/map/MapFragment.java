@@ -1,22 +1,21 @@
 package edu.wisc.ece.pinpoint.pages.map;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -26,13 +25,21 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.GeoPoint;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.Pin;
+import edu.wisc.ece.pinpoint.pages.newpin.NewPinFragmentDirections;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
 public class MapFragment extends Fragment {
     private Location lastKnownLocation;
+    private GoogleMap map;
+    private NavController navController;
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,23 +48,37 @@ public class MapFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment\
+        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_map, container, false);
         SupportMapFragment supportMapFragment =
                 (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.google_map);
         supportMapFragment.getMapAsync(googleMap -> {
-            styleMap(googleMap);
-            getDeviceLocation(googleMap);
-            googleMap.setOnInfoWindowClickListener(marker -> {
-                Toast.makeText(requireContext(), "Window clicked for marker "+marker.getTag().toString(), Toast.LENGTH_SHORT).show();
+            this.map = googleMap;
+            styleMap();
+            getDeviceLocation();
+            map.setOnInfoWindowClickListener(marker -> {
+                if(marker.getAlpha() == 1f){
+                    navController.navigate(edu.wisc.ece.pinpoint.pages.newpin.NewPinFragmentDirections.pinView(marker.getTag().toString()));
+                    Toast.makeText(requireContext(), "Window clicked for marker "+marker.getTag(), Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    Toast.makeText(requireContext(), "Travel to this pin to reveal its contents!", Toast.LENGTH_SHORT).show();
+                }
             });
         });
         return view;
     }
 
-    private void styleMap(GoogleMap map){
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        navController = Navigation.findNavController(view);
+
+    }
+
+    private void styleMap(){
         if(getActivity() != null){
-            map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
+            map.setInfoWindowAdapter(new InfoAdapter(requireContext(), this));
             int nightModeFlags =
                     requireActivity().getResources().getConfiguration().uiMode &
                             Configuration.UI_MODE_NIGHT_MASK;
@@ -78,33 +99,51 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void loadUndiscoveredPins(Object key, Object val, GoogleMap map){
+    private void loadUndiscoveredPins(Object key, Object val){
         // TODO: check if nearby pin ID is in user collection. if it is, don't add from here. Add from followup fetch of found pins
         String valString = val.toString();
         LatLng pinLocation = new LatLng(Double.parseDouble(
                 valString.substring(valString.lastIndexOf("=")+1,valString.indexOf("}"))),
-                Double.parseDouble(val.toString().substring(valString.indexOf("=")+1,val.toString()
+                Double.parseDouble(valString.substring(valString.indexOf("=")+1,valString
                         .indexOf(","))));
-        // TODO: maybe change color based on type of undiscovered pin (stranger->red, friend->green, NFC->cyan)
+        // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
         Marker pinMarker = map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_CYAN))
-                .alpha(0.5f)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .alpha(.5f)
                 .position(pinLocation));
-        pinMarker.setTag(key.toString());
+        pinMarker.setTag(key);
+    }
+
+    private void loadDiscoveredPins(String id, GeoPoint geoPoint) {
+        LatLng pinLocation = new LatLng(geoPoint.getLatitude(),geoPoint.getLongitude());
+        // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
+        Marker pinMarker = map.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                .alpha(1f)
+                .position(pinLocation));
+        pinMarker.setTag(id);
     }
 
     @SuppressLint("MissingPermission")
-    private void getDeviceLocation(GoogleMap map) {
+    private void getDeviceLocation() {
         map.setMyLocationEnabled(true);
         map.getUiSettings().setMyLocationButtonEnabled(true);
-        if(getActivity() != null) {
+        // Get dropped pins
+        FirebaseDriver.getInstance().getDroppedPins().addOnSuccessListener(pins ->
+                pins.forEach((id, pin) -> {
+                    loadDiscoveredPins(id, pin.getLocation());
+        }));
+        // Get found pins
+        FirebaseDriver.getInstance().getFoundPins().addOnSuccessListener(pins ->
+                pins.forEach((id, pin) -> loadDiscoveredPins(id, pin.getLocation())));
+        if (getActivity() != null) {
             if(LocationDriver.getInstance(getActivity()).hasLocationOn(requireContext())) {
                 // Get location and nearby undiscovered pins
                 Task<Location> locationResult = LocationDriver.getInstance(requireActivity())
                         .getLastLocation(requireContext()).addOnSuccessListener(location ->
                                 FirebaseDriver.getInstance().fetchNearbyPins(location)
                                         .addOnSuccessListener(pins -> pins.forEach((key, val) ->
-                                                loadUndiscoveredPins(key, val, map))));
+                                                loadUndiscoveredPins(key, val))));
                 locationResult.addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
                         // Set the map's camera position to the current location of the device.

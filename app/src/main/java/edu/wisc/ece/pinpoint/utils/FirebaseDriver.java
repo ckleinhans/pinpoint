@@ -186,6 +186,60 @@ public class FirebaseDriver {
         });
     }
 
+    // TODO: improve fetch efficiency using query
+    public Task<Map<String, Pin>> getFoundPins() {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pins");
+        }
+        return db.collection("users").document(auth.getUid()).collection("found").get().continueWithTask(task -> {
+            List<Task<DocumentSnapshot>> foundPins = new ArrayList<>();
+
+            for (final Iterator<DocumentSnapshot> i = task.getResult().getDocuments().iterator(); i.hasNext(); ) {
+                String pinId = i.next().getId();
+                foundPins.add((db.collection("pins").document(pinId).get()));
+
+            }
+            return Tasks.whenAllComplete(foundPins).continueWith(task1 -> {
+                Map<String, Pin> found = new HashMap<>();
+                for (final Iterator<Task<?>> i = task1.getResult().iterator(); i.hasNext(); ) {
+                    DocumentSnapshot foundPinDoc = (DocumentSnapshot) i.next().getResult();
+                    Pin p = foundPinDoc.toObject(Pin.class);
+                    pins.put(foundPinDoc.getId(), p);
+                    found.put(foundPinDoc.getId(), p);
+                }
+                return found;
+            });
+
+        });
+    }
+
+    // TODO: improve fetch efficiency using query
+    public Task<Map<String, Pin>> getDroppedPins(){
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pins");
+        }
+        return db.collection("users").document(auth.getUid()).collection("dropped").get().continueWithTask(task -> {
+            List<Task<DocumentSnapshot>> droppedPins = new ArrayList<>();
+
+            for (final Iterator<DocumentSnapshot> i = task.getResult().getDocuments().iterator(); i.hasNext(); ) {
+                String pinId = i.next().getId();
+                droppedPins.add((db.collection("pins").document(pinId).get()));
+
+            }
+            return Tasks.whenAllComplete(droppedPins).continueWith(task1 -> {
+                Map<String, Pin> dropped = new HashMap<>();
+                for (final Iterator<Task<?>> i = task1.getResult().iterator(); i.hasNext(); ) {
+                    DocumentSnapshot droppedPinDoc = (DocumentSnapshot) i.next().getResult();
+                    Pin p = droppedPinDoc.toObject(Pin.class);
+                    pins.put(droppedPinDoc.getId(), p);
+                    dropped.put(droppedPinDoc.getId(), p);
+                }
+                return dropped;
+            });
+
+        });
+    }
+
     public Pin getCachedPin(@NonNull String pid) {
         return pins.get(pid);
     }
