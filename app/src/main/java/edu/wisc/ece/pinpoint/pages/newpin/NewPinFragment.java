@@ -45,6 +45,7 @@ public class NewPinFragment extends Fragment {
     private EditText captionInput;
     private Button dropButton;
     private EditText textContentInput;
+    private Long pinnieCount;
 
     private Integer userPinniesCount;
     private Integer pinCost;
@@ -118,17 +119,21 @@ public class NewPinFragment extends Fragment {
             }
         });
 
-        userPinniesCount = 1234;
-        pinCost = 1;
+        setPinnieCount();
+    }
 
-        if(userPinniesCount < pinCost){
-            dropButton.setEnabled(false);
-            insufficientPinniesText.setVisibility(view.VISIBLE);
-        }
-
-        topBarText.setText("Balance: " + pinniesToString(userPinniesCount));
-        dropButton.setText("Drop Pin - " + pinniesToString(pinCost));
-
+    private void setPinnieCount() {
+        FirebaseDriver driver = FirebaseDriver.getInstance();
+        String uid = driver.getCurrentUser().getUid();
+        driver.getPinnies(uid).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                pinnieCount = task.getResult();
+                Log.d(TAG, String.format("Got currency for user %s: %s", uid, pinnieCount.toString()));
+                setPinniesUI();
+            } else {
+                Log.d(TAG, "get failed with ", task.getException());
+            }
+        });
     }
 
     private void createNewPin() {

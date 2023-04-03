@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.signature.ObjectKey;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.Date;
@@ -15,6 +16,7 @@ import java.util.Date;
 import edu.wisc.ece.pinpoint.R;
 
 public class User {
+    private static final String TAG = User.class.getName();
     private String username;
     private String bio;
     private String location;
