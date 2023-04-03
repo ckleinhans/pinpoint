@@ -61,14 +61,27 @@ public class ProfilePageFragment extends Fragment {
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
         profilePic = requireView().findViewById(R.id.profile_pic);
-        ImageButton settingsButton = requireView().findViewById(R.id.profile_settings);
         Button button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
         String uid = args != null ? ProfilePageFragmentArgs.fromBundle(args).getUid() : null;
+
+        // If UID null, navigated from navbar, show settings button & set default UID
         if (uid == null) {
-            // UID is null so this is current user profile
             uid = firebase.getCurrentUser().getUid();
+            ImageButton settingsButton = requireView().findViewById(R.id.profile_settings);
+            settingsButton.setVisibility(View.VISIBLE);
+            settingsButton.setOnClickListener(clickedView -> navController.navigate(
+                    ProfilePageFragmentDirections.settingsContainer()));
+        } else {
+            // Got here some other way than navbar, don't show settings and show back button instead
+            ImageButton backButton = requireView().findViewById(R.id.profile_back_button);
+            backButton.setVisibility(View.VISIBLE);
+            backButton.setOnClickListener(v -> navController.popBackStack());
+        }
+
+        if (uid.equals(firebase.getCurrentUser().getUid())) {
+            // Viewing own profile, button is for editing profile
             button.setText(R.string.edit_profile_text);
             button.setOnClickListener((buttonView) -> navController.navigate(
                     ProfilePageFragmentDirections.editProfile()));
@@ -78,8 +91,6 @@ public class ProfilePageFragment extends Fragment {
                 // TODO: implement user following
             });
         }
-        settingsButton.setOnClickListener(clickedView -> navController.navigate(
-                ProfilePageFragmentDirections.settingsContainer()));
 
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {
@@ -93,7 +104,7 @@ public class ProfilePageFragment extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
         ProfileFragmentAdapter fragmentAdapter =
                 new ProfileFragmentAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
-                        getLifecycle());
+                        getLifecycle(), uid);
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override

@@ -63,7 +63,7 @@ public class Pin {
     public Map<String, Object> serialize() {
         Map<String, Object> data = new HashMap<>();
         if (type == PinType.TEXT) {
-            data.put("content", textContent);
+            data.put("textContent", textContent);
         }
         data.put("type", type.toString());
         data.put("latitude", location.getLatitude());

@@ -166,18 +166,17 @@ public class NewPinFragment extends Fragment {
                         }
                         Toast.makeText(requireContext(), R.string.drop_pin_text, Toast.LENGTH_LONG)
                                 .show();
+                        navController.popBackStack();
                         navController.navigate(NewPinFragmentDirections.pinView(pid));
+
                     });
                 } else {
                     Toast.makeText(requireContext(), R.string.drop_pin_text, Toast.LENGTH_LONG)
                             .show();
+                    navController.popBackStack();
                     navController.navigate(NewPinFragmentDirections.pinView(pid));
                 }
             });
         });
-    }
-
-    private void dropPin(@NonNull Pin pin) {
-
     }
 }

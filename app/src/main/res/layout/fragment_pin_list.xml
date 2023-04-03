@@ -9,8 +9,6 @@
         android:id="@+id/pinlist_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingBottom="90dp"
         android:clipToPadding="false"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="4dp" />
+        android:paddingBottom="95dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

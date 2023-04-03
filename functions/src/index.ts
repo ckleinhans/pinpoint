@@ -8,8 +8,8 @@ const ONE_MILE_LATITUDE_DEGREES = 0.014492753623188;
 const NUM_MILES_NEARBY = 2;
 
 enum PinType {
-  TEXT,
-  IMAGE,
+  TEXT = "TEXT",
+  IMAGE = "IMAGE",
 }
 
 type Pin = {
@@ -58,7 +58,7 @@ export const dropPin = functions.https.onCall(
       !type ||
       !latitude ||
       !longitude ||
-      (type == PinType.TEXT && !textContent)
+      (type === PinType.TEXT && !textContent)
     ) {
       throw new functions.https.HttpsError(
         "invalid-argument",
@@ -74,7 +74,7 @@ export const dropPin = functions.https.onCall(
       timestamp: new Date(),
     };
 
-    if (type == PinType.TEXT) pin.textContent = textContent;
+    if (type === PinType.TEXT) pin.textContent = textContent;
 
     // Get document references for reading/writing
     const privateDataRef = firestore()

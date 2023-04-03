@@ -6,27 +6,31 @@ import android.net.Uri;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 
 import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.GlideApp;
+import edu.wisc.ece.pinpoint.data.OrderedHashSet;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 
@@ -36,8 +40,10 @@ public class FirebaseDriver {
     private final FirebaseFirestore db;
     private final FirebaseStorage storage;
     private final FirebaseFunctions functions;
-    private final HashMap<String, User> users;
-    private final HashMap<String, Pin> pins;
+    private final Map<String, User> users;
+    private final Map<String, Pin> pins;
+    private final OrderedHashSet<String> foundPinIds;
+    private final OrderedHashSet<String> droppedPinIds;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -50,6 +56,8 @@ public class FirebaseDriver {
         functions = FirebaseFunctions.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
+        foundPinIds = new OrderedHashSet<>();
+        droppedPinIds = new OrderedHashSet<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -122,6 +130,54 @@ public class FirebaseDriver {
         return users.get(uid);
     }
 
+    // TODO: improve fetch efficiency using query
+    // TODO: order results by timestamp
+    public Task<OrderedHashSet<String>> fetchFoundPins() {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pins");
+        }
+        return db.collection("users").document(auth.getUid()).collection("found").get()
+                .continueWithTask(task -> {
+                    List<Task<Pin>> fetchTasks = new ArrayList<>();
+                    for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
+                        String pinId = documentSnapshot.getId();
+                        foundPinIds.add(pinId);
+                        if (getCachedPin(pinId) == null) {
+                            fetchTasks.add(fetchPin(pinId));
+                        }
+                    }
+                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> foundPinIds);
+                });
+    }
+
+    public OrderedHashSet<String> getCachedFoundPinIds() {
+        return foundPinIds;
+    }
+
+    // TODO: improve fetch efficiency using query
+    // TODO: order results by timestamp
+    public Task<OrderedHashSet<String>> fetchDroppedPins() {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pins");
+        }
+        return db.collection("users").document(auth.getUid()).collection("dropped").get()
+                .continueWithTask(task -> {
+                    List<Task<Pin>> fetchTasks = new ArrayList<>();
+                    for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
+                        String pinId = documentSnapshot.getId();
+                        droppedPinIds.add(pinId);
+                        if (getCachedPin(pinId) == null) {
+                            fetchTasks.add(fetchPin(pinId));
+                        }
+                    }
+                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> droppedPinIds);
+                });
+    }
+
+    public OrderedHashSet<String> getCachedDroppedPinIds() {
+        return droppedPinIds;
+    }
+
     public Task<Pin> fetchPin(@NonNull String pid) {
         return db.collection("pins").document(pid).get().continueWith(task -> {
             Pin pin = task.getResult().toObject(Pin.class);
@@ -141,9 +197,9 @@ public class FirebaseDriver {
         return storage.getReference("pins").child(pid).putFile(localUri);
     }
 
-    public void loadPinImage(ImageView imageView, Fragment fragment, String pid) {
+    public void loadPinImage(ImageView imageView, Context context, String pid) {
         StorageReference ref = storage.getReference("pins").child(pid);
-        GlideApp.with(fragment).load(ref).placeholder(R.drawable.ic_camera).centerCrop()
+        GlideApp.with(context).load(ref).placeholder(R.drawable.ic_camera).centerCrop()
                 .into(imageView);
     }
 
@@ -151,6 +207,7 @@ public class FirebaseDriver {
         return functions.getHttpsCallable("dropPin").call(newPin.serialize()).continueWith(task -> {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
+            droppedPinIds.add(pid);
             return pid;
         });
     }
@@ -159,7 +216,8 @@ public class FirebaseDriver {
         Map<String, Object> data = new HashMap<>();
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
-
+        
+        //noinspection unchecked
         return functions.getHttpsCallable("getNearbyPins").call(data)
                 .continueWith(task -> (Map<String, Object>) task.getResult().getData());
     }
