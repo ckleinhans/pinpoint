@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -23,6 +24,7 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class PinViewFragment extends Fragment {
     private FirebaseDriver firebase;
+    private NavController navController;
     private TextView timestamp;
     private TextView authorUsername;
     private ImageView authorProfilePic;
@@ -31,13 +33,8 @@ public class PinViewFragment extends Fragment {
     private TextView commentCount;
     private TextView textContent;
     private ImageView imageContent;
+    private ConstraintLayout metadataBar;
     private String pid;
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        firebase = FirebaseDriver.getInstance();
-    }
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -48,7 +45,8 @@ public class PinViewFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        NavController navController = Navigation.findNavController(view);
+        firebase = FirebaseDriver.getInstance();
+        navController = Navigation.findNavController(view);
         timestamp = requireView().findViewById(R.id.pin_post_time);
         authorUsername = requireView().findViewById(R.id.pin_author_username);
         authorProfilePic = requireView().findViewById(R.id.pin_author_profile_pic);
@@ -57,6 +55,7 @@ public class PinViewFragment extends Fragment {
         commentCount = requireView().findViewById(R.id.pin_comment_count);
         textContent = requireView().findViewById(R.id.pin_text_content);
         imageContent = requireView().findViewById(R.id.pin_image_content);
+        metadataBar = requireView().findViewById(R.id.pin_view_metadata);
         ImageButton backButton = requireView().findViewById(R.id.pin_view_back_button);
 
         backButton.setOnClickListener((v) -> navController.popBackStack());
@@ -89,7 +88,11 @@ public class PinViewFragment extends Fragment {
 
         timestamp.setText(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
                 .format(pin.getTimestamp()));
-        caption.setText(pin.getCaption());
+        if (pin.getCaption() == null) {
+            caption.setVisibility(View.GONE);
+        } else {
+            caption.setText(pin.getCaption());
+        }
         foundCount.setText("12 finds");
         commentCount.setText("20 Comments");
         if (pin.getType() == Pin.PinType.IMAGE) {
@@ -97,6 +100,10 @@ public class PinViewFragment extends Fragment {
         } else {
             textContent.setText(pin.getTextContent());
         }
+
+        // Set metadata bar above pin content to bring users to author profile page on click
+        metadataBar.setOnClickListener(v -> navController.navigate(
+                PinViewFragmentDirections.profile().setUid(pin.getAuthorUID())));
     }
 
     public void setPinAuthorData(User author) {

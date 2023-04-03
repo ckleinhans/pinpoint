@@ -89,8 +89,7 @@ public class EditProfileFragment extends Fragment {
                 registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                         result -> {
                             if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                                Glide.with(this).load(photo).circleCrop()
-                                        .into(profilePicUpload);
+                                Glide.with(this).load(photo).circleCrop().into(profilePicUpload);
                             }
                         });
         locationAutocompleteLauncher =
@@ -142,8 +141,7 @@ public class EditProfileFragment extends Fragment {
         locationInput.setOnClickListener(
                 (locationView) -> launchLocationAutocomplete(locationView, true));
 
-        cancelButton.setOnClickListener(
-                (buttonView) -> navController.navigate(EditProfileFragmentDirections.profile()));
+        cancelButton.setOnClickListener((buttonView) -> navController.popBackStack());
         saveButton.setOnClickListener(this::save);
         profilePicUpload.setOnClickListener(view1 -> showSelectDialog());
 
@@ -233,21 +231,21 @@ public class EditProfileFragment extends Fragment {
     private void takePicture() {
 
         File photoFile;
-        Intent pictureIntent = new Intent(
-                MediaStore.ACTION_IMAGE_CAPTURE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        if(pictureIntent.resolveActivity(requireContext().getPackageManager()) != null){
+        Intent pictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).addFlags(
+                Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        if (pictureIntent.resolveActivity(requireContext().getPackageManager()) != null) {
             //Create a file to store the image
             try {
                 photoFile = createImageFile();
             } catch (IOException ex) {
-                Toast toast = Toast.makeText(requireContext(), getString(R.string.file_creation_failed_message), Toast.LENGTH_SHORT);
+                Toast toast = Toast.makeText(requireContext(),
+                        getString(R.string.file_creation_failed_message), Toast.LENGTH_SHORT);
                 toast.show();
                 return;
             }
-                photo = FileProvider.getUriForFile(requireContext(),
-                        BuildConfig.APPLICATION_ID + ".fileprovider", photoFile);
-                pictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                        photo);
+            photo = FileProvider.getUriForFile(requireContext(),
+                    BuildConfig.APPLICATION_ID + ".fileprovider", photoFile);
+            pictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photo);
         }
 
         // launch gallery opening intent
@@ -256,28 +254,24 @@ public class EditProfileFragment extends Fragment {
 
     private File createImageFile() throws IOException {
         String timeStamp =
-                new SimpleDateFormat("yyyyMMdd_HHmmss",
-                        Locale.getDefault()).format(new Date());
+                new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
         String imageFileName = "IMG_" + timeStamp + "_";
-        File storageDir =
-                requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        return File.createTempFile(
-                imageFileName,  /* prefix */
+        File storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
+                storageDir      /* directory */);
 
     }
 
-    private void showSelectDialog(){
-        new AlertDialog.Builder(requireContext())
-                .setTitle(R.string.choose_image_title)
+    private void showSelectDialog() {
+        new AlertDialog.Builder(requireContext()).setTitle(R.string.choose_image_title)
                 .setMessage(R.string.choose_image_dialog_message)
                 // Specifying a listener allows you to take an action before dismissing the dialog.
                 // The dialog is automatically dismissed when a dialog button is clicked.
                 .setPositiveButton(R.string.camera, (dialog, which) -> h.post(takePictureRunnable))
-                // A null listener allows the button to dismiss the dialog and take no further action.
-                .setNegativeButton(R.string.gallery, (dialog, which) -> h.post(uploadPictureRunnable))
-                .show();
+                // A null listener allows the button to dismiss the dialog and take no further
+                // action.
+                .setNegativeButton(R.string.gallery,
+                        (dialog, which) -> h.post(uploadPictureRunnable)).show();
     }
 }
