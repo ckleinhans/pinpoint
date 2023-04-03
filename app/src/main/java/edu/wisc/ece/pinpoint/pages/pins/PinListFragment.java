@@ -9,32 +9,27 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.List;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.data.Pin;
+import edu.wisc.ece.pinpoint.data.PinListRecyclerData;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
-
-public class PinFoundFragment extends Fragment {
-
-
-    private NavController navController;
+public class PinListFragment extends Fragment {
+    private List<PinListRecyclerData> pinListRecyclerData;
     private FirebaseDriver firebase;
-    ArrayList<RecyclerData> recyclerDataArrayList;
-    RecyclerView recyclerView;
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         firebase = FirebaseDriver.getInstance();
+        pinListRecyclerData = new ArrayList<>();
     }
 
     @Override
@@ -47,32 +42,17 @@ public class PinFoundFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        RecyclerView recyclerView = view.findViewById(R.id.pinlist_recycler_view);
+        NavController navController = Navigation.findNavController(view);
 
-        recyclerDataArrayList = new ArrayList<>();
-
-        NavHostFragment navHostFragment = (NavHostFragment) requireActivity().getSupportFragmentManager()
-                .findFragmentById(R.id.activity_main_nav_host_fragment);
-        navController = navHostFragment.getNavController();
-
-
-        // added data to array list
-          firebase.getFoundPins().addOnCompleteListener(task -> setPinData(task.getResult()));
-
-        recyclerView =  (RecyclerView) view.findViewById(R.id.pinlist_recycler_view);
-
-
-    }
-
-    public void setPinData(Map<String, Pin> pins){
-        for(Map.Entry<String, Pin> entry : pins.entrySet()) {
-            recyclerDataArrayList.add(new RecyclerData(entry.getKey(), entry.getValue()));
+        // Get pin IDs from arguments
+        Bundle args = requireArguments();
+        for (String pid : args.getStringArrayList("pinIds")) {
+            pinListRecyclerData.add(new PinListRecyclerData(pid, firebase.getCachedPin(pid)));
         }
-        GridLayoutManager layoutManager = new GridLayoutManager(getContext(), 3);
 
-        PinListAdapter adapter = new PinListAdapter(recyclerDataArrayList, navController);
-
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
+        recyclerView.setAdapter(new PinListAdapter(pinListRecyclerData, navController));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 }

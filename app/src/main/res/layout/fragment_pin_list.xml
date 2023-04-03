@@ -3,9 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".pages.pins.PinFoundFragment"
-    >
+    tools:context=".pages.pins.PinListFragment">
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/pinlist_recycler_view"
@@ -13,5 +11,4 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingBottom="95dp" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

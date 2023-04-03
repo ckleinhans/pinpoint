@@ -1,23 +1,20 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.viewpager2.widget.ViewPager2;
-
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.ViewPager2;
+
 import com.google.android.material.tabs.TabLayout;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.pages.profile.ProfileFragmentAdapter;
 
-public class PinListTab extends Fragment {
-
+public class PinBoardFragment extends Fragment {
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
 
@@ -29,7 +26,7 @@ public class PinListTab extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.activity_pin_list_tab, container, false);
+        return inflater.inflate(R.layout.fragment_pin_board, container, false);
     }
 
     @Override
@@ -40,8 +37,8 @@ public class PinListTab extends Fragment {
         viewPager = requireView().findViewById(R.id.view_pager);
         tabLayout.addTab(tabLayout.newTab().setText("DROPPED PINS"));
         tabLayout.addTab(tabLayout.newTab().setText("COLLECTED PINS"));
-        PinTabAdapter fragmentAdapter =
-                new PinTabAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
+        PinBoardTabAdapter fragmentAdapter =
+                new PinBoardTabAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {

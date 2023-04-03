@@ -93,7 +93,7 @@ public class PinViewFragment extends Fragment {
         foundCount.setText("12 finds");
         commentCount.setText("20 Comments");
         if (pin.getType() == Pin.PinType.IMAGE) {
-            firebase.loadPinImage(imageContent, this, pid);
+            firebase.loadPinImage(imageContent, requireContext(), pid);
         } else {
             textContent.setText(pin.getTextContent());
         }

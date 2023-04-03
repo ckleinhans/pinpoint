@@ -53,9 +53,9 @@
         tools:layout="@layout/fragment_settings_container" />
     <fragment
         android:id="@+id/navbar_feed"
-        android:name="edu.wisc.ece.pinpoint.pages.pins.PinListTab"
-        android:label="activity_pin_list_tab"
-        tools:layout="@layout/activity_pin_list_tab" />
+        android:name="edu.wisc.ece.pinpoint.pages.pins.PinBoardFragment"
+        android:label="fragment_pin_list_tab"
+        tools:layout="@layout/fragment_pin_board" />
     <fragment
         android:id="@+id/pin_view"
         android:name="edu.wisc.ece.pinpoint.pages.pins.PinViewFragment"

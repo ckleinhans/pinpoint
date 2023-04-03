@@ -20,8 +20,6 @@
             android:layout_height="match_parent"
             android:layout_gravity="center"
             android:contentDescription="@string/pin_thumbnail_text"
-            android:src="@drawable/oldnote" />
-
+            android:src="@drawable/ic_camera" />
     </LinearLayout>
-
 </androidx.cardview.widget.CardView>

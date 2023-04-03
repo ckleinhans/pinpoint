@@ -6,6 +6,8 @@ import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
+import edu.wisc.ece.pinpoint.pages.pins.PinListFragment;
+
 public class ProfileFragmentAdapter extends FragmentStateAdapter {
 
     private final int tabCount;
@@ -24,6 +26,6 @@ public class ProfileFragmentAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        return position == 0 ? new ActivityFragment() : new DroppedPinsFragment();
+        return position == 0 ? new ActivityFragment() : new PinListFragment();
     }
 }

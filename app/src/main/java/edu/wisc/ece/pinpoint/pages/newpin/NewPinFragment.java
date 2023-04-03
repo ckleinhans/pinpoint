@@ -50,13 +50,6 @@ public class NewPinFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        firebase = FirebaseDriver.getInstance();
-        locationDriver = LocationDriver.getInstance(requireContext());
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_new_pin, container, false);
