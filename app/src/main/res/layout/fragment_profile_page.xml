@@ -16,12 +16,12 @@
 
         <TextView
             android:id="@+id/profile_username"
+            style="@style/TextAppearance.Pinpoint.ThickText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="15dp"
             android:textAlignment="center"
             android:textColor="?attr/colorOnPrimary"
-            style="@style/TextAppearance.Pinpoint.ThickText"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -36,11 +36,27 @@
             android:padding="4dp"
             android:scaleType="fitCenter"
             android:src="@drawable/ic_settings"
+            android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="?attr/colorOnPrimary" />
 
+        <ImageButton
+            android:id="@+id/profile_back_button"
+            style="@style/Widget.AppCompat.Button.Borderless"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="5dp"
+            android:contentDescription="@string/back_text"
+            android:padding="4dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_back"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorOnPrimary" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView
@@ -165,10 +181,10 @@
 
     <Button
         android:id="@+id/profile_button"
+        style="@style/ButtonStyle.Pinpoint.Default"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
-        style="@style/ButtonStyle.Pinpoint.Default"
         android:text="@string/follow_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

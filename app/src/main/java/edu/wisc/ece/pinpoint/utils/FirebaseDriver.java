@@ -56,6 +56,8 @@ public class FirebaseDriver {
         functions = FirebaseFunctions.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
+        foundPinIds = new OrderedHashSet<>();
+        droppedPinIds = new OrderedHashSet<>();
     }
 
     public static FirebaseDriver getInstance() {
