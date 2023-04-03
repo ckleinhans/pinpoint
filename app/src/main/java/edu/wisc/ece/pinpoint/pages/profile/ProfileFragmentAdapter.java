@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
-import androidx.navigation.NavController;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import edu.wisc.ece.pinpoint.pages.pins.PinListFragment;
@@ -14,15 +13,12 @@ import edu.wisc.ece.pinpoint.pages.pins.PinListFragment;
 public class ProfileFragmentAdapter extends FragmentStateAdapter {
 
     private final int tabCount;
-    private final NavController navController;
     private final String uid;
 
     public ProfileFragmentAdapter(@NonNull FragmentManager fragmentManager, int tabCount,
-                                  @NonNull Lifecycle lifecycle, NavController navController,
-                                  String uid) {
+                                  @NonNull Lifecycle lifecycle, String uid) {
         super(fragmentManager, lifecycle);
         this.tabCount = tabCount;
-        this.navController = navController;
         this.uid = uid;
     }
 
@@ -37,7 +33,7 @@ public class ProfileFragmentAdapter extends FragmentStateAdapter {
         if (position == 0) {
             return new ActivityFragment();
         } else {
-            PinListFragment frag = new PinListFragment(navController);
+            PinListFragment frag = new PinListFragment();
             Bundle args = new Bundle();
             args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
                     PinListFragment.PinListType.USER.name());

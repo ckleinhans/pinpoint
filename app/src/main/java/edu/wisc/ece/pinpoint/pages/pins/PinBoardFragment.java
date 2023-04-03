@@ -8,8 +8,6 @@ import android.view.ViewGroup;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.tabs.TabLayout;
@@ -28,14 +26,13 @@ public class PinBoardFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        NavController navController = Navigation.findNavController(view);
         TabLayout tabLayout = requireView().findViewById(R.id.tab_layout);
         ViewPager2 viewPager = requireView().findViewById(R.id.view_pager);
         tabLayout.addTab(tabLayout.newTab().setText(R.string.found_pins_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
         PinBoardTabAdapter fragmentAdapter =
                 new PinBoardTabAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
-                        getLifecycle(), navController);
+                        getLifecycle());
         viewPager.setAdapter(fragmentAdapter);
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
