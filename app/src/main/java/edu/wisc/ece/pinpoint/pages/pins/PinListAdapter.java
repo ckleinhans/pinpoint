@@ -11,21 +11,19 @@ import androidx.cardview.widget.CardView;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.List;
-
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.OrderedHashSet;
 import edu.wisc.ece.pinpoint.data.Pin;
-import edu.wisc.ece.pinpoint.data.PinListRecyclerData;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListViewHolder> {
-    private final List<PinListRecyclerData> pinList;
+    private final OrderedHashSet<String> pinIds;
     private final NavController navController;
     private final FirebaseDriver firebase;
     private Context parentContext;
 
-    public PinListAdapter(List<PinListRecyclerData> pinList, NavController navController) {
-        this.pinList = pinList;
+    public PinListAdapter(OrderedHashSet<String> pinIds, NavController navController) {
+        this.pinIds = pinIds;
         this.navController = navController;
         firebase = FirebaseDriver.getInstance();
     }
@@ -41,20 +39,18 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
 
     @Override
     public void onBindViewHolder(@NonNull PinListViewHolder holder, int position) {
-        PinListRecyclerData pinItem = pinList.get(position);
-        String pid = pinItem.getId();
+        String pid = pinIds.get(position);
 
-        if (pinItem.getPin().getType() == Pin.PinType.IMAGE) {
+        if (firebase.getCachedPin(pid).getType() == Pin.PinType.IMAGE) {
             firebase.loadPinImage(holder.image, parentContext, pid);
         }
-
         holder.item.setOnClickListener(view -> navController.navigate(
                 edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
     }
 
     @Override
     public int getItemCount() {
-        return pinList.size();
+        return pinIds.size();
     }
 
     // View Holder Class to handle Recycler View.

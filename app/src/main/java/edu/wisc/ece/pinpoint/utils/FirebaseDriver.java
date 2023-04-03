@@ -23,15 +23,14 @@ import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.GlideApp;
+import edu.wisc.ece.pinpoint.data.OrderedHashSet;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 
@@ -43,8 +42,8 @@ public class FirebaseDriver {
     private final FirebaseFunctions functions;
     private final Map<String, User> users;
     private final Map<String, Pin> pins;
-    private final Set<String> foundPinIds;
-    private final Set<String> droppedPinIds;
+    private final OrderedHashSet<String> foundPinIds;
+    private final OrderedHashSet<String> droppedPinIds;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -57,8 +56,8 @@ public class FirebaseDriver {
         functions = FirebaseFunctions.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
-        foundPinIds = new HashSet<>();
-        droppedPinIds = new HashSet<>();
+        foundPinIds = new OrderedHashSet<>();
+        droppedPinIds = new OrderedHashSet<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -132,7 +131,8 @@ public class FirebaseDriver {
     }
 
     // TODO: improve fetch efficiency using query
-    public Task<Set<String>> fetchFoundPins() {
+    // TODO: order results by timestamp
+    public Task<OrderedHashSet<String>> fetchFoundPins() {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
@@ -150,12 +150,13 @@ public class FirebaseDriver {
                 });
     }
 
-    public Set<String> getCachedFoundPinIds() {
+    public OrderedHashSet<String> getCachedFoundPinIds() {
         return foundPinIds;
     }
 
     // TODO: improve fetch efficiency using query
-    public Task<Set<String>> fetchDroppedPins() {
+    // TODO: order results by timestamp
+    public Task<OrderedHashSet<String>> fetchDroppedPins() {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
@@ -173,7 +174,7 @@ public class FirebaseDriver {
                 });
     }
 
-    public Set<String> getCachedDroppedPinIds() {
+    public OrderedHashSet<String> getCachedDroppedPinIds() {
         return droppedPinIds;
     }
 
@@ -215,7 +216,8 @@ public class FirebaseDriver {
         Map<String, Object> data = new HashMap<>();
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
-
+        
+        //noinspection unchecked
         return functions.getHttpsCallable("getNearbyPins").call(data)
                 .continueWith(task -> (Map<String, Object>) task.getResult().getData());
     }

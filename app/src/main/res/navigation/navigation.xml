@@ -54,7 +54,7 @@
     <fragment
         android:id="@+id/navbar_feed"
         android:name="edu.wisc.ece.pinpoint.pages.pins.PinBoardFragment"
-        android:label="fragment_pin_list_tab"
+        android:label="fragment_pin_board"
         tools:layout="@layout/fragment_pin_board" />
     <fragment
         android:id="@+id/pin_view"
