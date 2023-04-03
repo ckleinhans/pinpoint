@@ -78,7 +78,7 @@ public class MapFragment extends Fragment {
 
     private void styleMap(){
         if(getActivity() != null){
-            map.setInfoWindowAdapter(new InfoAdapter(requireContext(), this));
+            map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
             int nightModeFlags =
                     requireActivity().getResources().getConfiguration().uiMode &
                             Configuration.UI_MODE_NIGHT_MASK;

@@ -26,12 +26,10 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     private ImageView image;
     private LinearLayout boxAccent;
     private Pin pin;
-    private Fragment fragment;
 
-    public InfoAdapter(Context context, Fragment fragment){
+    public InfoAdapter(Context context){
         this.view = LayoutInflater.from(context)
                 .inflate(R.layout.info_window_layout, null);
-        this.fragment = fragment;
         title = view.findViewById(R.id.infoTitle);
         message = view.findViewById(R.id.infoMessage);
         image = view.findViewById(R.id.infoImage);
@@ -104,7 +102,7 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
         boxAccent.setBackgroundColor(Color.parseColor("green"));
         title.setTextColor(Color.parseColor("green"));
         title.setText(pin.getCaption());
-        FirebaseDriver.getInstance().loadPinImage(image, fragment, marker.getTag().toString());
+        FirebaseDriver.getInstance().loadPinImage(image, view.getContext(), marker.getTag().toString());
         image.setVisibility(View.VISIBLE);
         message.setVisibility(View.GONE);
     }

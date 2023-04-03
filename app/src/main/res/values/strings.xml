@@ -32,6 +32,7 @@
     <string name="profile_pic_upload_text">Profile Picture Upload</string>
     <string name="profile_pic_text">Profile Picture</string>
     <string name="location_error_text">Couldn\'t get your location. Check your location settings.</string>
+    <string name="fine_location_error_text">PinPoint needs precise location permissions to drop pins.</string>
     <string name="settings_text">Settings</string>
     <string name="pin_thumbnail_text">Pin Thumbnail</string>
     <string name="pin_image_text">Pin Image</string>

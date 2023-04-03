@@ -143,6 +143,12 @@ public class NewPinFragment extends Fragment {
                 dropButton.setEnabled(true);
                 return;
             }
+            else if (!locationDriver.hasFineLocation(requireContext())) {
+                Toast.makeText(requireContext(), R.string.fine_location_error_text,
+                        Toast.LENGTH_LONG).show();
+                dropButton.setEnabled(true);
+                return;
+            }
 
             String textContent =
                     type == PinType.TEXT ? textContentInput.getText().toString() : null;
