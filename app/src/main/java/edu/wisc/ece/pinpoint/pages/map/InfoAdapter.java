@@ -78,6 +78,7 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     }
 
     private void setTextPinContents(@NonNull Marker marker, Pin pin){
+        // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
         boxAccent.setBackgroundColor(Color.parseColor("red"));
         title.setTextColor(Color.parseColor("red"));
         title.setText(pin.getCaption());
@@ -87,6 +88,7 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     }
 
     private void setPicturePinContents(@NonNull Marker marker, Pin pin){
+        // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
         boxAccent.setBackgroundColor(Color.parseColor("green"));
         title.setTextColor(Color.parseColor("green"));
         title.setText(pin.getCaption());

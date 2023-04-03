@@ -47,15 +47,6 @@ public class MainActivity extends AppCompatActivity {
                 mapButton.setVisibility(View.VISIBLE);
             }
         });
-
-        // Fetch dropped & found pins for cached access later
-        FirebaseDriver firebase = FirebaseDriver.getInstance();
-        firebase.fetchDroppedPins()
-                .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched dropped pins."))
-                .addOnFailureListener(e -> Log.w(TAG, e));
-        firebase.fetchFoundPins()
-                .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched found pins."))
-                .addOnFailureListener(e -> Log.w(TAG, e));
     }
 
     public void onMapButtonClick(View view) {

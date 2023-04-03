@@ -81,7 +81,7 @@ public class MapFragment extends Fragment {
                     navController.navigate(edu.wisc.ece.pinpoint.pages.newpin.NewPinFragmentDirections.pinView(marker.getTag().toString()));
                 }
                 else {
-                    Toast.makeText(requireContext(), "Travel to this pin to reveal its contents!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), "Travel to this pin to reveal its contents! "+marker.getTag().toString(), Toast.LENGTH_SHORT).show();
                 }
             });
         });
@@ -123,12 +123,13 @@ public class MapFragment extends Fragment {
         Iterator<String> droppedIterator = firebase.getCachedDroppedPinIds().getIterator();
         while (droppedIterator.hasNext()){
             String pinId = droppedIterator.next();
+            System.out.println(pinId);
             createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation());
         }
         // Get found pins
         Iterator<String> foundIterator = firebase.getCachedFoundPinIds().getIterator();
         while (foundIterator.hasNext()){
-            String pinId = droppedIterator.next();
+            String pinId = foundIterator.next();
             createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation());
         }
     }
@@ -159,8 +160,10 @@ public class MapFragment extends Fragment {
 
     @SuppressLint("MissingPermission")
     private void getDeviceLocation() {
-        if(!pinsLoaded)
+        if(!pinsLoaded) {
             loadDiscoveredPins();
+            System.out.println("hii");
+        }
         map.setMyLocationEnabled(true);
         map.getUiSettings().setMyLocationButtonEnabled(true);
         if (getActivity() != null) {
