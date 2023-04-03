@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -35,12 +36,18 @@ public class NewPinFragment extends Fragment {
     private LocationDriver locationDriver;
     private NestedScrollView scrollView;
     private NavController navController;
+
+    private TextView topBarText;
+    private TextView insufficientPinniesText;
     private NewPinFragmentAdapter fragmentAdapter;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
     private EditText captionInput;
     private Button dropButton;
     private EditText textContentInput;
+
+    private Integer userPinniesCount;
+    private Integer pinCost;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,6 +67,8 @@ public class NewPinFragment extends Fragment {
         navController = Navigation.findNavController(view);
         scrollView = requireView().findViewById(R.id.newpin_scrollview);
         captionInput = requireView().findViewById(R.id.newpin_caption_input);
+        topBarText = requireView().findViewById(R.id.new_pin_title);
+        insufficientPinniesText = requireView().findViewById(R.id.pinnies_error_text);
 
         ImageButton cancelButton = requireView().findViewById(R.id.newpin_cancel);
         cancelButton.setOnClickListener(v -> navController.popBackStack());
@@ -108,6 +117,18 @@ public class NewPinFragment extends Fragment {
                 tabLayout.getTabAt(position).select();
             }
         });
+
+        userPinniesCount = 1234;
+        pinCost = 1;
+
+        if(userPinniesCount < pinCost){
+            dropButton.setEnabled(false);
+            insufficientPinniesText.setVisibility(view.VISIBLE);
+        }
+
+        topBarText.setText("Balance: " + pinniesToString(userPinniesCount));
+        dropButton.setText("Drop Pin - " + pinniesToString(pinCost));
+
     }
 
     private void createNewPin() {
@@ -183,5 +204,30 @@ public class NewPinFragment extends Fragment {
                 }
             });
         });
+    }
+
+    private void dropPin(@NonNull Pin pin) {
+
+    }
+
+    private String pinniesToString(Integer pinniesCount) {
+        String tempString;
+
+        if (pinniesCount < 999) {
+            return pinniesCount.toString();
+        } else if (pinniesCount < 999999) {
+            tempString = pinniesCount/1000 + "." + (pinniesCount % 1000) / 100 + "" + (pinniesCount % 100) / 10 + "K";
+        } else if (pinniesCount < 999999999) {
+            tempString = pinniesCount / 1000000 + "." + (pinniesCount % 1000000) / 100000 + "" + (pinniesCount % 100000) / 10000 + "M";
+        }
+        else return pinniesCount.toString();
+
+        if(tempString.charAt(3) == '.'){
+            return tempString.substring(0, 3) + tempString.charAt(tempString.length() - 1);
+        }
+        else{
+            return tempString.substring(0, 4) + tempString.charAt(tempString.length() - 1);
+        }
+
     }
 }
