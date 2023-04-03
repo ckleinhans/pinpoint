@@ -11,6 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,14 +26,16 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.GeoPoint;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
+import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.data.Pin;
-import edu.wisc.ece.pinpoint.pages.newpin.NewPinFragmentDirections;
+import edu.wisc.ece.pinpoint.data.OrderedHashSet;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
@@ -40,9 +43,26 @@ public class MapFragment extends Fragment {
     private Location lastKnownLocation;
     private GoogleMap map;
     private NavController navController;
+    private FirebaseDriver firebase = FirebaseDriver.getInstance();
+    private static final String TAG = MainActivity.class.getName();
+    private List<Task<OrderedHashSet<String>>> pinTasks = new ArrayList<>();
+    private boolean pinsLoaded = false;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(firebase.getCachedFoundPinIds() == null && firebase.getCachedFoundPinIds() == null){
+            pinsLoaded = true;
+            pinTasks.add(firebase.fetchDroppedPins()
+                    .addOnSuccessListener(pids ->
+                            Log.d(TAG, "Successfully fetched dropped pins."))
+                    .addOnFailureListener(e -> Log.w(TAG, e)));
+            pinTasks.add(firebase.fetchFoundPins()
+                    .addOnSuccessListener(pids ->
+                            Log.d(TAG, "Successfully fetched found pins."))
+                    .addOnFailureListener(e -> Log.w(TAG, e)));
+            Tasks.whenAllComplete(pinTasks).addOnCompleteListener(pinFetchingComplete -> loadDiscoveredPins());
+        }
     }
 
     @Override
@@ -59,7 +79,6 @@ public class MapFragment extends Fragment {
             map.setOnInfoWindowClickListener(marker -> {
                 if(marker.getAlpha() == 1f){
                     navController.navigate(edu.wisc.ece.pinpoint.pages.newpin.NewPinFragmentDirections.pinView(marker.getTag().toString()));
-                    Toast.makeText(requireContext(), "Window clicked for marker "+marker.getTag(), Toast.LENGTH_SHORT).show();
                 }
                 else {
                     Toast.makeText(requireContext(), "Travel to this pin to reveal its contents!", Toast.LENGTH_SHORT).show();
@@ -99,8 +118,22 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void loadUndiscoveredPins(Object key, Object val){
-        // TODO: check if nearby pin ID is in user collection. if it is, don't add from here. Add from followup fetch of found pins
+    private void loadDiscoveredPins(){
+        // Get dropped pins
+        Iterator<String> droppedIterator = firebase.getCachedDroppedPinIds().getIterator();
+        while (droppedIterator.hasNext()){
+            String pinId = droppedIterator.next();
+            createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation());
+        }
+        // Get found pins
+        Iterator<String> foundIterator = firebase.getCachedFoundPinIds().getIterator();
+        while (foundIterator.hasNext()){
+            String pinId = droppedIterator.next();
+            createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation());
+        }
+    }
+
+    private void createUndiscoveredPin(Object key, Object val){
         String valString = val.toString();
         LatLng pinLocation = new LatLng(Double.parseDouble(
                 valString.substring(valString.lastIndexOf("=")+1,valString.indexOf("}"))),
@@ -114,7 +147,7 @@ public class MapFragment extends Fragment {
         pinMarker.setTag(key);
     }
 
-    private void loadDiscoveredPins(String id, GeoPoint geoPoint) {
+    private void createDiscoveredPin(String id, GeoPoint geoPoint) {
         LatLng pinLocation = new LatLng(geoPoint.getLatitude(),geoPoint.getLongitude());
         // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
         Marker pinMarker = map.addMarker(new MarkerOptions()
@@ -126,24 +159,23 @@ public class MapFragment extends Fragment {
 
     @SuppressLint("MissingPermission")
     private void getDeviceLocation() {
+        if(!pinsLoaded)
+            loadDiscoveredPins();
         map.setMyLocationEnabled(true);
         map.getUiSettings().setMyLocationButtonEnabled(true);
-        // Get dropped pins
-        FirebaseDriver.getInstance().getDroppedPins().addOnSuccessListener(pins ->
-                pins.forEach((id, pin) -> {
-                    loadDiscoveredPins(id, pin.getLocation());
-        }));
-        // Get found pins
-        FirebaseDriver.getInstance().getFoundPins().addOnSuccessListener(pins ->
-                pins.forEach((id, pin) -> loadDiscoveredPins(id, pin.getLocation())));
         if (getActivity() != null) {
+            Tasks.whenAllComplete(pinTasks).addOnCompleteListener(pinFetchingComplete -> {
             if(LocationDriver.getInstance(getActivity()).hasLocationOn(requireContext())) {
                 // Get location and nearby undiscovered pins
                 Task<Location> locationResult = LocationDriver.getInstance(requireActivity())
                         .getLastLocation(requireContext()).addOnSuccessListener(location ->
                                 FirebaseDriver.getInstance().fetchNearbyPins(location)
-                                        .addOnSuccessListener(pins -> pins.forEach((key, val) ->
-                                                loadUndiscoveredPins(key, val))));
+                                        .addOnSuccessListener(pins -> pins.forEach((key, val) -> {
+                                            // load pin if undiscovered
+                                            if(!firebase.getCachedDroppedPinIds().contains(key) &
+                                                    !firebase.getCachedFoundPinIds().contains(key))
+                                                createUndiscoveredPin(key, val);
+                                        })));
                 locationResult.addOnCompleteListener(requireActivity(), task -> {
                     if (task.isSuccessful()) {
                         // Set the map's camera position to the current location of the device.
@@ -155,7 +187,7 @@ public class MapFragment extends Fragment {
                         }
                     }
                 });
-            }
+            }});
         }
     }
 }

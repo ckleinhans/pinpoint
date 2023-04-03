@@ -10,7 +10,6 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
@@ -40,11 +39,6 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     @Override
     public View getInfoContents(@NonNull Marker marker) {
         setContents(marker);
-        try {
-            wait(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
         return view;
     }
 
@@ -52,7 +46,6 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     @Override
     public View getInfoWindow(@NonNull Marker marker) {
         setContents(marker);
-        System.out.println("PIN DISPLAYED");
         return view;
     }
 
@@ -62,20 +55,16 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
             setUndiscoveredPinContents(marker);
         }
         else {
-            System.out.println("GRABBING PIN");
-            FirebaseDriver.getInstance().fetchPin(marker.getTag().toString()).addOnCompleteListener(task -> {
-                pin = task.getResult();
-                if (pin.getType() == Pin.PinType.IMAGE) {
-                    setPicturePinContents(marker, pin);
-                } else if (pin.getType() == Pin.PinType.TEXT) {
-                    setTextPinContents(marker, pin);
-                }
-                if (title.getText().toString().isEmpty())
-                    title.setVisibility(View.GONE);
-                else
-                    title.setVisibility(View.VISIBLE);
-                System.out.println("PIN STYLING READY");
-            });
+            pin = FirebaseDriver.getInstance().getCachedPin(marker.getTag().toString());
+            if (pin.getType() == Pin.PinType.IMAGE) {
+                setPicturePinContents(marker, pin);
+            } else if (pin.getType() == Pin.PinType.TEXT) {
+                setTextPinContents(marker, pin);
+            }
+            if (title.getText().toString().isEmpty())
+                title.setVisibility(View.GONE);
+            else
+                title.setVisibility(View.VISIBLE);
         }
     }
 
@@ -98,7 +87,6 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     }
 
     private void setPicturePinContents(@NonNull Marker marker, Pin pin){
-        System.out.println("PICTURE PIN!");
         boxAccent.setBackgroundColor(Color.parseColor("green"));
         title.setTextColor(Color.parseColor("green"));
         title.setText(pin.getCaption());

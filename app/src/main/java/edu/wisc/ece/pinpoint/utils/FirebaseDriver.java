@@ -23,7 +23,6 @@ import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -43,8 +42,8 @@ public class FirebaseDriver {
     private final FirebaseFunctions functions;
     private final Map<String, User> users;
     private final Map<String, Pin> pins;
-    private final OrderedHashSet<String> foundPinIds;
-    private final OrderedHashSet<String> droppedPinIds;
+    private OrderedHashSet<String> foundPinIds;
+    private OrderedHashSet<String> droppedPinIds;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -57,8 +56,6 @@ public class FirebaseDriver {
         functions = FirebaseFunctions.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
-        foundPinIds = new OrderedHashSet<>();
-        droppedPinIds = new OrderedHashSet<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -134,6 +131,7 @@ public class FirebaseDriver {
     // TODO: improve fetch efficiency using query
     // TODO: order results by timestamp
     public Task<OrderedHashSet<String>> fetchFoundPins() {
+        OrderedHashSet<String> foundPinIds = new OrderedHashSet<>();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
@@ -147,7 +145,10 @@ public class FirebaseDriver {
                             fetchTasks.add(fetchPin(pinId));
                         }
                     }
-                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> foundPinIds);
+                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
+                        this.foundPinIds = foundPinIds;
+                        return foundPinIds;
+                    });
                 });
     }
 
@@ -158,6 +159,7 @@ public class FirebaseDriver {
     // TODO: improve fetch efficiency using query
     // TODO: order results by timestamp
     public Task<OrderedHashSet<String>> fetchDroppedPins() {
+        OrderedHashSet<String> droppedPinIds = new OrderedHashSet<>();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
@@ -171,7 +173,10 @@ public class FirebaseDriver {
                             fetchTasks.add(fetchPin(pinId));
                         }
                     }
-                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> droppedPinIds);
+                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
+                        this.droppedPinIds = droppedPinIds;
+                        return droppedPinIds;
+                    });
                 });
     }
 
@@ -184,60 +189,6 @@ public class FirebaseDriver {
             Pin pin = task.getResult().toObject(Pin.class);
             pins.put(pid, pin);
             return pin;
-        });
-    }
-
-    // TODO: improve fetch efficiency using query
-    public Task<Map<String, Pin>> getFoundPins() {
-        if (auth.getUid() == null) {
-            throw new IllegalStateException("User must be logged in to fetch pins");
-        }
-        return db.collection("users").document(auth.getUid()).collection("found").get().continueWithTask(task -> {
-            List<Task<DocumentSnapshot>> foundPins = new ArrayList<>();
-
-            for (final Iterator<DocumentSnapshot> i = task.getResult().getDocuments().iterator(); i.hasNext(); ) {
-                String pinId = i.next().getId();
-                foundPins.add((db.collection("pins").document(pinId).get()));
-
-            }
-            return Tasks.whenAllComplete(foundPins).continueWith(task1 -> {
-                Map<String, Pin> found = new HashMap<>();
-                for (final Iterator<Task<?>> i = task1.getResult().iterator(); i.hasNext(); ) {
-                    DocumentSnapshot foundPinDoc = (DocumentSnapshot) i.next().getResult();
-                    Pin p = foundPinDoc.toObject(Pin.class);
-                    pins.put(foundPinDoc.getId(), p);
-                    found.put(foundPinDoc.getId(), p);
-                }
-                return found;
-            });
-
-        });
-    }
-
-    // TODO: improve fetch efficiency using query
-    public Task<Map<String, Pin>> getDroppedPins(){
-        if (auth.getUid() == null) {
-            throw new IllegalStateException("User must be logged in to fetch pins");
-        }
-        return db.collection("users").document(auth.getUid()).collection("dropped").get().continueWithTask(task -> {
-            List<Task<DocumentSnapshot>> droppedPins = new ArrayList<>();
-
-            for (final Iterator<DocumentSnapshot> i = task.getResult().getDocuments().iterator(); i.hasNext(); ) {
-                String pinId = i.next().getId();
-                droppedPins.add((db.collection("pins").document(pinId).get()));
-
-            }
-            return Tasks.whenAllComplete(droppedPins).continueWith(task1 -> {
-                Map<String, Pin> dropped = new HashMap<>();
-                for (final Iterator<Task<?>> i = task1.getResult().iterator(); i.hasNext(); ) {
-                    DocumentSnapshot droppedPinDoc = (DocumentSnapshot) i.next().getResult();
-                    Pin p = droppedPinDoc.toObject(Pin.class);
-                    pins.put(droppedPinDoc.getId(), p);
-                    dropped.put(droppedPinDoc.getId(), p);
-                }
-                return dropped;
-            });
-
         });
     }
 

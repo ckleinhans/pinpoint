@@ -24,7 +24,7 @@
                 android:id="@+id/infoTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
+                android:layout_marginHorizontal="5dp"
                 android:ellipsize="end"
                 style="@style/TextAppearance.Pinpoint.ThickText"
                 app:layout_constraintEnd_toEndOf="parent"
