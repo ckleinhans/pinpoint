@@ -22,6 +22,7 @@ public class Pin {
     private PinType type;
     private Date timestamp;
     private GeoPoint location;
+    private Integer finds;
 
     public Pin() {
     }
@@ -34,6 +35,7 @@ public class Pin {
         this.textContent = textContent;
         this.timestamp = new Date();
         this.location = new GeoPoint(location.getLatitude(), location.getLongitude());
+        this.finds = 0;
     }
 
     public String getAuthorUID() {
@@ -58,6 +60,10 @@ public class Pin {
 
     public GeoPoint getLocation() {
         return location;
+    }
+
+    public Integer getFinds() {
+        return finds == null ? 0 : finds;
     }
 
     public Map<String, Object> serialize() {
