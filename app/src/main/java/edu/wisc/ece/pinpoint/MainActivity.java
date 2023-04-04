@@ -16,14 +16,13 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.Arrays;
 import java.util.List;
 
-import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
-                    R.id.navbar_newpin);
+                    R.id.new_pin_fragment);
     private NavController navController;
 
     @Override
@@ -47,23 +46,9 @@ public class MainActivity extends AppCompatActivity {
                 mapButton.setVisibility(View.VISIBLE);
             }
         });
-
-        // Fetch dropped & found pins for cached access later
-        FirebaseDriver firebase = FirebaseDriver.getInstance();
-        firebase.fetchDroppedPins()
-                .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched dropped pins."))
-                .addOnFailureListener(e -> Log.w(TAG, e));
-        firebase.fetchFoundPins()
-                .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched found pins."))
-                .addOnFailureListener(e -> Log.w(TAG, e));
     }
 
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbar_map);
-        // Uncomment to test cloud function
-//        LocationDriver.getInstance(this).getCurrentLocation(this).addOnSuccessListener(
-//                location -> FirebaseDriver.getInstance().fetchNearbyPins(location)
-//                        .addOnSuccessListener(pins -> pins.forEach(
-//                                (key, val) -> Log.d("PIN ID: " + key, String.valueOf(val)))));
     }
 }
