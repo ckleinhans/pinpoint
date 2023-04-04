@@ -53,7 +53,7 @@
         android:label="fragment_settings_container"
         tools:layout="@layout/fragment_settings_container" />
     <fragment
-        android:id="@+id/navbar_feed"
+        android:id="@+id/navbar_board"
         android:name="edu.wisc.ece.pinpoint.pages.pins.PinBoardFragment"
         android:label="fragment_pin_board"
         tools:layout="@layout/fragment_pin_board" />
@@ -67,8 +67,8 @@
             app:argType="string" />
     </fragment>
     <action
-        android:id="@+id/feed"
-        app:destination="@id/navbar_feed" />
+        android:id="@+id/board"
+        app:destination="@id/navbar_board" />
     <action
         android:id="@+id/pinView"
         app:destination="@id/pin_view" />
