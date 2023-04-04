@@ -5,7 +5,7 @@ import * as functions from "firebase-functions";
 
 const EARTH_RADIUS_MILES = 3959;
 const ONE_MILE_LATITUDE_DEGREES = 0.014492753623188;
-const NEARBY_PIN_RADIUS_MILES = 2;
+const NEARBY_PIN_RADIUS_MILES = 1;
 const PIN_FIND_RADIUS_MILES = 0.0095; // 50 ft
 
 enum PinType {
@@ -40,7 +40,11 @@ export const getNearbyPins = functions.https.onCall(
       );
     }
 
-    const pins = await getPinsNearby(latitude, longitude, NEARBY_PIN_RADIUS_MILES);
+    const pins = await getPinsNearby(
+      latitude,
+      longitude,
+      NEARBY_PIN_RADIUS_MILES
+    );
     return Object.fromEntries(pins.map((pin) => [pin.id, pin.data().location]));
   }
 );
@@ -115,6 +119,7 @@ export const dropPin = functions.https.onCall(
   }
 );
 
+// TODO: add anti-spoof check before finding pin
 export const findPin = functions.https.onCall(
   async ({ pid, latitude, longitude }, context) => {
     // Validate auth status and args
@@ -142,48 +147,68 @@ export const findPin = functions.https.onCall(
       .collection("found")
       .doc(pid);
 
-    // Check pin exists
-    const pinData: Pin = <Pin>(await pinRef.get()).data();
-    if (pinData === undefined) {
+    // Check user has not found pin yet
+    const foundData = (await foundRef.get()).data();
+    if (foundData !== undefined) {
       throw new functions.https.HttpsError(
-        "invalid-argument",
-        "No pin exists with provided pin ID."
-      );
-    }
-
-    // Check pin is not authored by user
-    if (pinData.authorUID === context.auth?.uid) {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "Cannot find your own pin."
-      );
-    }
-
-    // TODO: check location is close enough
-    const oneMileLongitudeDegrees = calcOneMileLongitudeDegrees(latitude);
-    const latitudeDiffMiles = (latitude - pinData.location.latitude) / ONE_MILE_LATITUDE_DEGREES;
-    const longitudeDiffMiles = (longitude - pinData.location.longitude) / oneMileLongitudeDegrees;
-    const distanceMiles = Math.sqrt(latitudeDiffMiles ** 2 + longitudeDiffMiles ** 2);
-
-    if (distanceMiles > PIN_FIND_RADIUS_MILES) {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "Not close enough to find pin!"
+        "already-exists",
+        "You have already found this pin."
       );
     }
 
     // TODO: add anti-spoof check
     // const privateData = (await t.get(privateDataRef)).data();
 
-    // Perform reward calculation & writes in one transaction
-    await firestore().runTransaction(async (t) => {
-      const reward = await calculateReward(<Pin>pinData, t);
-      t.set(privateDataRef, {
-        currency: firestore.FieldValue.increment(reward),
-      });
+    // Perform pin read, reward calculation, & writes in one transaction
+    return await firestore().runTransaction(async (t) => {
+      // Check pin exists
+      const pinData: Pin = <Pin>(await pinRef.get()).data();
+      if (pinData === undefined) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "No pin exists with provided pin ID."
+        );
+      }
+
+      // Check pin is not authored by user
+      if (pinData.authorUID === context.auth?.uid) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Cannot find your own pin."
+        );
+      }
+
+      // Check location is close enough
+      const oneMileLongitudeDegrees = calcOneMileLongitudeDegrees(latitude);
+      const latitudeDiffMiles =
+        (latitude - pinData.location.latitude) / ONE_MILE_LATITUDE_DEGREES;
+      const longitudeDiffMiles =
+        (longitude - pinData.location.longitude) / oneMileLongitudeDegrees;
+      const distanceMiles = Math.sqrt(
+        latitudeDiffMiles ** 2 + longitudeDiffMiles ** 2
+      );
+
+      if (distanceMiles > PIN_FIND_RADIUS_MILES) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Not close enough to find pin!"
+        );
+      }
+
+      const reward = await calculateReward(pinData, t);
+      t.set(
+        privateDataRef,
+        { currency: firestore.FieldValue.increment(reward) },
+        { merge: true }
+      );
+      t.set(
+        pinRef,
+        { finds: firestore.FieldValue.increment(1) },
+        { merge: true }
+      );
       t.create(foundRef, { reward, timestamp: new Date() });
+      return pinData;
     });
-    return pinData;
   }
 );
 

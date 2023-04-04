@@ -88,7 +88,7 @@ public class OrderedHashSet<E> {
         hashMap.clear();
         list.clear();
     }
-    
+
     public Iterator<E> getIterator() {
         return list.iterator();
     }

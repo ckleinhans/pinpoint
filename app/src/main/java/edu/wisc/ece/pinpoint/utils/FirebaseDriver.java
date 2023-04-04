@@ -223,7 +223,7 @@ public class FirebaseDriver {
         data.put("pid", pid);
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
-        
+
         return functions.getHttpsCallable("findPin").call(data).continueWith(task -> {
             Pin pin = (Pin) task.getResult().getData();
             pins.put(pid, pin);
