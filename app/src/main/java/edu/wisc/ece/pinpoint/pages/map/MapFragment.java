@@ -76,6 +76,9 @@ public class MapFragment extends Fragment {
             this.map = googleMap;
             styleMap();
             getDeviceLocation();
+            if(!pinsLoaded) {
+                loadDiscoveredPins();
+            }
             map.setOnInfoWindowClickListener(marker -> {
                 if(marker.getAlpha() == 1f){
                     navController.navigate(edu.wisc.ece.pinpoint.pages.newpin.NewPinFragmentDirections.pinView(marker.getTag().toString()));
@@ -160,10 +163,6 @@ public class MapFragment extends Fragment {
 
     @SuppressLint("MissingPermission")
     private void getDeviceLocation() {
-        if(!pinsLoaded) {
-            loadDiscoveredPins();
-            System.out.println("hii");
-        }
         map.setMyLocationEnabled(true);
         map.getUiSettings().setMyLocationButtonEnabled(true);
         if (getActivity() != null) {
