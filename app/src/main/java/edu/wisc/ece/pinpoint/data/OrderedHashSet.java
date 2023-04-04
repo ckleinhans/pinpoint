@@ -2,6 +2,7 @@ package edu.wisc.ece.pinpoint.data;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Class that allows for O(1) searching, adding, and removing (like HashSet), but also supports an
@@ -86,5 +87,9 @@ public class OrderedHashSet<E> {
     public void clear() {
         hashMap.clear();
         list.clear();
+    }
+    
+    public Iterator<E> getIterator() {
+        return list.iterator();
     }
 }

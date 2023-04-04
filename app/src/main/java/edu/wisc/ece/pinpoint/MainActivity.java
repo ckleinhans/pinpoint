@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
-                    R.id.navbar_newpin);
+                    R.id.new_pin_fragment);
     private NavController navController;
 
     @Override
@@ -60,10 +60,5 @@ public class MainActivity extends AppCompatActivity {
 
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbar_map);
-        // Uncomment to test cloud function
-//        LocationDriver.getInstance(this).getCurrentLocation(this).addOnSuccessListener(
-//                location -> FirebaseDriver.getInstance().fetchNearbyPins(location)
-//                        .addOnSuccessListener(pins -> pins.forEach(
-//                                (key, val) -> Log.d("PIN ID: " + key, String.valueOf(val)))));
     }
 }

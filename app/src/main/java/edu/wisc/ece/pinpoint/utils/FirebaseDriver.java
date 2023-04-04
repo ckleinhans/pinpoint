@@ -42,8 +42,8 @@ public class FirebaseDriver {
     private final FirebaseFunctions functions;
     private final Map<String, User> users;
     private final Map<String, Pin> pins;
-    private final OrderedHashSet<String> foundPinIds;
-    private final OrderedHashSet<String> droppedPinIds;
+    private OrderedHashSet<String> foundPinIds;
+    private OrderedHashSet<String> droppedPinIds;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -56,8 +56,6 @@ public class FirebaseDriver {
         functions = FirebaseFunctions.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
-        foundPinIds = new OrderedHashSet<>();
-        droppedPinIds = new OrderedHashSet<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -133,6 +131,7 @@ public class FirebaseDriver {
     // TODO: improve fetch efficiency using query
     // TODO: order results by timestamp
     public Task<OrderedHashSet<String>> fetchFoundPins() {
+        OrderedHashSet<String> foundPinIds = new OrderedHashSet<>();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
@@ -146,7 +145,10 @@ public class FirebaseDriver {
                             fetchTasks.add(fetchPin(pinId));
                         }
                     }
-                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> foundPinIds);
+                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
+                        this.foundPinIds = foundPinIds;
+                        return foundPinIds;
+                    });
                 });
     }
 
@@ -157,6 +159,7 @@ public class FirebaseDriver {
     // TODO: improve fetch efficiency using query
     // TODO: order results by timestamp
     public Task<OrderedHashSet<String>> fetchDroppedPins() {
+        OrderedHashSet<String> droppedPinIds = new OrderedHashSet<>();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
@@ -170,7 +173,10 @@ public class FirebaseDriver {
                             fetchTasks.add(fetchPin(pinId));
                         }
                     }
-                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> droppedPinIds);
+                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
+                        this.droppedPinIds = droppedPinIds;
+                        return droppedPinIds;
+                    });
                 });
     }
 

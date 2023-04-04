@@ -142,6 +142,11 @@ public class NewPinFragment extends Fragment {
                         .show();
                 dropButton.setEnabled(true);
                 return;
+            } else if (!locationDriver.hasFineLocation(requireContext())) {
+                Toast.makeText(requireContext(), R.string.fine_location_error_text,
+                        Toast.LENGTH_LONG).show();
+                dropButton.setEnabled(true);
+                return;
             }
 
             String textContent =
