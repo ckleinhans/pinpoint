@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,6 +46,9 @@ public class NewPinFragment extends Fragment {
     private EditText captionInput;
     private Button dropButton;
     private EditText textContentInput;
+
+    private ProgressBar userPinniesProgressBar;
+    private ProgressBar pinCostProgressBar;
     private Long pinnieCount;
 
     private Integer userPinniesCount;
@@ -70,16 +74,17 @@ public class NewPinFragment extends Fragment {
         captionInput = requireView().findViewById(R.id.newpin_caption_input);
         topBarText = requireView().findViewById(R.id.new_pin_title);
         insufficientPinniesText = requireView().findViewById(R.id.pinnies_error_text);
-
+        userPinniesProgressBar = requireView().findViewById(R.id.new_pin_balance_progress);
+        pinCostProgressBar = requireView().findViewById(R.id.new_pin_cost_progress);
         ImageButton cancelButton = requireView().findViewById(R.id.newpin_cancel);
         cancelButton.setOnClickListener(v -> navController.popBackStack());
         dropButton = requireView().findViewById(R.id.drop_pin_button);
         dropButton.setOnClickListener(v -> createNewPin());
-
         tabLayout = requireView().findViewById(R.id.newpin_tab_layout);
         viewPager = requireView().findViewById(R.id.newpin_view_pager);
         tabLayout.addTab(tabLayout.newTab().setText(R.string.text_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.image_text));
+
         fragmentAdapter =
                 new NewPinFragmentAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());
@@ -211,11 +216,7 @@ public class NewPinFragment extends Fragment {
         });
     }
 
-    private void dropPin(@NonNull Pin pin) {
-
-    }
-
-    private String pinniesToString(Integer pinniesCount) {
+    private String pinniesToString(Long pinniesCount) {
         String tempString;
 
         if (pinniesCount < 999) {
@@ -233,6 +234,20 @@ public class NewPinFragment extends Fragment {
         else{
             return tempString.substring(0, 4) + tempString.charAt(tempString.length() - 1);
         }
+    }
+
+    private void setPinniesUI(){
+
+        if(pinnieCount >= pinCost){
+            dropButton.setEnabled(true);
+        }else{
+            insufficientPinniesText.setVisibility(getView().VISIBLE);
+        }
+        topBarText.setText("Balance: " + pinniesToString(pinnieCount));
+        dropButton.setText("Drop Pin - " + pinniesToString(pinCost));
+        dropButton.setPadding(45,0, 45, 0);
+        pinCostProgressBar.setVisibility(getView().GONE);
+        userPinniesProgressBar.setVisibility(getView().GONE);
 
     }
 }
