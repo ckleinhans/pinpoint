@@ -44,6 +44,24 @@ export const getNearbyPins = functions.https.onCall(
   }
 );
 
+export const calcPinCost = functions.https.onCall(
+  async ({ latitude, longitude }, context) => {
+    if (!context || !context.auth || !context.auth.uid) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "calcPinCost must be called while authenticated."
+      );
+    }
+    if (!latitude || !longitude) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "calcPinCost must be called with a latitude and longitude."
+      );
+    }
+    return await calculateCost(latitude, longitude);
+  }
+);
+
 // TODO: add anti-spoof check before dropping pin
 export const dropPin = functions.https.onCall(
   async ({ textContent, caption, type, latitude, longitude }, context) => {
