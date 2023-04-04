@@ -26,14 +26,26 @@ public class MapContainerFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getChildFragmentManager()
+                .beginTransaction()
+                .replace(R.id.map_layout, new MapFragment(), "MapFragment")
+                .commit();
         // Code for requesting location
         locationPermissionRequest =
                 registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
-                        result -> {});
-        getChildFragmentManager()
-                .beginTransaction()
-                .replace(R.id.map_layout, new MapFragment())
-                .commit();
+                        result -> {
+                            Boolean coarseLocationGranted =
+                                    result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION,
+                                            false);
+                            if (coarseLocationGranted != null && coarseLocationGranted) {
+                                Fragment mapFragment =
+                                        getChildFragmentManager().findFragmentByTag("MapFragment");
+                                getChildFragmentManager().beginTransaction().detach(mapFragment)
+                                        .commit();
+                                getChildFragmentManager().beginTransaction().attach(mapFragment)
+                                        .commit();
+                            }
+                        });
     }
 
     @Override
@@ -49,7 +61,9 @@ public class MapContainerFragment extends Fragment {
         NavController navController = Navigation.findNavController(view);
         FloatingActionButton newPinButton = requireView().findViewById(R.id.newPinButton);
         newPinButton.setOnClickListener((buttonView) -> {
-            if (LocationDriver.getInstance(requireActivity()).hasFineLocation(requireContext()) & LocationDriver.getInstance(requireActivity()).hasLocationOn(requireContext())) {
+            if (LocationDriver.getInstance(requireActivity()).hasFineLocation(requireContext())
+                    & LocationDriver.getInstance(requireActivity())
+                    .hasLocationOn(requireContext())) {
                 navController.navigate(MapContainerFragmentDirections.newPin());
             }
             else {

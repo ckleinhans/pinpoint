@@ -47,7 +47,6 @@ public class MapFragment extends Fragment {
     private static final String TAG = MainActivity.class.getName();
     private final List<Task<OrderedHashSet<String>>> pinTasks = new ArrayList<>();
     private boolean pinsLoaded = false;
-    private LocationDriver locationDriver;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,7 +70,6 @@ public class MapFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_map, container, false);
-        locationDriver = LocationDriver.getInstance(requireContext());
         SupportMapFragment supportMapFragment =
                 (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.google_map);
         supportMapFragment.getMapAsync(googleMap -> {
@@ -164,7 +162,7 @@ public class MapFragment extends Fragment {
 
     @SuppressLint("MissingPermission")
     private void getDeviceLocation() {
-
+        LocationDriver locationDriver = LocationDriver.getInstance(requireContext());
         map.setPadding(0,0,0,150);
         if (getActivity() != null) {
             Tasks.whenAllComplete(pinTasks).addOnCompleteListener(pinFetchingComplete -> {
