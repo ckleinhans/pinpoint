@@ -132,13 +132,37 @@ export const dropPin = functions.https.onCall(
   }
 );
 
+/**
+  * calculateCost finds the number of pins within three progressively
+  * larger radii and scales the cost of a new pin according to number of neighbors
+  */
 async function calculateCost(
   latitude: number,
   longitude: number,
   transaction?: firestore.Transaction
 ) {
-  // TODO: implement algorithm for calculating pin cost
-  return 200;
+  const BASE = 60;
+  const CLOSE_RADIUS = 0.1;
+  const MID_RADIUS = 0.5;
+  const FAR_RADIUS = 2;
+  const CLOSE_SCALE = 1.0;
+  const MID_SCALE = 0.25;
+  const FAR_SCALE = 0.1;
+
+  const close = (await getPinsNearby(latitude, longitude, CLOSE_RADIUS)).length;
+  const mid = (await getPinsNearby(latitude, longitude, MID_RADIUS)).length - close;
+  const far = (await getPinsNearby(latitude, longitude, FAR_RADIUS)).length - mid - close;
+
+  console.log(`close: ${close}, mid: ${mid}, far: ${far}`)
+
+  const cost = Math.round(
+    BASE +
+    BASE * CLOSE_SCALE * close + // number of very close pins
+    BASE * MID_SCALE * mid + // number of relatively close pins
+    BASE * FAR_SCALE * far); // number of further away pins
+  console.log(`price: ${cost}`);
+
+  return cost
 }
 
 async function getPinsNearby(
