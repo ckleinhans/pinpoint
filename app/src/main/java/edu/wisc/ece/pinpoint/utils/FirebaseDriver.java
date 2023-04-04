@@ -212,11 +212,25 @@ public class FirebaseDriver {
         });
     }
 
+    public Task<Pin> findPin(String pid, Location location) {
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("pid", pid);
+        data.put("latitude", location.getLatitude());
+        data.put("longitude", location.getLongitude());
+        
+        return functions.getHttpsCallable("findPin").call(data).continueWith(task -> {
+            Pin pin = (Pin) task.getResult().getData();
+            pins.put(pid, pin);
+            foundPinIds.add(pid);
+            return pin;
+        });
+    }
+
     public Task<Map<String, Object>> fetchNearbyPins(@NonNull Location location) {
         Map<String, Object> data = new HashMap<>();
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
-        
+
         //noinspection unchecked
         return functions.getHttpsCallable("getNearbyPins").call(data)
                 .continueWith(task -> (Map<String, Object>) task.getResult().getData());
