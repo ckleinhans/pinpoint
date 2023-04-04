@@ -1,6 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.newpin;
 
 import android.content.res.Resources;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,6 +29,7 @@ import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.FormatUtils;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
@@ -50,9 +52,7 @@ public class NewPinFragment extends Fragment {
     private ProgressBar userPinniesProgressBar;
     private ProgressBar pinCostProgressBar;
     private Long pinnieCount;
-
-    private Integer userPinniesCount;
-    private Integer pinCost;
+    private Long pinCost;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -125,6 +125,7 @@ public class NewPinFragment extends Fragment {
         });
 
         setPinnieCount();
+        setPinCost();
     }
 
     private void setPinnieCount() {
@@ -140,6 +141,22 @@ public class NewPinFragment extends Fragment {
             }
         });
     }
+
+    private void setPinCost() {
+        LocationDriver.getInstance(requireContext()).getCurrentLocation(requireContext()).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Location loc = task.getResult();
+                Log.d(TAG, String.format("Location %s", loc.toString()));
+                FirebaseDriver.getInstance().calcPinCost(loc).addOnCompleteListener(t -> {
+                    pinCost = t.getResult().longValue();
+                    Log.d(TAG, String.format("Pin Cost: %s", pinCost.toString()));
+                    setPinniesUI();
+                });
+            } else {
+                Log.d(TAG, "get failed with ", task.getException());
+            }
+    });
+}
 
     private void createNewPin() {
         dropButton.setEnabled(false);
@@ -216,38 +233,24 @@ public class NewPinFragment extends Fragment {
         });
     }
 
-    private String pinniesToString(Long pinniesCount) {
-        String tempString;
+    private void setPinniesUI() {
+        // I'm so sorry
+        if (pinnieCount == null || pinCost == null) return;
 
-        if (pinniesCount < 999) {
-            return pinniesCount.toString();
-        } else if (pinniesCount < 999999) {
-            tempString = pinniesCount/1000 + "." + (pinniesCount % 1000) / 100 + "" + (pinniesCount % 100) / 10 + "K";
-        } else if (pinniesCount < 999999999) {
-            tempString = pinniesCount / 1000000 + "." + (pinniesCount % 1000000) / 100000 + "" + (pinniesCount % 100000) / 10000 + "M";
-        }
-        else return pinniesCount.toString();
-
-        if(tempString.charAt(3) == '.'){
-            return tempString.substring(0, 3) + tempString.charAt(tempString.length() - 1);
-        }
-        else{
-            return tempString.substring(0, 4) + tempString.charAt(tempString.length() - 1);
-        }
-    }
-
-    private void setPinniesUI(){
-
-        if(pinnieCount >= pinCost){
+        if (pinnieCount >= pinCost){
             dropButton.setEnabled(true);
-        }else{
-            insufficientPinniesText.setVisibility(getView().VISIBLE);
+        } else {
+            insufficientPinniesText.setVisibility(View.VISIBLE);
         }
-        topBarText.setText("Balance: " + pinniesToString(pinnieCount));
-        dropButton.setText("Drop Pin - " + pinniesToString(pinCost));
-        dropButton.setPadding(45,0, 45, 0);
-        pinCostProgressBar.setVisibility(getView().GONE);
-        userPinniesProgressBar.setVisibility(getView().GONE);
 
+        topBarText.setText(String.format("%s %s",
+                getString(R.string.new_pin_title_text),
+                FormatUtils.humanReadablePinnies(pinnieCount)));
+        dropButton.setText(String.format("%s %s",
+                getString(R.string.drop_pin_button_text),
+                FormatUtils.humanReadablePinnies(pinCost)));
+        dropButton.setPadding(45,0, 45, 0);
+        pinCostProgressBar.setVisibility(View.GONE);
+        userPinniesProgressBar.setVisibility(View.GONE);
     }
 }

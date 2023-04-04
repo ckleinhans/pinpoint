@@ -42,7 +42,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="caption_text">Caption</string>
     <string name="pin_content_text">Write your Pin here!</string>
-    <string name="new_pin_title_text">Balance: </string>
+    <string name="new_pin_title_text">Balance:</string>
     <string name="image_text">Image</string>
     <string name="text_text">Text</string>
     <string name="empty_pin_text">You can\'t post an empty pin!</string>

@@ -226,12 +226,12 @@ public class FirebaseDriver {
                 .continueWith(task -> (Long) task.getResult().get("currency"));
     }
 
-    public Task<Long> calcPinCost(@NonNull Location location) {
+    public Task<Integer> calcPinCost(@NonNull Location location) {
         Map<String, Object> data = new HashMap<>();
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
         return functions.getHttpsCallable("calcPinCost").call(data)
-                .continueWith(task -> (Long) task.getResult().getData());
+                .continueWith(task -> (Integer) task.getResult().getData());
     }
 
     public Task<Map<String, Object>> fetchNearbyPins(@NonNull Location location) {
