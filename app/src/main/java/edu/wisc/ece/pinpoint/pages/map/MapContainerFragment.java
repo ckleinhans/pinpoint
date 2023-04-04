@@ -1,13 +1,10 @@
 package edu.wisc.ece.pinpoint.pages.map;
 
 import android.Manifest;
-import android.content.Context;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -21,7 +18,6 @@ import androidx.navigation.Navigation;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.pages.profile.ProfilePageFragmentDirections;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
 public class MapContainerFragment extends Fragment {
@@ -33,21 +29,7 @@ public class MapContainerFragment extends Fragment {
         // Code for requesting location
         locationPermissionRequest =
                 registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
-                        result -> {
-                            Boolean fineLocationGranted =
-                                    result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION,
-                                            false);
-                            Boolean coarseLocationGranted =
-                                    result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION,
-                                            false);
-                            if (fineLocationGranted != null && fineLocationGranted) {
-                                // Precise location access granted.
-                            } else if (coarseLocationGranted != null && coarseLocationGranted) {
-                                // Only approximate location access granted.
-                            } else {
-                                // No location access granted.
-                            }
-                        });
+                        result -> {});
         getChildFragmentManager()
                 .beginTransaction()
                 .replace(R.id.map_layout, new MapFragment())

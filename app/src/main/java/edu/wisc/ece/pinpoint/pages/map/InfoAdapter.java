@@ -19,11 +19,11 @@ import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
-    private View view;
-    private TextView title;
-    private TextView message;
-    private ImageView image;
-    private LinearLayout boxAccent;
+    private final View view;
+    private final TextView title;
+    private final TextView message;
+    private final ImageView image;
+    private final LinearLayout boxAccent;
     private Pin pin;
 
     public InfoAdapter(Context context){
@@ -71,8 +71,8 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     private void setUndiscoveredPinContents(@NonNull Marker marker){
         boxAccent.setBackgroundColor(Color.parseColor("gray"));
         title.setTextColor(Color.parseColor("gray"));
-        title.setText("Undiscovered Pin");
-        message.setText("Travel to this pin to reveal its contents!");
+        title.setText(R.string.undiscovered_pin_title);
+        message.setText(R.string.undiscovered_pin_message);
         image.setVisibility(View.GONE);
         message.setVisibility(View.VISIBLE);
     }

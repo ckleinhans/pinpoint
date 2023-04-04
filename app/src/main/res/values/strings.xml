@@ -56,4 +56,6 @@
     <string name="drop_pin_text">Pin successfully dropped!</string>
     <string name="photo_upload_error_message">Something went wrong uploading your photo! Try again later.</string>
     <string name="found_pins_text">Found Pins</string>
+    <string name="undiscovered_pin_title">Undiscovered Pin</string>
+    <string name="undiscovered_pin_message">Travel to this pin to reveal its contents!</string>
 </resources>

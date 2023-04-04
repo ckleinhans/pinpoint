@@ -143,12 +143,6 @@ public class NewPinFragment extends Fragment {
                 dropButton.setEnabled(true);
                 return;
             } else if (!locationDriver.hasFineLocation(requireContext())) {
-                Toast.makeText(requireContext(),
-                        "PinPoint needs precise location permissions to drop pins.",
-                        Toast.LENGTH_LONG).show();
-                return;
-            }
-            else if (!locationDriver.hasFineLocation(requireContext())) {
                 Toast.makeText(requireContext(), R.string.fine_location_error_text,
                         Toast.LENGTH_LONG).show();
                 dropButton.setEnabled(true);
