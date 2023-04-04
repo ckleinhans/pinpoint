@@ -84,7 +84,7 @@ public class MapFragment extends Fragment {
                     navController.navigate(edu.wisc.ece.pinpoint.pages.newpin.NewPinFragmentDirections.pinView(marker.getTag().toString()));
                 }
                 else {
-                    Toast.makeText(requireContext(), "Travel to this pin to reveal its contents!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), R.string.undiscovered_pin_message, Toast.LENGTH_SHORT).show();
                 }
             });
         });

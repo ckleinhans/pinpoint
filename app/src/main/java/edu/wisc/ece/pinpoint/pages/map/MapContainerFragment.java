@@ -67,8 +67,7 @@ public class MapContainerFragment extends Fragment {
                 navController.navigate(MapContainerFragmentDirections.newPin());
             }
             else {
-                Toast.makeText(requireContext(),
-                        "PinPoint needs precise location permissions to drop pins.",
+                Toast.makeText(requireContext(), R.string.fine_location_error_text,
                         Toast.LENGTH_LONG).show();
             }
         });
