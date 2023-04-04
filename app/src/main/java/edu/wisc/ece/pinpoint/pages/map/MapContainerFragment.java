@@ -34,10 +34,10 @@ public class MapContainerFragment extends Fragment {
         locationPermissionRequest =
                 registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
                         result -> {
-                            Boolean coarseLocationGranted =
-                                    result.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Boolean fineLocationGranted =
+                                    result.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION,
                                             false);
-                            if (coarseLocationGranted != null && coarseLocationGranted) {
+                            if (fineLocationGranted != null && fineLocationGranted) {
                                 Fragment mapFragment =
                                         getChildFragmentManager().findFragmentByTag("MapFragment");
                                 getChildFragmentManager().beginTransaction().detach(mapFragment)
