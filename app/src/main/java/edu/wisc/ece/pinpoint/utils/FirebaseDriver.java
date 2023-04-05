@@ -99,6 +99,8 @@ public class FirebaseDriver {
     }
 
     public Task<Void> logout(@NonNull Context context) {
+        foundPinIds = null;
+        droppedPinIds = null;
         return AuthUI.getInstance().signOut(context);
     }
 
