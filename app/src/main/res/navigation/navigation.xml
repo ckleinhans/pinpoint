@@ -25,7 +25,7 @@
         tools:layout="@layout/fragment_profile_page">
         <action
             android:id="@+id/editProfile"
-            app:destination="@id/edit_profile_fragment" />
+            app:destination="@id/pinNotificationActivity" />
         <argument
             android:name="uid"
             android:defaultValue="@null"
@@ -77,15 +77,4 @@
         android:name="edu.wisc.ece.pinpoint.utils.PinNotificationActivity"
         android:label="activity_pin_notification"
         tools:layout="@layout/activity_pin_notification" />
-    <fragment
-        android:id="@+id/navbar_feed"
-        android:name="edu.wisc.ece.pinpoint.pages.feed.FeedFragment"
-        android:label="fragment_feed"
-        tools:layout="@layout/fragment_feed" >
-        <argument
-            android:name="uid"
-            app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
-    </fragment>
 </navigation>
