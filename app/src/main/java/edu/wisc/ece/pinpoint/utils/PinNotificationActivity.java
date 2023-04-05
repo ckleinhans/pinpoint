@@ -1,87 +1,55 @@
 package edu.wisc.ece.pinpoint.utils;
 
-import static android.content.ContentValues.TAG;
-import static androidx.core.content.ContentProviderCompat.requireContext;
-
-import static com.google.android.material.internal.ContextUtils.getActivity;
-
 import androidx.annotation.NonNull;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.location.Location;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
 
-import com.google.android.gms.tasks.Task;
+import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.OrderedHashSet;
+import edu.wisc.ece.pinpoint.pages.pins.PinListAdapter;
+import edu.wisc.ece.pinpoint.pages.pins.PinListFragment;
 
-import java.util.Map;
+public class PinNotificationActivity extends Fragment {
 
-public class PinNotificationActivity extends Worker {
+    Button button;
 
-
-    private Task<Location> location;
-    private Location loc;
-    private Task<Location> lastLocation;
-    double lat = 5.0;
-    Object l;
-
-    FirebaseDriver firebaseDriver;
-    Map<String, Object> nearbyPins;
-
-    NotificationDriver notificationDriver;
-
-    Context context;
-    String x;
-
-
-    public PinNotificationActivity(@NonNull Context context, @NonNull WorkerParameters workerParams) {
-        super(context, workerParams);
-        this.context = context;
-
-
-    }
-
-    @NonNull
     @Override
-    public Result doWork() {
-
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                LocationDriver locationDriver = LocationDriver.getInstance(context);
-
-               location =  locationDriver.getCurrentLocation(context);
-               lastLocation = locationDriver.getLastLocation(context);
-
-                locationDriver.getCurrentLocation(context).addOnCompleteListener(task -> {
-                   loc = task.getResult();
-                   if(loc != null){
-                   firebaseDriver = FirebaseDriver.getInstance();
-                   firebaseDriver.fetchNearbyPins(loc).addOnCompleteListener(task1 -> {
-                       nearbyPins = task1.getResult();
-                       int i = nearbyPins.size();
-                       x = String.valueOf(i);
-                       notificationDriver = NotificationDriver.getInstance(context);
-                       notificationDriver.updatePersistent("Pins", x + " pins found nearby");
-                   });
-                   }
-                   else{
-                        notificationDriver = NotificationDriver.getInstance(context);
-                        notificationDriver.updatePersistent("Location Access disabled", "no pins");
-                   }
-                });
-            }
-        }, 1000);
-
-        // Indicate whether the work finished successfully with the Result
-        return Result.retry();
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
-            }
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.activity_pin_notification, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        button = view.findViewById(R.id.button2);
+
+
+
+        NotificationDriver notificationDriver = NotificationDriver.getInstance(null);
+        notificationDriver.sendOneShot("new", "message");
+
+
+    }
+
+
+
+}
