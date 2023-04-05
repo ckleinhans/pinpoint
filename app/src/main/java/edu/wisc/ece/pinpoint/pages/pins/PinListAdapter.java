@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -60,10 +61,13 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         private final CardView item;
         private final ImageView image;
 
+        private TextView textView;
+
         public PinListViewHolder(@NonNull View itemView) {
             super(itemView);
             item = itemView.findViewById(R.id.pinlist_item);
             image = itemView.findViewById(R.id.pinlist_item_image);
+            textView = itemView.findViewById(R.id.pinlist_image_text);
         }
     }
 }
