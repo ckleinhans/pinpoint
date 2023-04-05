@@ -1,6 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.newpin;
 
 import android.content.res.Resources;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -26,6 +29,7 @@ import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.FormatUtils;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
@@ -35,12 +39,20 @@ public class NewPinFragment extends Fragment {
     private LocationDriver locationDriver;
     private NestedScrollView scrollView;
     private NavController navController;
+
+    private TextView topBarText;
+    private TextView insufficientPinniesText;
     private NewPinFragmentAdapter fragmentAdapter;
     private TabLayout tabLayout;
     private ViewPager2 viewPager;
     private EditText captionInput;
     private Button dropButton;
     private EditText textContentInput;
+
+    private ProgressBar userPinniesProgressBar;
+    private ProgressBar pinCostProgressBar;
+    private Long pinnieCount;
+    private Long pinCost;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -60,16 +72,19 @@ public class NewPinFragment extends Fragment {
         navController = Navigation.findNavController(view);
         scrollView = requireView().findViewById(R.id.newpin_scrollview);
         captionInput = requireView().findViewById(R.id.newpin_caption_input);
-
+        topBarText = requireView().findViewById(R.id.new_pin_title);
+        insufficientPinniesText = requireView().findViewById(R.id.pinnies_error_text);
+        userPinniesProgressBar = requireView().findViewById(R.id.new_pin_balance_progress);
+        pinCostProgressBar = requireView().findViewById(R.id.new_pin_cost_progress);
         ImageButton cancelButton = requireView().findViewById(R.id.newpin_cancel);
         cancelButton.setOnClickListener(v -> navController.popBackStack());
         dropButton = requireView().findViewById(R.id.drop_pin_button);
         dropButton.setOnClickListener(v -> createNewPin());
-
         tabLayout = requireView().findViewById(R.id.newpin_tab_layout);
         viewPager = requireView().findViewById(R.id.newpin_view_pager);
         tabLayout.addTab(tabLayout.newTab().setText(R.string.text_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.image_text));
+
         fragmentAdapter =
                 new NewPinFragmentAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());
@@ -108,7 +123,40 @@ public class NewPinFragment extends Fragment {
                 tabLayout.getTabAt(position).select();
             }
         });
+
+        setPinnieCount();
+        setPinCost();
     }
+
+    private void setPinnieCount() {
+        FirebaseDriver driver = FirebaseDriver.getInstance();
+        String uid = driver.getCurrentUser().getUid();
+        driver.getPinnies(uid).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                pinnieCount = task.getResult();
+                Log.d(TAG, String.format("Got currency for user %s: %s", uid, pinnieCount.toString()));
+                setPinniesUI();
+            } else {
+                Log.d(TAG, "get failed with ", task.getException());
+            }
+        });
+    }
+
+    private void setPinCost() {
+        LocationDriver.getInstance(requireContext()).getCurrentLocation(requireContext()).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Location loc = task.getResult();
+                Log.d(TAG, String.format("Location %s", loc.toString()));
+                FirebaseDriver.getInstance().calcPinCost(loc).addOnCompleteListener(t -> {
+                    pinCost = t.getResult().longValue();
+                    Log.d(TAG, String.format("Pin Cost: %s", pinCost.toString()));
+                    setPinniesUI();
+                });
+            } else {
+                Log.d(TAG, "get failed with ", task.getException());
+            }
+    });
+}
 
     private void createNewPin() {
         dropButton.setEnabled(false);
@@ -183,5 +231,26 @@ public class NewPinFragment extends Fragment {
                 }
             });
         });
+    }
+
+    private void setPinniesUI() {
+        // I'm so sorry
+        if (pinnieCount == null || pinCost == null) return;
+
+        if (pinnieCount >= pinCost){
+            dropButton.setEnabled(true);
+        } else {
+            insufficientPinniesText.setVisibility(View.VISIBLE);
+        }
+
+        topBarText.setText(String.format("%s %s",
+                getString(R.string.new_pin_title_text),
+                FormatUtils.humanReadablePinnies(pinnieCount)));
+        dropButton.setText(String.format("%s %s",
+                getString(R.string.drop_pin_button_text),
+                FormatUtils.humanReadablePinnies(pinCost)));
+        dropButton.setPadding(45,0, 45, 0);
+        pinCostProgressBar.setVisibility(View.GONE);
+        userPinniesProgressBar.setVisibility(View.GONE);
     }
 }
