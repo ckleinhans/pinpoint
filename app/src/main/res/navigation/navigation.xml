@@ -25,7 +25,7 @@
         tools:layout="@layout/fragment_profile_page">
         <action
             android:id="@+id/editProfile"
-            app:destination="@id/edit_profile_fragment" />
+            app:destination="@id/pinNotificationActivity" />
         <argument
             android:name="uid"
             android:defaultValue="@null"
