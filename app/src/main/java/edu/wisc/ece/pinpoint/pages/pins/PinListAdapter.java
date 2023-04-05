@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -41,22 +42,14 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     @Override
     public void onBindViewHolder(@NonNull PinListViewHolder holder, int position) {
         String pid = pinIds.get(position);
-        if (firebase.getCachedFoundPinIds().contains(pid) || firebase.getCachedDroppedPinIds()
-                .contains(pid)) {
-            if (firebase.getCachedPin(pid).getType() == Pin.PinType.IMAGE) {
-                firebase.loadPinImage(holder.image, parentContext, pid);
-            } else {
-                holder.image.setImageResource(R.drawable.oldnote);
-            }
-            holder.item.setOnClickListener(view -> navController.navigate(
-                    edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
+
+        if (firebase.getCachedPin(pid).getType() == Pin.PinType.IMAGE) {
+            firebase.loadPinImage(holder.image, parentContext, pid);
         } else {
-            // Pin is undiscovered
-            holder.image.setImageResource(R.drawable.ic_lock);
-            holder.item.setOnClickListener(
-                    view -> Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
-                            Toast.LENGTH_SHORT).show());
+            holder.image.setImageResource(R.drawable.oldnote);
         }
+        holder.item.setOnClickListener(view -> navController.navigate(
+                edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
     }
 
     @Override
@@ -69,10 +62,13 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         private final CardView item;
         private final ImageView image;
 
+        private TextView textView;
+
         public PinListViewHolder(@NonNull View itemView) {
             super(itemView);
             item = itemView.findViewById(R.id.pinlist_item);
             image = itemView.findViewById(R.id.pinlist_item_image);
+            textView = itemView.findViewById(R.id.pinlist_image_text);
         }
     }
 }

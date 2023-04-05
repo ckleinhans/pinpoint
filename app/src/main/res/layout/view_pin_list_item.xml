@@ -28,6 +28,4 @@
         android:background="@drawable/textlines"
         />
 
-
-
 </androidx.cardview.widget.CardView>
