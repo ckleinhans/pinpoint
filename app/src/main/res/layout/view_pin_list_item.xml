@@ -16,4 +16,6 @@
         android:layout_gravity="center"
         android:contentDescription="@string/pin_thumbnail_text"
         android:src="@drawable/ic_camera" />
+
+    
 </androidx.cardview.widget.CardView>
