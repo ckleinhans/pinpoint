@@ -93,8 +93,16 @@ public class PinViewFragment extends Fragment {
         } else {
             caption.setText(pin.getCaption());
         }
-        foundCount.setText("12 finds");
+
+        foundCount.setText(
+            pin.getFinds() == 1
+                ? String.format("%d find", pin.getFinds())
+                : String.format("%d finds", pin.getFinds())
+        );
+
+        // TODO dynamically set comments
         commentCount.setText("20 Comments");
+
         if (pin.getType() == Pin.PinType.IMAGE) {
             firebase.loadPinImage(imageContent, requireContext(), pid);
         } else {

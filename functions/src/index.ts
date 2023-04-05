@@ -19,6 +19,7 @@ type Pin = {
   location: GeoPoint;
   authorUID: string;
   timestamp: Date;
+  finds: number;
 };
 
 admin.initializeApp();
@@ -44,9 +45,30 @@ export const getNearbyPins = functions.https.onCall(
   }
 );
 
+export const calcPinCost = functions.https.onCall(
+  async ({ latitude, longitude }, context) => {
+    if (!context || !context.auth || !context.auth.uid) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "calcPinCost must be called while authenticated."
+      );
+    }
+    if (!latitude || !longitude) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "calcPinCost must be called with a latitude and longitude."
+      );
+    }
+    return await calculateCost(latitude, longitude);
+  }
+);
+
 // TODO: add anti-spoof check before dropping pin
 export const dropPin = functions.https.onCall(
-  async ({ textContent, caption, type, latitude, longitude }, context) => {
+  async (
+    { textContent, caption, type, latitude, longitude },
+    context
+  ) => {
     // Validate auth status and args
     if (!context || !context.auth || !context.auth.uid) {
       throw new functions.https.HttpsError(
@@ -72,6 +94,7 @@ export const dropPin = functions.https.onCall(
       location: new GeoPoint(latitude, longitude),
       authorUID: context.auth.uid,
       timestamp: new Date(),
+      finds: 0,
     };
 
     if (type === PinType.TEXT) pin.textContent = textContent;
@@ -114,13 +137,78 @@ export const dropPin = functions.https.onCall(
   }
 );
 
+/**
+ * calculateReward will give the first NUM_BONUS people an exponentially decaying bonus
+ * above BASE, while pin finders after NUM_BONUS will get a reward slightly under BASE
+ * SCALING_REDUCTION exists so that the first pin finder doesn't get like 10x BASE
+ * reward scaling function visualized:
+ * |
+ * |
+ * #
+ * |#
+ * | #
+ * |  #
+ * |   #
+ * |    #
+ * |     #
+ * |      #
+ * |       #
+ * |        #
+ * |          #
+ * |           ##
+ * |             ##
+ * |                ##
+ * |                  ###
+ * |                      ###
+ * |                          ####
+ * |                               #####
+ * |                                     ########
+ * |                                               ##########
+ * |                                                            ################
+ * |                                                                                  ################
+ * ___________________________________________________________________________________________________
+ */
+// async function calculateReward(pin: Pin, transaction?: firestore.Transaction) {
+//   const BASE = 100;
+//   const NUM_BONUS = 20;
+//   const SCALING_REDUCTION = 2;
+
+//   return (NUM_BONUS / (pin.finds + SCALING_REDUCTION)) * BASE;
+// }
+
+/**
+ * calculateCost finds the number of pins within three progressively larger radii
+ * and linearly scales the cost of a new pin according to number of neighbors
+ */
 async function calculateCost(
   latitude: number,
   longitude: number,
   transaction?: firestore.Transaction
 ) {
-  // TODO: implement algorithm for calculating pin cost
-  return 200;
+  const BASE = 60;
+  const CLOSE_RADIUS = 0.1;
+  const MID_RADIUS = 0.5;
+  const FAR_RADIUS = 2;
+  const CLOSE_SCALE = 1.0;
+  const MID_SCALE = 0.25;
+  const FAR_SCALE = 0.1;
+
+  const close = (await getPinsNearby(latitude, longitude, CLOSE_RADIUS)).length;
+  const mid =
+    (await getPinsNearby(latitude, longitude, MID_RADIUS)).length - close;
+  const far =
+    (await getPinsNearby(latitude, longitude, FAR_RADIUS)).length - mid - close;
+
+  console.log(`close: ${close}, mid: ${mid}, far: ${far}`);
+
+  const cost = Math.round(
+    BASE +
+    BASE * CLOSE_SCALE * close + // number of very close pins
+    BASE * MID_SCALE * mid + // number of relatively close pins
+    BASE * FAR_SCALE * far); // number of further away pins
+  console.log(`price: ${cost}`);
+
+  return cost;
 }
 
 async function getPinsNearby(

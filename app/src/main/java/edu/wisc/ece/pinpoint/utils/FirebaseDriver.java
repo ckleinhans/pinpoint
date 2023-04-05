@@ -8,6 +8,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 
 import com.firebase.ui.auth.AuthUI;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -216,6 +217,21 @@ public class FirebaseDriver {
             droppedPinIds.add(pid);
             return pid;
         });
+    }
+    public Task<Long> getPinnies(String uid) {
+        return db
+                .collection("private")
+                .document(uid)
+                .get()
+                .continueWith(task -> (Long) task.getResult().get("currency"));
+    }
+
+    public Task<Integer> calcPinCost(@NonNull Location location) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("latitude", location.getLatitude());
+        data.put("longitude", location.getLongitude());
+        return functions.getHttpsCallable("calcPinCost").call(data)
+                .continueWith(task -> (Integer) task.getResult().getData());
     }
 
     public Task<Map<String, Object>> fetchNearbyPins(@NonNull Location location) {
