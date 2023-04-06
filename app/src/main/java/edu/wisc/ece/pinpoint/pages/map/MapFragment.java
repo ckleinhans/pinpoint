@@ -16,6 +16,16 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -36,6 +46,7 @@ import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedHashSet;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.FormatUtils;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
 public class MapFragment extends Fragment {
@@ -45,6 +56,10 @@ public class MapFragment extends Fragment {
     private GoogleMap map;
     private NavController navController;
     private boolean pinsLoaded = false;
+    private Long pinnieCount;
+    private ProgressBar pinnieProgressBar;
+    private ImageView pinnies_logo;
+    private TextView pinniesText;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -95,6 +110,12 @@ public class MapFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
+
+        pinnieProgressBar = requireView().findViewById(R.id.map_pinnies_progress);
+        pinniesText = requireView().findViewById(R.id.map_pinnies_text);
+        pinnies_logo = requireView().findViewById(R.id.map_pinnies_logo);
+
+        setPinnieCount();
     }
 
     private void styleMap() {
@@ -220,5 +241,31 @@ public class MapFragment extends Fragment {
                 }
             });
         }
+    }
+
+    private void setPinnieCount() {
+
+        if(firebase.getCachedPinnies() != null){
+            pinnieCount = firebase.getCachedPinnies();
+            setPinniesUI();
+            return;
+        }
+
+        firebase.getPinnies().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                pinnieCount = task.getResult();
+                Log.d(TAG, String.format("Got %s pinnies for user", pinnieCount.toString()));
+                setPinniesUI();
+            } else {
+                Log.d(TAG, "get failed with ", task.getException());
+            }
+        });
+    }
+
+    private void setPinniesUI() {
+        pinniesText.setText(FormatUtils.humanReadablePinnies(pinnieCount));
+        pinnieProgressBar.setVisibility(View.GONE);
+        pinniesText.setVisibility(View.VISIBLE);
+        pinnies_logo.setVisibility(View.VISIBLE);
     }
 }

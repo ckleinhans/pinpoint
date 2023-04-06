@@ -49,9 +49,23 @@
             android:layout_margin="10dp"
             android:scaleX="1.5"
             android:scaleY="1.5"
+            android:foregroundTint="?attr/colorOnPrimary"
             app:layout_constraintBottom_toBottomOf="@+id/new_pin_title"
             app:layout_constraintStart_toEndOf="@+id/new_pin_title"
             app:layout_constraintTop_toTopOf="@+id/new_pin_title" />
+
+        <ImageView
+            android:id="@+id/topbar_pinnies_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_pinnies_logo"
+            android:visibility="gone"
+            android:layout_margin="5dp"
+            app:tint="?attr/colorOnPrimary"
+            app:layout_constraintBottom_toBottomOf="@+id/new_pin_title"
+            app:layout_constraintStart_toEndOf="@+id/new_pin_title"
+            app:layout_constraintTop_toTopOf="@+id/new_pin_title" />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -116,6 +130,19 @@
                 android:scaleX="1.5"
                 android:scaleY="1.5"
                 android:translationZ="90dp"
+                app:layout_constraintBottom_toBottomOf="@+id/drop_pin_button"
+                app:layout_constraintEnd_toEndOf="@+id/drop_pin_button"
+                app:layout_constraintTop_toTopOf="@+id/drop_pin_button" />
+
+            <ImageView
+                android:id="@+id/button_pinnies_logo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_pinnies_logo"
+                android:visibility="gone"
+                android:layout_margin="5dp"
+                android:translationZ="90dp"
+                app:tint="?attr/colorOnPrimary"
                 app:layout_constraintBottom_toBottomOf="@+id/drop_pin_button"
                 app:layout_constraintEnd_toEndOf="@+id/drop_pin_button"
                 app:layout_constraintTop_toTopOf="@+id/drop_pin_button" />
