@@ -46,14 +46,7 @@ public class AuthActivity extends AppCompatActivity {
                 (result) -> {
                     if (result.getResultCode() == RESULT_OK) {
                         if (firebase.isNewUser()) {
-                            // User is new, push user data to new node in DB
-                            FirebaseUser user = firebase.getCurrentUser();
-                            User userData = new User(user.getDisplayName());
-                            UserInfo providerData = user.getProviderData().get(1);
-                            if (providerData.getPhotoUrl() != null) {
-                                userData.setProfilePicUrl(providerData.getPhotoUrl().toString());
-                            }
-                            userData.save(user.getUid());
+                            firebase.handleNewUser();
                         }
                         if (!firebase.isVerified()) {
                             firebase.sendEmailVerification(null);
@@ -65,6 +58,7 @@ public class AuthActivity extends AppCompatActivity {
                     }
                 });
     }
+
 
     @Override
     public void onStart() {
