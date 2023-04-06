@@ -1,9 +1,10 @@
-import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import { GeoPoint } from "firebase-admin/firestore";
 
 import { getPinsNearby, haversineDistance } from "./location";
 import { Pin } from "./types";
+
+export const BASE_COST = 50;
 
 export const calcPinCostHandler = async ({ latitude, longitude }, context) => {
   if (!context || !context.auth || !context.auth.uid) {

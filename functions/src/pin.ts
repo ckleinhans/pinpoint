@@ -2,7 +2,7 @@ import { firestore } from "firebase-admin";
 import * as functions from "firebase-functions";
 import { GeoPoint } from "firebase-admin/firestore";
 
-import { calculateCost, calculateReward } from "./cost";
+import { calculateCost, calculateReward, BASE_COST } from "./cost";
 import { Pin, PinType } from "./types";
 import { haversineDistance, PIN_FIND_RADIUS_MILES } from "./location";
 
@@ -34,6 +34,7 @@ export const dropPinHandler = async ({ textContent, caption, type, latitude, lon
     authorUID: context.auth.uid,
     timestamp: new Date(),
     finds: 0,
+    cost: BASE_COST,
   };
 
   if (type === PinType.TEXT) pin.textContent = textContent;
@@ -53,13 +54,13 @@ export const dropPinHandler = async ({ textContent, caption, type, latitude, lon
   await firestore().runTransaction(async (t) => {
     // Read required data & calculate pin cost
     const privateData = (await t.get(privateDataRef)).data();
-    const cost = await calculateCost(new GeoPoint(latitude, longitude));
+    pin.cost = await calculateCost(new GeoPoint(latitude, longitude));
 
     // Check user has sufficient currency
     if (
       !privateData ||
       !privateData.currency ||
-      privateData.currency < cost
+      privateData.currency < pin.cost
     ) {
       throw new functions.https.HttpsError(
         "failed-precondition",
@@ -68,9 +69,9 @@ export const dropPinHandler = async ({ textContent, caption, type, latitude, lon
     }
 
     // Deduct currency & create pin
-    t.update(privateDataRef, { currency: privateData.currency - cost });
+    t.update(privateDataRef, { currency: privateData.currency - pin.cost });
     t.create(pinRef, pin);
-    t.create(droppedRef, { cost, timestamp: new Date() });
+    t.create(droppedRef, { cost: pin.cost, timestamp: new Date() });
   });
   return pinRef.id;
 }
@@ -145,7 +146,7 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
       );
     }
 
-    const reward = await calculateReward(pinData, t);
+    const reward = calculateReward(pinData);
     t.set(
       privateDataRef,
       { currency: firestore.FieldValue.increment(reward) },

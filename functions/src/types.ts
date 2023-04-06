@@ -13,4 +13,5 @@ export type Pin = {
   authorUID: string;
   timestamp: Date;
   finds: number;
+  cost: number;
 };
