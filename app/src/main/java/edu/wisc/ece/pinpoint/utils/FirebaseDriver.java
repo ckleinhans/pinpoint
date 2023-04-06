@@ -45,6 +45,7 @@ public class FirebaseDriver {
     private final FirebaseFunctions functions;
     private final Map<String, User> users;
     private final Map<String, Pin> pins;
+    private final Map<String, OrderedHashSet<String>> userPinIds;
     private OrderedHashSet<String> foundPinIds;
     private OrderedHashSet<String> droppedPinIds;
     private Long pinnies;
@@ -60,6 +61,7 @@ public class FirebaseDriver {
         functions = FirebaseFunctions.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
+        userPinIds = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -210,6 +212,36 @@ public class FirebaseDriver {
 
     public OrderedHashSet<String> getCachedDroppedPinIds() {
         return droppedPinIds;
+    }
+
+    public Task<OrderedHashSet<String>> fetchUserPins(@NonNull String uid) {
+        OrderedHashSet<String> newUserPinIds = new OrderedHashSet<>();
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pins");
+        }
+        if (foundPinIds == null) {
+            throw new IllegalStateException("Must have already fetched found pins.");
+        }
+        return db.collection("users").document(uid).collection("dropped").get()
+                .continueWithTask(task -> {
+                    List<Task<Pin>> fetchTasks = new ArrayList<>();
+                    for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
+                        String pinId = documentSnapshot.getId();
+                        newUserPinIds.add(pinId);
+                        // Only fetch pins that the user has found
+                        if (getCachedPin(pinId) == null && foundPinIds.contains(pinId)) {
+                            fetchTasks.add(fetchPin(pinId));
+                        }
+                    }
+                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
+                        userPinIds.put(uid, newUserPinIds);
+                        return newUserPinIds;
+                    });
+                });
+    }
+
+    public OrderedHashSet<String> getCachedUserPinIds(@NonNull String uid) {
+        return userPinIds.get(uid);
     }
 
     public Task<Pin> fetchPin(@NonNull String pid) {

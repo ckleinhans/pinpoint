@@ -36,7 +36,6 @@
     <string name="settings_text">Settings</string>
     <string name="pin_thumbnail_text">Pin Thumbnail</string>
     <string name="pin_image_text">Pin Image</string>
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="drop_pin_button_text">Drop Pin -</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
@@ -59,5 +58,9 @@
     <string name="undiscovered_pin_title">Undiscovered Pin</string>
     <string name="undiscovered_pin_message">Travel close to this pin and click here to reveal its contents!</string>
     <string name="insufficient_pinnies">Insufficient Pinnies</string>
+    <string name="pin_fetch_error">Something went wrong fetching pins. Try again later.</string>
     <string name="undiscovered_pin_not_close_enough">You have to move a bit closer to this pin to discover it!</string>
+    <string name="undiscovered_pin_locked">Travel close to this pin to unlock it on the map!</string>
+    <string name="pin_finds_singular">1 find</string>
+    <string name="pin_finds_plural">%d finds</string>
 </resources>
