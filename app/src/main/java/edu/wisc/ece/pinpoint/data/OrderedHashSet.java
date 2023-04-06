@@ -18,7 +18,7 @@ public class OrderedHashSet<E> {
     }
 
     /**
-     * Add the specified element at the end of the list if it doesn't already exist in O(1).
+     * Add the specified element at the start of the list if it doesn't already exist in O(1).
      *
      * @param element to be added
      * @return true if the element was added, false if the element was already present
@@ -54,7 +54,7 @@ public class OrderedHashSet<E> {
      * @return the item
      */
     public E get(int index) {
-        return list.get(index);
+        return list.get(list.size() - 1 - index);
     }
 
     /**

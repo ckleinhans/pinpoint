@@ -141,8 +141,8 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
-        return db.collection("users").document(auth.getUid()).collection("found").get()
-                .continueWithTask(task -> {
+        return db.collection("users").document(auth.getUid()).collection("found")
+                .orderBy("timestamp").get().continueWithTask(task -> {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
                         String pinId = documentSnapshot.getId();
@@ -169,8 +169,8 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
-        return db.collection("users").document(auth.getUid()).collection("dropped").get()
-                .continueWithTask(task -> {
+        return db.collection("users").document(auth.getUid()).collection("dropped")
+                .orderBy("timestamp").get().continueWithTask(task -> {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
                         String pinId = documentSnapshot.getId();
@@ -198,7 +198,7 @@ public class FirebaseDriver {
         if (foundPinIds == null) {
             throw new IllegalStateException("Must have already fetched found pins.");
         }
-        return db.collection("users").document(uid).collection("dropped").get()
+        return db.collection("users").document(uid).collection("dropped").orderBy("timestamp").get()
                 .continueWithTask(task -> {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
