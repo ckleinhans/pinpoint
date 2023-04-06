@@ -179,7 +179,7 @@ public class EditProfileFragment extends Fragment {
 
         OnCompleteListener<Void> saveUserDataListener = task -> {
             if (task.isSuccessful()) {
-                navController.navigate(EditProfileFragmentDirections.profile());
+                navController.popBackStack();
             } else {
                 cachedUser.setUsername(oldUsername).setLocation(oldLocation).setBio(oldBio)
                         .setProfilePicUrl(oldProfilePicUrl, false);

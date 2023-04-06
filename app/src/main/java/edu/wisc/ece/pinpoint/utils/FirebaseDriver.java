@@ -15,6 +15,7 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
+import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.functions.FirebaseFunctions;
@@ -47,6 +48,7 @@ public class FirebaseDriver {
     private final Map<String, OrderedHashSet<String>> userPinIds;
     private OrderedHashSet<String> foundPinIds;
     private OrderedHashSet<String> droppedPinIds;
+    private Long pinnies;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -134,8 +136,29 @@ public class FirebaseDriver {
         return users.get(uid);
     }
 
+    public void handleNewUser() {
+        // User is new, push user data to new node in DB
+        FirebaseUser user = getCurrentUser();
+        User userData = new User(user.getDisplayName());
+        UserInfo providerData = user.getProviderData().get(1);
+        if (providerData.getPhotoUrl() != null) {
+            userData.setProfilePicUrl(providerData.getPhotoUrl().toString());
+        }
+        String uid = user.getUid();
+        userData.save(uid);
+
+        // create Pinnie wallet for new user
+        final long initialBalance = 2000;
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("currency", initialBalance);
+        db.collection("private")
+                .document(uid)
+                .set(data)
+                .addOnSuccessListener(t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
+                .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
+    }
+
     // TODO: improve fetch efficiency using query
-    // TODO: order results by timestamp
     public Task<OrderedHashSet<String>> fetchFoundPins() {
         OrderedHashSet<String> foundPinIds = new OrderedHashSet<>();
         if (auth.getUid() == null) {
@@ -163,7 +186,6 @@ public class FirebaseDriver {
     }
 
     // TODO: improve fetch efficiency using query
-    // TODO: order results by timestamp
     public Task<OrderedHashSet<String>> fetchDroppedPins() {
         OrderedHashSet<String> droppedPinIds = new OrderedHashSet<>();
         if (auth.getUid() == null) {
@@ -245,18 +267,29 @@ public class FirebaseDriver {
                 .into(imageView);
     }
 
-    public Task<String> dropPin(Pin newPin) {
+    public Task<String> dropPin(Pin newPin, Long cost) {
         return functions.getHttpsCallable("dropPin").call(newPin.serialize()).continueWith(task -> {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
             droppedPinIds.add(pid);
+            pinnies -= cost;
             return pid;
         });
     }
+    public Task<Long> getPinnies() {
+            return db
+                    .collection("private")
+                    .document(auth.getUid())
+                    .get()
+                    .continueWith(task -> {
+                        Long pinniesResult = (Long) task.getResult().get("currency");
+                        pinnies = pinniesResult;
+                        return pinniesResult;
+                    });
+    }
 
-    public Task<Long> getPinnies(String uid) {
-        return db.collection("private").document(uid).get()
-                .continueWith(task -> (Long) task.getResult().get("currency"));
+    public Long getCachedPinnies(){
+        return pinnies;
     }
 
     public Task<Integer> calcPinCost(@NonNull Location location) {

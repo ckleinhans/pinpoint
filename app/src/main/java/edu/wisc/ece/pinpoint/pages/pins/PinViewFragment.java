@@ -94,11 +94,8 @@ public class PinViewFragment extends Fragment {
             caption.setText(pin.getCaption());
         }
 
-        foundCount.setText(
-            pin.getFinds() == 1
-                ? String.format("%d find", pin.getFinds())
-                : String.format("%d finds", pin.getFinds())
-        );
+        foundCount.setText(pin.getFinds() == 1 ? getString(R.string.pin_finds_singular) :
+                String.format(getString(R.string.pin_finds_plural), pin.getFinds()));
 
         // TODO dynamically set comments
         commentCount.setText("20 Comments");

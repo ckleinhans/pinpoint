@@ -61,4 +61,6 @@
     <string name="pin_fetch_error">Something went wrong fetching pins. Try again later.</string>
     <string name="undiscovered_pin_not_close_enough">You have to move a bit closer to this pin to discover it!</string>
     <string name="undiscovered_pin_locked">Travel close to this pin to unlock it on the map!</string>
+    <string name="pin_finds_singular">1 find</string>
+    <string name="pin_finds_plural">%d finds</string>
 </resources>
