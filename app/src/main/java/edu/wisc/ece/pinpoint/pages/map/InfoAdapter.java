@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.map;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -24,22 +25,14 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     private final TextView message;
     private final ImageView image;
     private final LinearLayout boxAccent;
-    private Pin pin;
 
-    public InfoAdapter(Context context){
-        this.view = LayoutInflater.from(context)
-                .inflate(R.layout.info_window_layout, null);
+    @SuppressLint("InflateParams")
+    public InfoAdapter(Context context) {
+        this.view = LayoutInflater.from(context).inflate(R.layout.info_window_layout, null);
         title = view.findViewById(R.id.infoTitle);
         message = view.findViewById(R.id.infoMessage);
         image = view.findViewById(R.id.infoImage);
         boxAccent = view.findViewById(R.id.boxAccent);
-    }
-
-    @Nullable
-    @Override
-    public View getInfoContents(@NonNull Marker marker) {
-        setContents(marker);
-        return view;
     }
 
     @Nullable
@@ -49,26 +42,31 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
         return view;
     }
 
-    private void setContents(@NonNull Marker marker){
+    @Nullable
+    @Override
+    public View getInfoContents(@NonNull Marker marker) {
+        setContents(marker);
+        return view;
+    }
+
+    private void setContents(@NonNull Marker marker) {
         // Undiscovered pins are transparent and do not need their data fetched
-        if (marker.getAlpha() != 1f){
+        if (marker.getAlpha() != 1f) {
             setUndiscoveredPinContents(marker);
-        }
-        else {
-            pin = FirebaseDriver.getInstance().getCachedPin(marker.getTag().toString());
+        } else {
+            //noinspection ConstantConditions
+            Pin pin = FirebaseDriver.getInstance().getCachedPin(marker.getTag().toString());
             if (pin.getType() == Pin.PinType.IMAGE) {
                 setPicturePinContents(marker, pin);
             } else if (pin.getType() == Pin.PinType.TEXT) {
                 setTextPinContents(marker, pin);
             }
-            if (title.getText().toString().isEmpty())
-                title.setVisibility(View.GONE);
-            else
-                title.setVisibility(View.VISIBLE);
+            if (title.getText().toString().isEmpty()) title.setVisibility(View.GONE);
+            else title.setVisibility(View.VISIBLE);
         }
     }
 
-    private void setUndiscoveredPinContents(@NonNull Marker marker){
+    private void setUndiscoveredPinContents(@NonNull Marker marker) {
         boxAccent.setBackgroundColor(Color.parseColor("gray"));
         title.setTextColor(Color.parseColor("gray"));
         title.setText(R.string.undiscovered_pin_title);
@@ -77,7 +75,7 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
         message.setVisibility(View.VISIBLE);
     }
 
-    private void setTextPinContents(@NonNull Marker marker, Pin pin){
+    private void setTextPinContents(@NonNull Marker marker, Pin pin) {
         // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
         boxAccent.setBackgroundColor(Color.parseColor("red"));
         title.setTextColor(Color.parseColor("red"));
@@ -87,12 +85,14 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
         message.setVisibility(View.VISIBLE);
     }
 
-    private void setPicturePinContents(@NonNull Marker marker, Pin pin){
+    private void setPicturePinContents(@NonNull Marker marker, Pin pin) {
         // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
         boxAccent.setBackgroundColor(Color.parseColor("green"));
         title.setTextColor(Color.parseColor("green"));
         title.setText(pin.getCaption());
-        FirebaseDriver.getInstance().loadPinImage(image, view.getContext(), marker.getTag().toString());
+        //noinspection ConstantConditions
+        FirebaseDriver.getInstance()
+                .loadPinImage(image, view.getContext(), marker.getTag().toString());
         image.setVisibility(View.VISIBLE);
         message.setVisibility(View.GONE);
     }

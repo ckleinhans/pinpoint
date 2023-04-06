@@ -5,7 +5,7 @@ import * as functions from "firebase-functions";
 
 const EARTH_RADIUS_MILES = 3959;
 const ONE_MILE_LATITUDE_DEGREES = 0.014492753623188;
-const NEARBY_PIN_RADIUS_MILES = 1;
+const NEARBY_PIN_RADIUS_MILES = 0.5;
 const PIN_FIND_RADIUS_MILES = 0.0095; // 50 ft
 
 enum PinType {
@@ -70,10 +70,7 @@ export const calcPinCost = functions.https.onCall(
 
 // TODO: add anti-spoof check before dropping pin
 export const dropPin = functions.https.onCall(
-  async (
-    { textContent, caption, type, latitude, longitude },
-    context
-  ) => {
+  async ({ textContent, caption, type, latitude, longitude }, context) => {
     // Validate auth status and args
     if (!context || !context.auth || !context.auth.uid) {
       throw new functions.https.HttpsError(
@@ -202,15 +199,12 @@ export const findPin = functions.https.onCall(
       }
 
       // Check location is close enough
-      const oneMileLongitudeDegrees = calcOneMileLongitudeDegrees(latitude);
-      const latitudeDiffMiles =
-        (latitude - pinData.location.latitude) / ONE_MILE_LATITUDE_DEGREES;
-      const longitudeDiffMiles =
-        (longitude - pinData.location.longitude) / oneMileLongitudeDegrees;
-      const distanceMiles = Math.sqrt(
-        latitudeDiffMiles ** 2 + longitudeDiffMiles ** 2
+      const distanceMiles = calcDistanceMiles(
+        latitude,
+        longitude,
+        pinData.location.latitude,
+        pinData.location.longitude
       );
-
       if (distanceMiles > PIN_FIND_RADIUS_MILES) {
         throw new functions.https.HttpsError(
           "permission-denied",
@@ -301,9 +295,10 @@ async function calculateCost(
 
   const cost = Math.round(
     BASE +
-    BASE * CLOSE_SCALE * close + // number of very close pins
-    BASE * MID_SCALE * mid + // number of relatively close pins
-    BASE * FAR_SCALE * far); // number of further away pins
+      BASE * CLOSE_SCALE * close + // number of very close pins
+      BASE * MID_SCALE * mid + // number of relatively close pins
+      BASE * FAR_SCALE * far
+  ); // number of further away pins
   console.log(`price: ${cost}`);
 
   return cost;
@@ -334,6 +329,18 @@ async function getPinsNearby(
   const snapshot = await (transaction ? transaction.get(query) : query.get());
 
   return snapshot.docs;
+}
+
+function calcDistanceMiles(
+  lat1: number,
+  long1: number,
+  lat2: number,
+  long2: number
+) {
+  const oneMileLongitudeDegrees = calcOneMileLongitudeDegrees(lat1);
+  const latitudeDiffMiles = (lat1 - lat2) / ONE_MILE_LATITUDE_DEGREES;
+  const longitudeDiffMiles = (long1 - long2) / oneMileLongitudeDegrees;
+  return Math.sqrt(latitudeDiffMiles ** 2 + longitudeDiffMiles ** 2);
 }
 
 function calcOneMileLongitudeDegrees(latitude: number) {

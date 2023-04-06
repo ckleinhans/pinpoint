@@ -3,12 +3,12 @@ package edu.wisc.ece.pinpoint.utils;
 import android.content.Context;
 import android.location.Location;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
 import com.firebase.ui.auth.AuthUI;
-import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -36,6 +36,7 @@ import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 
 public class FirebaseDriver {
+    private static final String TAG = FirebaseDriver.class.getName();
     private static FirebaseDriver instance;
     private final FirebaseAuth auth;
     private final FirebaseFirestore db;
@@ -75,10 +76,10 @@ public class FirebaseDriver {
         if (user == null) {
             throw new IllegalStateException("Cannot send email verification when not logged in.");
         }
+        Task<Void> sendEmailTask =
+                user.sendEmailVerification().addOnFailureListener(e -> Log.w(TAG, e));
         if (onComplete != null) {
-            user.sendEmailVerification().addOnCompleteListener(onComplete);
-        } else {
-            user.sendEmailVerification();
+            sendEmailTask.addOnCompleteListener(onComplete);
         }
     }
 
@@ -220,11 +221,9 @@ public class FirebaseDriver {
             return pid;
         });
     }
+
     public Task<Long> getPinnies(String uid) {
-        return db
-                .collection("private")
-                .document(uid)
-                .get()
+        return db.collection("private").document(uid).get()
                 .continueWith(task -> (Long) task.getResult().get("currency"));
     }
 
@@ -243,10 +242,10 @@ public class FirebaseDriver {
         data.put("longitude", location.getLongitude());
 
         return functions.getHttpsCallable("findPin").call(data).continueWith(task -> {
-            Pin pin = (Pin) task.getResult().getData();
-            pins.put(pid, pin);
+            // For now don't do anything with returned pin data since it will be fetched
+            // on pin view page load
             foundPinIds.add(pid);
-            return pin;
+            return null;
         });
     }
 

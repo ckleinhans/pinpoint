@@ -4,18 +4,17 @@ import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -40,28 +39,26 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
 public class MapFragment extends Fragment {
-    private Location lastKnownLocation;
+    private static final String TAG = MainActivity.class.getName();
+    private final FirebaseDriver firebase = FirebaseDriver.getInstance();
+    private final List<Task<OrderedHashSet<String>>> pinTasks = new ArrayList<>();
     private GoogleMap map;
     private NavController navController;
-    private final FirebaseDriver firebase = FirebaseDriver.getInstance();
-    private static final String TAG = MainActivity.class.getName();
-    private final List<Task<OrderedHashSet<String>>> pinTasks = new ArrayList<>();
     private boolean pinsLoaded = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(firebase.getCachedFoundPinIds() == null && firebase.getCachedFoundPinIds() == null){
+        if (firebase.getCachedFoundPinIds() == null && firebase.getCachedFoundPinIds() == null) {
             pinsLoaded = true;
             pinTasks.add(firebase.fetchDroppedPins()
-                    .addOnSuccessListener(pids ->
-                            Log.d(TAG, "Successfully fetched dropped pins."))
+                    .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched dropped pins."))
                     .addOnFailureListener(e -> Log.w(TAG, e)));
             pinTasks.add(firebase.fetchFoundPins()
-                    .addOnSuccessListener(pids ->
-                            Log.d(TAG, "Successfully fetched found pins."))
+                    .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched found pins."))
                     .addOnFailureListener(e -> Log.w(TAG, e)));
-            Tasks.whenAllComplete(pinTasks).addOnCompleteListener(pinFetchingComplete -> loadDiscoveredPins());
+            Tasks.whenAllComplete(pinTasks)
+                    .addOnCompleteListener(pinFetchingComplete -> loadDiscoveredPins());
         }
     }
 
@@ -72,19 +69,22 @@ public class MapFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_map, container, false);
         SupportMapFragment supportMapFragment =
                 (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.google_map);
+        //noinspection ConstantConditions
         supportMapFragment.getMapAsync(googleMap -> {
             this.map = googleMap;
             styleMap();
             getDeviceLocation();
-            if(!pinsLoaded) {
+            if (!pinsLoaded) {
                 loadDiscoveredPins();
             }
             map.setOnInfoWindowClickListener(marker -> {
-                if(marker.getAlpha() == 1f){
-                    navController.navigate(edu.wisc.ece.pinpoint.pages.newpin.NewPinFragmentDirections.pinView(marker.getTag().toString()));
-                }
-                else {
-                    Toast.makeText(requireContext(), R.string.undiscovered_pin_message, Toast.LENGTH_SHORT).show();
+                if (marker.getAlpha() == 1f) {
+                    // Already discovered pin
+                    //noinspection ConstantConditions
+                    navController.navigate(
+                            MapContainerFragmentDirections.pinView(marker.getTag().toString()));
+                } else {
+                    handleUndiscoveredPinClick(marker);
                 }
             });
         });
@@ -95,24 +95,22 @@ public class MapFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
-
     }
 
-    private void styleMap(){
-        if(getActivity() != null){
+    private void styleMap() {
+        if (getActivity() != null) {
             map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
-            int nightModeFlags =
-                    requireActivity().getResources().getConfiguration().uiMode &
-                            Configuration.UI_MODE_NIGHT_MASK;
+            int nightModeFlags = requireActivity().getResources()
+                    .getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
             switch (nightModeFlags) {
                 case Configuration.UI_MODE_NIGHT_YES:
-                    map.setMapStyle(MapStyleOptions
-                            .loadRawResourceStyle(requireContext(), R.raw.map_style_dark));
+                    map.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(),
+                            R.raw.map_style_dark));
                     break;
 
                 case Configuration.UI_MODE_NIGHT_NO:
-                    map.setMapStyle(MapStyleOptions
-                            .loadRawResourceStyle(requireContext(), R.raw.map_style_light));
+                    map.setMapStyle(MapStyleOptions.loadRawResourceStyle(requireContext(),
+                            R.raw.map_style_light));
                     break;
 
                 case Configuration.UI_MODE_NIGHT_UNDEFINED:
@@ -121,76 +119,106 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void loadDiscoveredPins(){
+    private void loadDiscoveredPins() {
         // Get dropped pins
         Iterator<String> droppedIterator = firebase.getCachedDroppedPinIds().getIterator();
-        while (droppedIterator.hasNext()){
+        while (droppedIterator.hasNext()) {
             String pinId = droppedIterator.next();
             createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation());
         }
         // Get found pins
         Iterator<String> foundIterator = firebase.getCachedFoundPinIds().getIterator();
-        while (foundIterator.hasNext()){
+        while (foundIterator.hasNext()) {
             String pinId = foundIterator.next();
             createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation());
         }
     }
 
-    private void createUndiscoveredPin(Object key, Object val){
+    private void createUndiscoveredPin(Object key, Object val) {
         String valString = val.toString();
         LatLng pinLocation = new LatLng(Double.parseDouble(
-                valString.substring(valString.lastIndexOf("=")+1,valString.indexOf("}"))),
-                Double.parseDouble(valString.substring(valString.indexOf("=")+1,valString
-                        .indexOf(","))));
+                valString.substring(valString.lastIndexOf("=") + 1, valString.indexOf("}"))),
+                Double.parseDouble(
+                        valString.substring(valString.indexOf("=") + 1, valString.indexOf(","))));
         // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
-        Marker pinMarker = map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                .alpha(.5f)
+        Marker pinMarker = map.addMarker(new MarkerOptions().icon(
+                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).alpha(.5f)
                 .position(pinLocation));
         pinMarker.setTag(key);
     }
 
+    private void handleUndiscoveredPinClick(Marker marker) {
+        if (getActivity() == null) {
+            Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_SHORT)
+                    .show();
+            return;
+        }
+        LocationDriver locationDriver = LocationDriver.getInstance(requireContext());
+        locationDriver.getLastLocation(requireContext()).addOnCompleteListener(locationTask -> {
+            Location userLoc = locationTask.getResult();
+            if (!locationTask.isSuccessful() || userLoc == null) {
+                Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_SHORT)
+                        .show();
+                return;
+            }
+            if (LocationDriver.isCloseEnoughToFindPin(
+                    new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
+                    marker.getPosition())) {
+                //noinspection ConstantConditions
+                firebase.findPin((String) marker.getTag(), userLoc).addOnSuccessListener(
+                                pin -> navController.navigate(
+                                        MapContainerFragmentDirections.pinView(marker.getTag().toString())))
+                        .addOnFailureListener(e -> Toast.makeText(requireContext(), e.getMessage(),
+                                Toast.LENGTH_LONG).show());
+            } else {
+                Toast.makeText(requireContext(), R.string.undiscovered_pin_not_close_enough,
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void createDiscoveredPin(String id, GeoPoint geoPoint) {
-        LatLng pinLocation = new LatLng(geoPoint.getLatitude(),geoPoint.getLongitude());
+        LatLng pinLocation = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
         // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
-        Marker pinMarker = map.addMarker(new MarkerOptions()
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
-                .alpha(1f)
+        Marker pinMarker = map.addMarker(new MarkerOptions().icon(
+                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).alpha(1f)
                 .position(pinLocation));
         pinMarker.setTag(id);
     }
 
     @SuppressLint("MissingPermission")
     private void getDeviceLocation() {
-        LocationDriver locationDriver = LocationDriver.getInstance(requireContext());
-        map.setPadding(0,0,0,150);
+        map.setPadding(0, 0, 0, 150);
         if (getActivity() != null) {
+            LocationDriver locationDriver = LocationDriver.getInstance(requireContext());
             Tasks.whenAllComplete(pinTasks).addOnCompleteListener(pinFetchingComplete -> {
-            if(locationDriver.hasCoarseLocation(requireContext()) & locationDriver.hasLocationOn(requireContext())) {
-                map.setMyLocationEnabled(true);
-                map.getUiSettings().setMyLocationButtonEnabled(true);
-                // Get location and nearby undiscovered pins
-                Task<Location> locationResult = locationDriver.getLastLocation(requireContext())
-                        .addOnSuccessListener(location ->
-                                FirebaseDriver.getInstance().fetchNearbyPins(location)
-                                        .addOnSuccessListener(pins -> pins.forEach((key, val) -> {
-                                            // load pin if undiscovered
-                                            if(!firebase.getCachedDroppedPinIds().contains(key) &
-                                                    !firebase.getCachedFoundPinIds().contains(key))
-                                                createUndiscoveredPin(key, val);
-                                        })));
-                locationResult.addOnCompleteListener(requireActivity(), task -> {
-                    if (task.isSuccessful()) {
-                        // Set the map's camera position to the current location of the device.
-                        lastKnownLocation = task.getResult();
-                        if (lastKnownLocation != null) {
-                            map.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(lastKnownLocation.getLatitude(),
-                                            lastKnownLocation.getLongitude()), 16));
+                if (locationDriver.hasCoarseLocation(
+                        requireContext()) & locationDriver.hasLocationOn(requireContext())) {
+                    map.setMyLocationEnabled(true);
+                    map.getUiSettings().setMyLocationButtonEnabled(true);
+                    // Get location and nearby undiscovered pins
+                    Task<Location> locationResult = locationDriver.getLastLocation(requireContext())
+                            .addOnSuccessListener(location -> FirebaseDriver.getInstance()
+                                    .fetchNearbyPins(location)
+                                    .addOnSuccessListener(pins -> pins.forEach((key, val) -> {
+                                        // load pin if undiscovered
+                                        if (!firebase.getCachedDroppedPinIds()
+                                                .contains(key) & !firebase.getCachedFoundPinIds()
+                                                .contains(key)) createUndiscoveredPin(key, val);
+                                    })));
+                    locationResult.addOnCompleteListener(requireActivity(), task -> {
+                        if (task.isSuccessful()) {
+                            // Set the map's camera position to the current location of the device.
+                            Location lastKnownLocation = task.getResult();
+                            if (lastKnownLocation != null) {
+                                map.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(lastKnownLocation.getLatitude(),
+                                                lastKnownLocation.getLongitude()), 16));
+                            }
                         }
-                    }
-                });
-            }});
+                    });
+                }
+            });
         }
     }
 }
