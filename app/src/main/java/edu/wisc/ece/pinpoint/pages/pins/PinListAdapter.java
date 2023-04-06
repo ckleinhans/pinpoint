@@ -54,7 +54,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
             // Pin is undiscovered
             holder.image.setImageResource(R.drawable.ic_lock);
             holder.item.setOnClickListener(
-                    view -> Toast.makeText(parentContext, R.string.undiscovered_pin_message,
+                    view -> Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
                             Toast.LENGTH_SHORT).show());
         }
     }
