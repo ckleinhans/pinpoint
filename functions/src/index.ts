@@ -2,7 +2,6 @@ import * as admin from "firebase-admin";
 import { firestore } from "firebase-admin";
 import { GeoPoint } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
-
 const EARTH_RADIUS_MILES = 3959;
 const ONE_MILE_LATITUDE_DEGREES = 0.014492753623188;
 const NEARBY_PIN_RADIUS_MILES = 0.5;
@@ -64,7 +63,7 @@ export const calcPinCost = functions.https.onCall(
         "calcPinCost must be called with a latitude and longitude."
       );
     }
-    return await calculateCost(latitude, longitude);
+    return await calculateCost(new GeoPoint(latitude, longitude));
   }
 );
 
@@ -116,7 +115,7 @@ export const dropPin = functions.https.onCall(
     await firestore().runTransaction(async (t) => {
       // Read required data & calculate pin cost
       const privateData = (await t.get(privateDataRef)).data();
-      const cost = await calculateCost(latitude, longitude, t);
+      const cost = await calculateCost(new GeoPoint(latitude, longitude));
 
       // Check user has sufficient currency
       if (
@@ -265,44 +264,73 @@ async function calculateReward(pin: Pin, transaction?: firestore.Transaction) {
   const NUM_BONUS = 20;
   const SCALING_REDUCTION = 2;
 
-  return (NUM_BONUS / (pin.finds + SCALING_REDUCTION)) * BASE;
+  return Math.round((NUM_BONUS / (pin.finds + SCALING_REDUCTION)) * BASE);
 }
 
 /**
  * calculateCost finds the number of pins within three progressively larger radii
  * and linearly scales the cost of a new pin according to number of neighbors
  */
-async function calculateCost(
-  latitude: number,
-  longitude: number,
-  transaction?: firestore.Transaction
-) {
-  const BASE = 60;
-  const CLOSE_RADIUS = 0.1;
-  const MID_RADIUS = 0.5;
-  const FAR_RADIUS = 2;
-  const CLOSE_SCALE = 1.0;
-  const MID_SCALE = 0.25;
-  const FAR_SCALE = 0.1;
+async function calculateCost(dropLoc: GeoPoint) {
+  const RADIUS = 2;
+  const MAX_COEFF = 20;
+  const BASE = 50;
+  const SCALE = 4;
 
-  const close = (await getPinsNearby(latitude, longitude, CLOSE_RADIUS)).length;
-  const mid =
-    (await getPinsNearby(latitude, longitude, MID_RADIUS)).length - close;
-  const far =
-    (await getPinsNearby(latitude, longitude, FAR_RADIUS)).length - mid - close;
+  const pins = await getPinsNearby(dropLoc.latitude, dropLoc.longitude, RADIUS);
 
-  console.log(`close: ${close}, mid: ${mid}, far: ${far}`);
+  // cost algorithm:
+  //
+  // for every existing pin within RADIUS miles:
+  //  calculate dist (haversine) between existing pin and potential pin
+  //  calculate multiplier between 0.1 and MAX_COEFF (exponential decay with
+  //  SCALE * distance, SCALE makes the decay steeper)
+  //  add cost to running total (which is initalized to BASE)
+  //
+  //  essentially the idea is to make it:
+  //  - prohibitively expensive to drop a pin right next to an existing one ($10+ in pinnies)
+  //  - somewhat expensive to drop a pin that has a few neighbors within a few miles ($0.75 - $1.25)
+  //  - cheap to drop a pin several miles away from any other pin ($0.1 - $0.2)
+  return pins.map(d => {
+    const p = d.data();
 
-  const cost = Math.round(
-    BASE +
-      BASE * CLOSE_SCALE * close + // number of very close pins
-      BASE * MID_SCALE * mid + // number of relatively close pins
-      BASE * FAR_SCALE * far
-  ); // number of further away pins
-  console.log(`price: ${cost}`);
+    const neighborLoc = new GeoPoint(
+      p.location.latitude,
+      p.location.longitude
+    );
 
-  return cost;
+    const distance = haversineDistance(dropLoc, neighborLoc);
+
+    const multiplier = ( MAX_COEFF ) / ( (MAX_COEFF - 1) * SCALE * distance + 1 )
+    const cost = multiplier * BASE;
+
+    console.log(`distance: ${distance}, cost: ${cost}`);
+
+    return Math.round(cost);
+  }).reduce((total, n) => total + n, BASE);
 }
+
+const haversineDistance = (p1: GeoPoint, p2: GeoPoint) => {
+      const toRadian = (angle: number) => (Math.PI / 180) * angle;
+      const distance = (a: number, b: number) => (Math.PI / 180) * (a - b);
+
+      let [lat1, lon1] = [p1.latitude, p1.longitude];
+      let [lat2, lon2] = [p2.latitude, p2.longitude];
+
+      const dLat = distance(lat2, lat1);
+      const dLon = distance(lon2, lon1);
+
+      lat1 = toRadian(lat1);
+      lat2 = toRadian(lat2);
+
+      // Haversine Formula
+      const a =
+        Math.pow(Math.sin(dLat / 2), 2) +
+        Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1) * Math.cos(lat2);
+      const c = 2 * Math.asin(Math.sqrt(a));
+
+      return EARTH_RADIUS_MILES * c;
+    };
 
 async function getPinsNearby(
   latitude: number,
