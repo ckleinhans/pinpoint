@@ -22,14 +22,9 @@ export const calcPinCostHandler = async ({ latitude, longitude }, context) => {
   return await calculateCost(new GeoPoint(latitude, longitude));
 }
 
-/**
- * calculateCost finds the number of pins within three progressively larger radii
- * and linearly scales the cost of a new pin according to number of neighbors
- */
 export async function calculateCost(dropLoc: GeoPoint) {
   const RADIUS = 2;
   const MAX_COEFF = 20;
-  const BASE = 50;
   const SCALE = 4;
 
   const pins = await getPinsNearby(dropLoc.latitude, dropLoc.longitude, RADIUS);
@@ -57,49 +52,21 @@ export async function calculateCost(dropLoc: GeoPoint) {
     const distance = haversineDistance(dropLoc, neighborLoc);
 
     const multiplier = ( MAX_COEFF ) / ( (MAX_COEFF - 1) * SCALE * distance + 1 )
-    const cost = multiplier * BASE;
+    const cost = multiplier * BASE_COST;
 
     console.log(`distance: ${distance}, cost: ${cost}`);
 
     return Math.round(cost);
-  }).reduce((total, n) => total + n, BASE);
+  }).reduce((total, n) => total + n, BASE_COST);
 }
 
-/**
- * calculateReward will give the first NUM_BONUS people an exponentially decaying bonus
- * above BASE, while pin finders after NUM_BONUS will get a reward slightly under BASE
- * SCALING_REDUCTION exists so that the first pin finder doesn't get like 10x BASE
- * reward scaling function visualized:
- * |
- * |
- * #
- * |#
- * | #
- * |  #
- * |   #
- * |    #
- * |     #
- * |      #
- * |       #
- * |        #
- * |          #
- * |           ##
- * |             ##
- * |                ##
- * |                  ###
- * |                      ###
- * |                          ####
- * |                               #####
- * |                                     ########
- * |                                               ##########
- * |                                                            ################
- * |                                                                                  ################
- * ___________________________________________________________________________________________________
- */
-export async function calculateReward(pin: Pin, transaction?: firestore.Transaction) {
-  const BASE = 100;
-  const NUM_BONUS = 20;
-  const SCALING_REDUCTION = 2;
+export function calculateReward(pin: Pin) {
+  const DECAY_RATE = 0.6;
+  const ogCost = pin.cost ? pin.cost : BASE_COST; // old pins don't have a cost field
+  const reward = pin.finds > 15 // reward multiplier is like 0.01% once we have >= 15 rewards
+    ? BASE_COST                 // so might as well just return the base reward
+    : Math.round(ogCost * Math.pow(DECAY_RATE, pin.finds + 1) + BASE_COST);
 
-  return Math.round((NUM_BONUS / (pin.finds + SCALING_REDUCTION)) * BASE);
+  console.log(`finds: ${pin.finds}, cost: ${ogCost}, reward: ${reward}`);
+  return reward;
 }
