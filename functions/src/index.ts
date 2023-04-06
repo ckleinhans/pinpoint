@@ -5,7 +5,8 @@ import * as functions from "firebase-functions";
 
 const EARTH_RADIUS_MILES = 3959;
 const ONE_MILE_LATITUDE_DEGREES = 0.014492753623188;
-const NUM_MILES_NEARBY = 2;
+const NEARBY_PIN_RADIUS_MILES = 0.5;
+const PIN_FIND_RADIUS_MILES = 0.0095; // 50 ft
 
 enum PinType {
   TEXT = "TEXT",
@@ -40,7 +41,11 @@ export const getNearbyPins = functions.https.onCall(
       );
     }
 
-    const pins = await getPinsNearby(latitude, longitude, NUM_MILES_NEARBY);
+    const pins = await getPinsNearby(
+      latitude,
+      longitude,
+      NEARBY_PIN_RADIUS_MILES
+    );
     return Object.fromEntries(pins.map((pin) => [pin.id, pin.data().location]));
   }
 );
@@ -65,10 +70,7 @@ export const calcPinCost = functions.https.onCall(
 
 // TODO: add anti-spoof check before dropping pin
 export const dropPin = functions.https.onCall(
-  async (
-    { textContent, caption, type, latitude, longitude },
-    context
-  ) => {
+  async ({ textContent, caption, type, latitude, longitude }, context) => {
     // Validate auth status and args
     if (!context || !context.auth || !context.auth.uid) {
       throw new functions.https.HttpsError(
@@ -131,9 +133,99 @@ export const dropPin = functions.https.onCall(
       // Deduct currency & create pin
       t.update(privateDataRef, { currency: privateData.currency - cost });
       t.create(pinRef, pin);
-      t.create(droppedRef, { cost });
+      t.create(droppedRef, { cost, timestamp: new Date() });
     });
     return pinRef.id;
+  }
+);
+
+// TODO: add anti-spoof check before finding pin
+export const findPin = functions.https.onCall(
+  async ({ pid, latitude, longitude }, context) => {
+    // Validate auth status and args
+    if (!context || !context.auth || !context.auth.uid) {
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "dropPin must be called while authenticated."
+      );
+    }
+    if (!pid || !latitude || !longitude) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "dropPin must be called with proper arguments."
+      );
+    }
+
+    // Get document references for reading/writing
+    const privateDataRef = firestore()
+      .collection("private")
+      .doc(context.auth.uid);
+    const pinRef = firestore().collection("pins").doc(pid);
+    const foundRef = firestore()
+      .collection("users")
+      .doc(context.auth.uid)
+      .collection("found")
+      .doc(pid);
+
+    // Check user has not found pin yet
+    const foundData = (await foundRef.get()).data();
+    if (foundData !== undefined) {
+      throw new functions.https.HttpsError(
+        "already-exists",
+        "You have already found this pin."
+      );
+    }
+
+    // TODO: add anti-spoof check
+    // const privateData = (await t.get(privateDataRef)).data();
+
+    // Perform pin read, reward calculation, & writes in one transaction
+    return await firestore().runTransaction(async (t) => {
+      // Check pin exists
+      const pinData: Pin = <Pin>(await pinRef.get()).data();
+      if (pinData === undefined) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "No pin exists with provided pin ID."
+        );
+      }
+
+      // Check pin is not authored by user
+      if (pinData.authorUID === context.auth?.uid) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Cannot find your own pin."
+        );
+      }
+
+      // Check location is close enough
+      const distanceMiles = calcDistanceMiles(
+        latitude,
+        longitude,
+        pinData.location.latitude,
+        pinData.location.longitude
+      );
+      if (distanceMiles > PIN_FIND_RADIUS_MILES) {
+        throw new functions.https.HttpsError(
+          "permission-denied",
+          "Not close enough to find pin!"
+        );
+      }
+
+      const reward = await calculateReward(pinData, t);
+      t.set(
+        privateDataRef,
+        { currency: firestore.FieldValue.increment(reward) },
+        { merge: true }
+      );
+      t.set(
+        pinRef,
+        { finds: firestore.FieldValue.increment(1) },
+        { merge: true }
+      );
+      t.create(foundRef, { reward, timestamp: new Date() });
+      return pinData;
+    });
   }
 );
 
@@ -168,13 +260,13 @@ export const dropPin = functions.https.onCall(
  * |                                                                                  ################
  * ___________________________________________________________________________________________________
  */
-// async function calculateReward(pin: Pin, transaction?: firestore.Transaction) {
-//   const BASE = 100;
-//   const NUM_BONUS = 20;
-//   const SCALING_REDUCTION = 2;
+async function calculateReward(pin: Pin, transaction?: firestore.Transaction) {
+  const BASE = 100;
+  const NUM_BONUS = 20;
+  const SCALING_REDUCTION = 2;
 
-//   return (NUM_BONUS / (pin.finds + SCALING_REDUCTION)) * BASE;
-// }
+  return (NUM_BONUS / (pin.finds + SCALING_REDUCTION)) * BASE;
+}
 
 /**
  * calculateCost finds the number of pins within three progressively larger radii
@@ -203,9 +295,10 @@ async function calculateCost(
 
   const cost = Math.round(
     BASE +
-    BASE * CLOSE_SCALE * close + // number of very close pins
-    BASE * MID_SCALE * mid + // number of relatively close pins
-    BASE * FAR_SCALE * far); // number of further away pins
+      BASE * CLOSE_SCALE * close + // number of very close pins
+      BASE * MID_SCALE * mid + // number of relatively close pins
+      BASE * FAR_SCALE * far
+  ); // number of further away pins
   console.log(`price: ${cost}`);
 
   return cost;
@@ -217,8 +310,7 @@ async function getPinsNearby(
   radiusMiles: number,
   transaction?: firestore.Transaction
 ) {
-  const oneMileLongitudeDegrees =
-    1 / ((Math.PI / 180) * EARTH_RADIUS_MILES * Math.cos(latitude));
+  const oneMileLongitudeDegrees = calcOneMileLongitudeDegrees(latitude);
 
   const lowerLat = latitude - ONE_MILE_LATITUDE_DEGREES * radiusMiles;
   const lowerLon = longitude - oneMileLongitudeDegrees * radiusMiles;
@@ -237,4 +329,20 @@ async function getPinsNearby(
   const snapshot = await (transaction ? transaction.get(query) : query.get());
 
   return snapshot.docs;
+}
+
+function calcDistanceMiles(
+  lat1: number,
+  long1: number,
+  lat2: number,
+  long2: number
+) {
+  const oneMileLongitudeDegrees = calcOneMileLongitudeDegrees(lat1);
+  const latitudeDiffMiles = (lat1 - lat2) / ONE_MILE_LATITUDE_DEGREES;
+  const longitudeDiffMiles = (long1 - long2) / oneMileLongitudeDegrees;
+  return Math.sqrt(latitudeDiffMiles ** 2 + longitudeDiffMiles ** 2);
+}
+
+function calcOneMileLongitudeDegrees(latitude: number) {
+  return 1 / ((Math.PI / 180) * EARTH_RADIUS_MILES * Math.cos(latitude));
 }
