@@ -33,7 +33,7 @@ public class OrderedHashSet<E> {
     }
 
     /**
-     * Removes the specified item in O(1).
+     * Removes the specified item in O(n).
      *
      * @param element to be removed
      * @return true if the item was removed, false if it wasn't present
