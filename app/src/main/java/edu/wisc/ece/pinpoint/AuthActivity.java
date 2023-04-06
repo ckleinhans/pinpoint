@@ -36,7 +36,7 @@ public class AuthActivity extends AppCompatActivity {
         firebase = FirebaseDriver.getInstance();
         switcher = findViewById(R.id.view_switcher);
 
-        if (firebase.isLoggedIn()) {
+        if (firebase.isLoggedIn() && firebase.isVerified()) {
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();

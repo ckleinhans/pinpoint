@@ -57,6 +57,7 @@
     <string name="photo_upload_error_message">Something went wrong uploading your photo! Try again later.</string>
     <string name="found_pins_text">Found Pins</string>
     <string name="undiscovered_pin_title">Undiscovered Pin</string>
-    <string name="undiscovered_pin_message">Travel to this pin to reveal its contents!</string>
+    <string name="undiscovered_pin_message">Travel close to this pin and click here to reveal its contents!</string>
     <string name="insufficient_pinnies">Insufficient Pinnies</string>
+    <string name="undiscovered_pin_not_close_enough">You have to move a bit closer to this pin to discover it!</string>
 </resources>
