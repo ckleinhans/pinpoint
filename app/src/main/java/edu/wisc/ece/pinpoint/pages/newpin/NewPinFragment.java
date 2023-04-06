@@ -133,17 +133,16 @@ public class NewPinFragment extends Fragment {
 
     private void setPinnieCount() {
         FirebaseDriver driver = FirebaseDriver.getInstance();
-        String uid = driver.getCurrentUser().getUid();
 
         if(driver.getCachedPinnies() != null){
             pinnieCount = driver.getCachedPinnies();
             return;
         }
 
-        driver.getPinnies(uid).addOnCompleteListener(task -> {
+        driver.getPinnies().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 pinnieCount = task.getResult();
-                Log.d(TAG, String.format("Got currency for user %s: %s", uid, pinnieCount.toString()));
+                Log.d(TAG, String.format("Got %s pinnies for user", pinnieCount.toString()));
                 setPinniesUI();
             } else {
                 Log.d(TAG, "get failed with ", task.getException());

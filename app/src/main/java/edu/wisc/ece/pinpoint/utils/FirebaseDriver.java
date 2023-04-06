@@ -219,10 +219,10 @@ public class FirebaseDriver {
             return pid;
         });
     }
-    public Task<Long> getPinnies(String uid) {
+    public Task<Long> getPinnies() {
             return db
                     .collection("private")
-                    .document(uid)
+                    .document(auth.getUid())
                     .get()
                     .continueWith(task -> {
                         Long pinniesResult = (Long) task.getResult().get("currency");

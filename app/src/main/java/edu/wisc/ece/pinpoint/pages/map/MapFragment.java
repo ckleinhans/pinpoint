@@ -208,19 +208,17 @@ public class MapFragment extends Fragment {
     }
 
     private void setPinnieCount() {
-        FirebaseDriver driver = FirebaseDriver.getInstance();
-        String uid = driver.getCurrentUser().getUid();
 
-        if(driver.getCachedPinnies() != null){
-            pinnieCount = driver.getCachedPinnies();
+        if(firebase.getCachedPinnies() != null){
+            pinnieCount = firebase.getCachedPinnies();
             setPinniesUI();
             return;
         }
 
-        driver.getPinnies(uid).addOnCompleteListener(task -> {
+        firebase.getPinnies().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 pinnieCount = task.getResult();
-                Log.d(TAG, String.format("Got currency for user %s: %s", uid, pinnieCount.toString()));
+                Log.d(TAG, String.format("Got %s pinnies for user", pinnieCount.toString()));
                 setPinniesUI();
             } else {
                 Log.d(TAG, "get failed with ", task.getException());
