@@ -45,6 +45,7 @@ public class FirebaseDriver {
     private final Map<String, Pin> pins;
     private OrderedHashSet<String> foundPinIds;
     private OrderedHashSet<String> droppedPinIds;
+    private Long pinnies;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -210,20 +211,29 @@ public class FirebaseDriver {
                 .into(imageView);
     }
 
-    public Task<String> dropPin(Pin newPin) {
+    public Task<String> dropPin(Pin newPin, Long cost) {
         return functions.getHttpsCallable("dropPin").call(newPin.serialize()).continueWith(task -> {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
             droppedPinIds.add(pid);
+            pinnies -= cost;
             return pid;
         });
     }
     public Task<Long> getPinnies(String uid) {
-        return db
-                .collection("private")
-                .document(uid)
-                .get()
-                .continueWith(task -> (Long) task.getResult().get("currency"));
+            return db
+                    .collection("private")
+                    .document(uid)
+                    .get()
+                    .continueWith(task -> {
+                        Long pinniesResult = (Long) task.getResult().get("currency");
+                        pinnies = pinniesResult;
+                        return pinniesResult;
+                    });
+    }
+
+    public Long getCachedPinnies(String uid){
+        return pinnies;
     }
 
     public Task<Integer> calcPinCost(@NonNull Location location) {

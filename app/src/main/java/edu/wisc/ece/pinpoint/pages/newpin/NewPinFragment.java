@@ -138,6 +138,12 @@ public class NewPinFragment extends Fragment {
     private void setPinnieCount() {
         FirebaseDriver driver = FirebaseDriver.getInstance();
         String uid = driver.getCurrentUser().getUid();
+
+        if(driver.getCachedPinnies(uid) != null){
+            pinnieCount = driver.getCachedPinnies(uid);
+            return;
+        }
+
         driver.getPinnies(uid).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 pinnieCount = task.getResult();
@@ -208,7 +214,7 @@ public class NewPinFragment extends Fragment {
                     type == PinType.TEXT ? textContentInput.getText().toString() : null;
             Pin pin = new Pin(textContent, type, locationTask.getResult(), caption);
 
-            firebase.dropPin(pin).addOnFailureListener(e -> {
+            firebase.dropPin(pin, pinCost).addOnFailureListener(e -> {
                 Log.w(TAG, "Error adding pin document", e);
                 Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show();
                 dropButton.setEnabled(true);

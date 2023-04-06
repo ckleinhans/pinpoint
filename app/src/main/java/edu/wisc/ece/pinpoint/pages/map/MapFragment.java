@@ -214,7 +214,7 @@ public class MapFragment extends Fragment {
 
     private void setPinniesDrawable(){
         TypedValue colorValue = new TypedValue();
-        getContext().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnBackground, colorValue, true);
+        getContext().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSecondary, colorValue, true);
         Drawable unwrapped_pinnies_logo = AppCompatResources.getDrawable(getContext(), R.drawable.ic_pinnies_logo);
         pinnies_logo = DrawableCompat.wrap(unwrapped_pinnies_logo);
         DrawableCompat.setTint(pinnies_logo, colorValue.data);
@@ -223,6 +223,13 @@ public class MapFragment extends Fragment {
     private void setPinnieCount() {
         FirebaseDriver driver = FirebaseDriver.getInstance();
         String uid = driver.getCurrentUser().getUid();
+
+        if(driver.getCachedPinnies(uid) != null){
+            pinnieCount = driver.getCachedPinnies(uid);
+            setPinniesUI();
+            return;
+        }
+
         driver.getPinnies(uid).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 pinnieCount = task.getResult();

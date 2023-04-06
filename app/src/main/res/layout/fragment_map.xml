@@ -13,9 +13,9 @@
         android:layout_marginEnd="60dp"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
-        android:background="?attr/colorBackgroundFloating"
+        android:background="?attr/colorSecondary"
         android:translationZ="45dp"
-        android:alpha="0.65">
+        android:alpha="0.75">
 
         <ProgressBar
             android:id="@+id/map_pinnies_progress"
@@ -28,17 +28,19 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            android:alpha="1"/>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/map_pinnies_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="test"
-            android:layout_margin="5dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
             android:drawablePadding="5dp"
-            android:textColor="?attr/colorOnBackground"
+            android:textColor="?attr/colorOnSecondary"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
