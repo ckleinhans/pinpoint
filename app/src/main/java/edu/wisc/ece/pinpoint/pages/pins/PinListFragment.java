@@ -47,7 +47,6 @@ public class PinListFragment extends Fragment {
         OrderedHashSet<String> pinIds;
         switch (listType) {
             case USER:
-                // TODO: make user pin list pages dynamically based on UID argument
                 String uid = requireArguments().getString(UID_ARG_KEY);
                 if (firebase.getCachedUserPinIds(uid) == null) {
                     firebase.fetchUserPins(uid)
@@ -58,7 +57,7 @@ public class PinListFragment extends Fragment {
                                         Toast.LENGTH_SHORT).show();
                             });
                 } else {
-                    pinIds = firebase.getCachedDroppedPinIds();
+                    pinIds = firebase.getCachedUserPinIds(uid);
                     setupRecyclerView(view, pinIds);
                 }
                 break;
