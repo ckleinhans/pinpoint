@@ -1,9 +1,11 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -21,6 +23,7 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 public class PinListFragment extends Fragment {
     public static final String LIST_TYPE_ARG_KEY = "pinListType";
     public static final String UID_ARG_KEY = "uid";
+    private static final String TAG = PinListFragment.class.getName();
     private FirebaseDriver firebase;
 
     @Override
@@ -38,25 +41,42 @@ public class PinListFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        RecyclerView recyclerView = view.findViewById(R.id.pinlist_recycler_view);
-        NavController navController =
-                Navigation.findNavController(requireParentFragment().requireView());
 
         // Get list type from arguments
         PinListType listType = PinListType.valueOf(requireArguments().getString(LIST_TYPE_ARG_KEY));
-        OrderedHashSet<String> pinIds = null;
+        OrderedHashSet<String> pinIds;
         switch (listType) {
             case USER:
                 // TODO: make user pin list pages dynamically based on UID argument
-                pinIds = firebase.getCachedDroppedPinIds();
+                String uid = requireArguments().getString(UID_ARG_KEY);
+                if (firebase.getCachedUserPinIds(uid) == null) {
+                    firebase.fetchUserPins(uid)
+                            .addOnSuccessListener(pinIds1 -> setupRecyclerView(view, pinIds1))
+                            .addOnFailureListener(e -> {
+                                Log.w(TAG, e);
+                                Toast.makeText(requireContext(), R.string.pin_fetch_error,
+                                        Toast.LENGTH_SHORT).show();
+                            });
+                } else {
+                    pinIds = firebase.getCachedDroppedPinIds();
+                    setupRecyclerView(view, pinIds);
+                }
                 break;
             case DROPPED:
                 pinIds = firebase.getCachedDroppedPinIds();
+                setupRecyclerView(view, pinIds);
                 break;
             case FOUND:
                 pinIds = firebase.getCachedFoundPinIds();
+                setupRecyclerView(view, pinIds);
                 break;
         }
+    }
+
+    private void setupRecyclerView(View view, OrderedHashSet<String> pinIds) {
+        RecyclerView recyclerView = view.findViewById(R.id.pinlist_recycler_view);
+        NavController navController =
+                Navigation.findNavController(requireParentFragment().requireView());
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
         recyclerView.setAdapter(new PinListAdapter(pinIds, navController));

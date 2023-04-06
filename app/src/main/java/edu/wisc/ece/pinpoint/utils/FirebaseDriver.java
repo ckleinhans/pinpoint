@@ -8,7 +8,6 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 
 import com.firebase.ui.auth.AuthUI;
-import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -43,6 +42,7 @@ public class FirebaseDriver {
     private final FirebaseFunctions functions;
     private final Map<String, User> users;
     private final Map<String, Pin> pins;
+    private final Map<String, OrderedHashSet<String>> userPinIds;
     private OrderedHashSet<String> foundPinIds;
     private OrderedHashSet<String> droppedPinIds;
 
@@ -57,6 +57,7 @@ public class FirebaseDriver {
         functions = FirebaseFunctions.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
+        userPinIds = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -185,6 +186,36 @@ public class FirebaseDriver {
         return droppedPinIds;
     }
 
+    public Task<OrderedHashSet<String>> fetchUserPins(@NonNull String uid) {
+        OrderedHashSet<String> newUserPinIds = new OrderedHashSet<>();
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pins");
+        }
+        if (foundPinIds == null) {
+            throw new IllegalStateException("Must have already fetched found pins.");
+        }
+        return db.collection("users").document(uid).collection("dropped").get()
+                .continueWithTask(task -> {
+                    List<Task<Pin>> fetchTasks = new ArrayList<>();
+                    for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
+                        String pinId = documentSnapshot.getId();
+                        newUserPinIds.add(pinId);
+                        // Only fetch pins that the user has found
+                        if (getCachedPin(pinId) == null && foundPinIds.contains(pinId)) {
+                            fetchTasks.add(fetchPin(pinId));
+                        }
+                    }
+                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
+                        userPinIds.put(uid, newUserPinIds);
+                        return newUserPinIds;
+                    });
+                });
+    }
+
+    public OrderedHashSet<String> getCachedUserPinIds(@NonNull String uid) {
+        return userPinIds.get(uid);
+    }
+
     public Task<Pin> fetchPin(@NonNull String pid) {
         return db.collection("pins").document(pid).get().continueWith(task -> {
             Pin pin = task.getResult().toObject(Pin.class);
@@ -218,11 +249,9 @@ public class FirebaseDriver {
             return pid;
         });
     }
+
     public Task<Long> getPinnies(String uid) {
-        return db
-                .collection("private")
-                .document(uid)
-                .get()
+        return db.collection("private").document(uid).get()
                 .continueWith(task -> (Long) task.getResult().get("currency"));
     }
 
@@ -238,7 +267,7 @@ public class FirebaseDriver {
         Map<String, Object> data = new HashMap<>();
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
-        
+
         //noinspection unchecked
         return functions.getHttpsCallable("getNearbyPins").call(data)
                 .continueWith(task -> (Map<String, Object>) task.getResult().getData());
