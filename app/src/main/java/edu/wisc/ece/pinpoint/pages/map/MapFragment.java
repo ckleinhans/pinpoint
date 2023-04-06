@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.media.Image;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -19,6 +20,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -56,7 +58,7 @@ public class MapFragment extends Fragment {
     private boolean pinsLoaded = false;
     private Long pinnieCount;
     private ProgressBar pinnieProgressBar;
-    private Drawable pinnies_logo;
+    private ImageView pinnies_logo;
     private TextView pinniesText;
 
     @Override
@@ -109,11 +111,9 @@ public class MapFragment extends Fragment {
 
         pinnieProgressBar = requireView().findViewById(R.id.map_pinnies_progress);
         pinniesText = requireView().findViewById(R.id.map_pinnies_text);
+        pinnies_logo = requireView().findViewById(R.id.map_pinnies_logo);
 
-        setPinniesDrawable();
         setPinnieCount();
-
-
     }
 
     private void styleMap(){
@@ -212,20 +212,12 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void setPinniesDrawable(){
-        TypedValue colorValue = new TypedValue();
-        getContext().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnSecondary, colorValue, true);
-        Drawable unwrapped_pinnies_logo = AppCompatResources.getDrawable(getContext(), R.drawable.ic_pinnies_logo);
-        pinnies_logo = DrawableCompat.wrap(unwrapped_pinnies_logo);
-        DrawableCompat.setTint(pinnies_logo, colorValue.data);
-    }
-
     private void setPinnieCount() {
         FirebaseDriver driver = FirebaseDriver.getInstance();
         String uid = driver.getCurrentUser().getUid();
 
-        if(driver.getCachedPinnies(uid) != null){
-            pinnieCount = driver.getCachedPinnies(uid);
+        if(driver.getCachedPinnies() != null){
+            pinnieCount = driver.getCachedPinnies();
             setPinniesUI();
             return;
         }
@@ -243,8 +235,8 @@ public class MapFragment extends Fragment {
 
     private void setPinniesUI() {
         pinniesText.setText(FormatUtils.humanReadablePinnies(pinnieCount));
-        pinniesText.setCompoundDrawablesWithIntrinsicBounds(null, null, pinnies_logo, null);
         pinnieProgressBar.setVisibility(View.GONE);
         pinniesText.setVisibility(View.VISIBLE);
+        pinnies_logo.setVisibility(View.VISIBLE);
     }
 }

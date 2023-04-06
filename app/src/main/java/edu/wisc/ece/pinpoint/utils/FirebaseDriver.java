@@ -232,7 +232,7 @@ public class FirebaseDriver {
                     });
     }
 
-    public Long getCachedPinnies(String uid){
+    public Long getCachedPinnies(){
         return pinnies;
     }
 

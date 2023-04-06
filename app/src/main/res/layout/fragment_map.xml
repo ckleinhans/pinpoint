@@ -25,10 +25,24 @@
             android:layout_margin="5dp"
             android:scaleX="1.5"
             android:scaleY="1.5"
+            android:foregroundTint="?attr/colorOnSecondary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/map_pinnies_logo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_pinnies_logo"
+            android:visibility="gone"
+            android:layout_margin="5dp"
+            app:tint="?attr/colorOnPrimary"
+            app:layout_constraintBottom_toBottomOf="@+id/map_pinnies_text"
+            app:layout_constraintStart_toEndOf="@+id/map_pinnies_text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/map_pinnies_text" />
 
         <TextView
             android:id="@+id/map_pinnies_text"
@@ -37,16 +51,13 @@
             android:text="test"
             android:layout_marginEnd="5dp"
             android:layout_marginStart="5dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:drawablePadding="5dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:textColor="?attr/colorOnSecondary"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:alpha="1" />
+            app:layout_constraintStart_toStartOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <fragment

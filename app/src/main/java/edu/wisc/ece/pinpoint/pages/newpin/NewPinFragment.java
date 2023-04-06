@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,10 +52,8 @@ public class NewPinFragment extends Fragment {
     private EditText captionInput;
     private Button dropButton;
     private EditText textContentInput;
-
-    private Drawable pinnies_logo_button;
-
-    private Drawable pinnies_logo_title;
+    private ImageView pinnies_logo_topbar;
+    private ImageView pinnies_logo_button;
     private ProgressBar userPinniesProgressBar;
     private ProgressBar pinCostProgressBar;
     private Long pinnieCount;
@@ -90,7 +89,8 @@ public class NewPinFragment extends Fragment {
         viewPager = requireView().findViewById(R.id.newpin_view_pager);
         tabLayout.addTab(tabLayout.newTab().setText(R.string.text_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.image_text));
-        setPinniesDrawable();
+        pinnies_logo_topbar = requireView().findViewById(R.id.topbar_pinnies_logo);
+        pinnies_logo_button = requireView().findViewById(R.id.button_pinnies_logo);
 
         fragmentAdapter =
                 new NewPinFragmentAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
@@ -139,8 +139,8 @@ public class NewPinFragment extends Fragment {
         FirebaseDriver driver = FirebaseDriver.getInstance();
         String uid = driver.getCurrentUser().getUid();
 
-        if(driver.getCachedPinnies(uid) != null){
-            pinnieCount = driver.getCachedPinnies(uid);
+        if(driver.getCachedPinnies() != null){
+            pinnieCount = driver.getCachedPinnies();
             return;
         }
 
@@ -246,19 +246,6 @@ public class NewPinFragment extends Fragment {
         });
     }
 
-    private void setPinniesDrawable(){
-        TypedValue colorValue = new TypedValue();
-        getContext().getTheme().resolveAttribute(com.google.android.material.R.attr.colorOnPrimary, colorValue, true);
-
-        Drawable unwrapped_pinnies_logo_button = AppCompatResources.getDrawable(getContext(), R.drawable.ic_pinnies_logo);
-        pinnies_logo_button = DrawableCompat.wrap(unwrapped_pinnies_logo_button);
-        DrawableCompat.setTint(pinnies_logo_button, colorValue.data);
-
-        Drawable unwrapped_pinnies_logo_title = AppCompatResources.getDrawable(getContext(), R.drawable.ic_pinnies_logo);
-        pinnies_logo_title = DrawableCompat.wrap(unwrapped_pinnies_logo_title);
-        DrawableCompat.setTint(pinnies_logo_title, colorValue.data);
-    }
-
     private void setPinniesUI() {
         // I'm so sorry
         if (pinnieCount == null || pinCost == null) return;
@@ -272,14 +259,14 @@ public class NewPinFragment extends Fragment {
         topBarText.setText(String.format("%s %s",
                 getString(R.string.new_pin_title_text),
                 FormatUtils.humanReadablePinnies(pinnieCount)));
-        topBarText.setCompoundDrawablesWithIntrinsicBounds(null, null, pinnies_logo_title, null);
         dropButton.setText(String.format("%s %s",
                 getString(R.string.drop_pin_button_text),
                 FormatUtils.humanReadablePinnies(pinCost)));
 
-        dropButton.setCompoundDrawablesWithIntrinsicBounds(null,null,pinnies_logo_button,null);
-        dropButton.setPadding(45,0, 30, 0);
         pinCostProgressBar.setVisibility(View.GONE);
         userPinniesProgressBar.setVisibility(View.GONE);
+        pinnies_logo_topbar.setVisibility(View.VISIBLE);
+        pinnies_logo_button.setVisibility(View.VISIBLE);
+
     }
 }
