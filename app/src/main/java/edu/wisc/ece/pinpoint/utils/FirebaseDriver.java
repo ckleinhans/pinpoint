@@ -3,6 +3,7 @@ package edu.wisc.ece.pinpoint.utils;
 import android.content.Context;
 import android.location.Location;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
@@ -35,6 +36,7 @@ import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 
 public class FirebaseDriver {
+    private static final String TAG = FirebaseDriver.class.getName();
     private static FirebaseDriver instance;
     private final FirebaseAuth auth;
     private final FirebaseFirestore db;
@@ -76,10 +78,10 @@ public class FirebaseDriver {
         if (user == null) {
             throw new IllegalStateException("Cannot send email verification when not logged in.");
         }
+        Task<Void> sendEmailTask =
+                user.sendEmailVerification().addOnFailureListener(e -> Log.w(TAG, e));
         if (onComplete != null) {
-            user.sendEmailVerification().addOnCompleteListener(onComplete);
-        } else {
-            user.sendEmailVerification();
+            sendEmailTask.addOnCompleteListener(onComplete);
         }
     }
 
@@ -101,6 +103,8 @@ public class FirebaseDriver {
     }
 
     public Task<Void> logout(@NonNull Context context) {
+        foundPinIds = null;
+        droppedPinIds = null;
         return AuthUI.getInstance().signOut(context);
     }
 
@@ -261,6 +265,20 @@ public class FirebaseDriver {
         data.put("longitude", location.getLongitude());
         return functions.getHttpsCallable("calcPinCost").call(data)
                 .continueWith(task -> (Integer) task.getResult().getData());
+    }
+
+    public Task<Pin> findPin(String pid, Location location) {
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("pid", pid);
+        data.put("latitude", location.getLatitude());
+        data.put("longitude", location.getLongitude());
+
+        return functions.getHttpsCallable("findPin").call(data).continueWith(task -> {
+            // For now don't do anything with returned pin data since it will be fetched
+            // on pin view page load
+            foundPinIds.add(pid);
+            return null;
+        });
     }
 
     public Task<Map<String, Object>> fetchNearbyPins(@NonNull Location location) {

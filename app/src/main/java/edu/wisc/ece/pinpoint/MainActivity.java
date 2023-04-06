@@ -1,7 +1,6 @@
 package edu.wisc.ece.pinpoint;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,7 +18,6 @@ import java.util.List;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = MainActivity.class.getName();
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
                     R.id.new_pin_fragment);
