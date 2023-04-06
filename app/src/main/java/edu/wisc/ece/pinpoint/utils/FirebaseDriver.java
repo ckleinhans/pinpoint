@@ -15,6 +15,7 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
+import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.functions.FirebaseFunctions;
@@ -130,6 +131,28 @@ public class FirebaseDriver {
 
     public User getCachedUser(@NonNull String uid) {
         return users.get(uid);
+    }
+
+    public void handleNewUser() {
+        // User is new, push user data to new node in DB
+        FirebaseUser user = getCurrentUser();
+        User userData = new User(user.getDisplayName());
+        UserInfo providerData = user.getProviderData().get(1);
+        if (providerData.getPhotoUrl() != null) {
+            userData.setProfilePicUrl(providerData.getPhotoUrl().toString());
+        }
+        String uid = user.getUid();
+        userData.save(uid);
+
+        // create Pinnie wallet for new user
+        final long initialBalance = 2000;
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("currency", initialBalance);
+        db.collection("private")
+                .document(uid)
+                .set(data)
+                .addOnSuccessListener(t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
+                .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
     }
 
     // TODO: improve fetch efficiency using query
