@@ -43,7 +43,6 @@ public class NewPinFragment extends Fragment {
     private LocationDriver locationDriver;
     private NestedScrollView scrollView;
     private NavController navController;
-
     private TextView topBarText;
     private TextView insufficientPinniesText;
     private NewPinFragmentAdapter fragmentAdapter;
