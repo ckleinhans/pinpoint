@@ -36,8 +36,6 @@ public class MainActivity extends AppCompatActivity {
                     R.id.new_pin_fragment);
     private NavController navController;
 
-
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
