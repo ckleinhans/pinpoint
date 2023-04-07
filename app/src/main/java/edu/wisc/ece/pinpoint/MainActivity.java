@@ -82,7 +82,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
+
+
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbar_map);
     }
+
+
 }
