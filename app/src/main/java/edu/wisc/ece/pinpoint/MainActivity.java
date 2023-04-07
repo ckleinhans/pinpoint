@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.View;
 
@@ -7,6 +8,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
+import androidx.work.WorkRequest;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -14,14 +19,18 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
+import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
 
 public class MainActivity extends AppCompatActivity {
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
                     R.id.new_pin_fragment);
     private NavController navController;
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -44,9 +53,24 @@ public class MainActivity extends AppCompatActivity {
                 mapButton.setVisibility(View.VISIBLE);
             }
         });
+
+        PeriodicWorkRequest saveRequest =
+                new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 20, TimeUnit.MINUTES)
+                        // Constraints
+                        .build();
+
+        WorkManager work = WorkManager.getInstance();
+        work.enqueue(saveRequest);
+
+
     }
+
+
+
 
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbar_map);
     }
+
+
 }
