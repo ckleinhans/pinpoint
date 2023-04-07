@@ -9,7 +9,11 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.work.ListenableWorker;
+import androidx.work.Worker;
+import androidx.work.WorkerParameters;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,37 +26,6 @@ import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedHashSet;
 import edu.wisc.ece.pinpoint.pages.pins.PinListAdapter;
 import edu.wisc.ece.pinpoint.pages.pins.PinListFragment;
-
-public class PinNotificationActivity extends Fragment {
-
-    Button button;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.activity_pin_notification, container, false);
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        button = view.findViewById(R.id.button2);
-
-
-
-        NotificationDriver notificationDriver = NotificationDriver.getInstance(null);
-        notificationDriver.sendOneShot("new", "message");
-
-
-    }
-
-
 
 public class PinNotificationActivity extends Worker {
 
@@ -68,4 +41,7 @@ public class PinNotificationActivity extends Worker {
         notificationDriver.sendOneShot("pin", "found");
         return Result.success();
     }
+
+
+
 }
