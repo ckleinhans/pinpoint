@@ -22,6 +22,7 @@ import java.util.Map;
 
 public class PinNotificationActivity extends Worker {
 
+    Button button;
 
     private Task<Location> location;
     private Location loc;
@@ -83,5 +84,7 @@ public class PinNotificationActivity extends Worker {
         // Indicate whether the work finished successfully with the Result
         return Result.retry();
     }
-            }
 
+
+
+}
