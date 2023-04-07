@@ -56,36 +56,6 @@ public class MainActivity extends AppCompatActivity {
         work.enqueue(saveRequest);
 
 
-
-
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-
-                                    PeriodicWorkRequest saveRequest =
-                                            new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 15, TimeUnit.MINUTES)
-                                                    // Constraints
-                                                    .build();
-        // Fetch logged in user profile, followers/following, & activity on app load
-        FirebaseDriver firebase = FirebaseDriver.getInstance();
-        String uid = firebase.getCurrentUser().getUid();
-        firebase.fetchUser(uid);
-        firebase.fetchSocials(uid);
-        firebase.fetchActivity(uid);
-
-        PeriodicWorkRequest saveRequest =
-                new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 20, TimeUnit.MINUTES)
-                        // Constraints
-                        .build();
-
-                                    WorkManager work = WorkManager.getInstance(getApplicationContext());
-                                    work.enqueue(saveRequest);
-                                }
-
-
-        },1);
-
     }
 
     public void onMapButtonClick(View view) {
