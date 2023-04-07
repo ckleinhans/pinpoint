@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         NotificationDriver.getInstance(this);
         navBar.getMenu().getItem(2).setEnabled(false);
         NavigationUI.setupWithNavController(navBar, navController);
-        // Set nav bar visibility
+
         navController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
             if (hiddenNavbarFragments.contains(navDestination.getId())) {
                 navBarContainer.setVisibility(View.GONE);
@@ -52,6 +52,16 @@ public class MainActivity extends AppCompatActivity {
         firebase.fetchUser(uid);
         firebase.fetchSocials(uid);
         firebase.fetchActivity(uid);
+
+        PeriodicWorkRequest saveRequest =
+                new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 20, TimeUnit.MINUTES)
+                        // Constraints
+                        .build();
+
+        WorkManager work = WorkManager.getInstance();
+        work.enqueue(saveRequest);
+
+
     }
 
     public void onMapButtonClick(View view) {
