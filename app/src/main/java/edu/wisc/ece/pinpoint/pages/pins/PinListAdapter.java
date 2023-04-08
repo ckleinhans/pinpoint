@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -13,19 +14,20 @@ import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.data.OrderedHashSet;
+import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
+import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListViewHolder> {
-    private final OrderedHashSet<String> pinIds;
+    private final OrderedPinMetadata pinMetadata;
     private final NavController navController;
     private final FirebaseDriver firebase;
     private Context parentContext;
 
-    public PinListAdapter(OrderedHashSet<String> pinIds, NavController navController) {
-        this.pinIds = pinIds;
+    public PinListAdapter(OrderedPinMetadata pinMetadata, NavController navController) {
+        this.pinMetadata = pinMetadata;
         this.navController = navController;
         firebase = FirebaseDriver.getInstance();
     }
@@ -41,31 +43,42 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
 
     @Override
     public void onBindViewHolder(@NonNull PinListViewHolder holder, int position) {
-        String pid = pinIds.get(position);
-        Pin pin = firebase.getCachedPin(pid);
+        PinMetadata metadata = pinMetadata.get(position);
+        String pid = metadata.getPinId();
 
-        if (pin.getType() == Pin.PinType.IMAGE) {
-            firebase.loadPinImage(holder.image, parentContext, pid);
+        if (firebase.getCachedFoundPinMetadata()
+                .contains(pid) || firebase.getCachedDroppedPinMetadata().contains(pid)) {
+            // Pin is discovered
+            Pin pin = firebase.getCachedPin(pid);
+            if (pin.getType() == Pin.PinType.IMAGE) {
+                firebase.loadPinImage(holder.image, parentContext, pid);
+            } else {
+                holder.image.setImageResource(R.drawable.oldnote);
+            }
+            holder.item.setOnClickListener(view -> navController.navigate(
+                    edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
         } else {
-            holder.image.setImageResource(R.drawable.oldnote);
+            // Pin is undiscovered
+            holder.image.setImageResource(R.drawable.ic_lock);
+            holder.item.setOnClickListener(
+                    view -> Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
+                            Toast.LENGTH_SHORT).show());
         }
+        // Set timestamp to metadata timestamps
         holder.overlayText.setText(
-                String.format("%s\n%s", FormatUtils.formattedDate(pin.getTimestamp()),
-                        FormatUtils.formattedTime(pin.getTimestamp())));
-        holder.item.setOnClickListener(view -> navController.navigate(
-                edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
+                String.format("%s\n%s", FormatUtils.formattedDate(metadata.getTimestamp()),
+                        FormatUtils.formattedTime(metadata.getTimestamp())));
     }
 
     @Override
     public int getItemCount() {
-        return pinIds.size();
+        return pinMetadata.size();
     }
 
     // View Holder Class to handle Recycler View.
     public static class PinListViewHolder extends RecyclerView.ViewHolder {
         private final CardView item;
         private final ImageView image;
-
         private final TextView overlayText;
 
         public PinListViewHolder(@NonNull View itemView) {
