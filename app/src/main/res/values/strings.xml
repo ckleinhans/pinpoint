@@ -5,6 +5,8 @@
 
     <string name="app_name">PinPoint</string>
     <string name="follow_text">Follow</string>
+    <string name="unfollow_text">Unfollow</string>
+    <string name="follow_back_text">Follow Back</string>
     <string name="pins_found_text">Pins Found</string>
     <string name="pins_dropped_text">Pins Dropped</string>
     <string name="following_text">Following</string>

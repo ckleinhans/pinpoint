@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.profile;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -87,9 +89,28 @@ public class ProfilePageFragment extends Fragment {
                     ProfilePageFragmentDirections.editProfile()));
         } else {
             // Viewing someone else's profile, button is for following
-            button.setOnClickListener((buttonView) -> {
-                // TODO: implement user following
-            });
+            String finalUid = uid;
+            // if the user is already following this profile, show unfollow button
+            if (firebase.getCachedFollowingIds().containsKey(uid)) {
+                button.setText(R.string.unfollow_text);
+                button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.soft_red));
+                button.setOnClickListener((buttonView) -> {
+                    firebase.unfollowUser(finalUid);
+                });
+            }
+            // if this profile follows the user but the user does not, show follow back button
+            else if (firebase.getCachedFollowerIds().containsKey(uid)) {
+                button.setText(R.string.follow_back_text);
+                button.setOnClickListener((buttonView) -> {
+                    firebase.followUser(finalUid);
+                });
+            }
+            // if neither the user nor this profile follow each other, show regular follow button
+            else {
+                button.setOnClickListener((buttonView) -> {
+                    firebase.followUser(finalUid);
+                });
+            }
         }
 
         User cachedUser = firebase.getCachedUser(uid);
@@ -134,6 +155,8 @@ public class ProfilePageFragment extends Fragment {
 
     public void setUserData(@NonNull User user) {
         user.loadProfilePic(profilePic, this);
+        user.setNumFollowers(firebase.getCachedFollowerIds().size());
+        user.setNumFollowing(firebase.getCachedFollowingIds().size());
         username.setText(user.getUsername());
         followerCount.setText(String.valueOf(user.getNumFollowers()));
         followingCount.setText(String.valueOf(user.getNumFollowing()));

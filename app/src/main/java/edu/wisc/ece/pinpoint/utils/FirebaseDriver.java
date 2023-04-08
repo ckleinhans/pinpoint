@@ -17,14 +17,18 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -49,6 +53,8 @@ public class FirebaseDriver {
     private OrderedHashSet<String> foundPinIds;
     private OrderedHashSet<String> droppedPinIds;
     private Long pinnies;
+    private HashMap<String, Date> followerIds;
+    private HashMap<String, Date> followingIds;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -107,6 +113,8 @@ public class FirebaseDriver {
     public Task<Void> logout(@NonNull Context context) {
         foundPinIds = null;
         droppedPinIds = null;
+        followerIds = null;
+        followingIds = null;
         return AuthUI.getInstance().signOut(context);
     }
 
@@ -322,5 +330,39 @@ public class FirebaseDriver {
         //noinspection unchecked
         return functions.getHttpsCallable("getNearbyPins").call(data)
                 .continueWith(task -> (Map<String, Object>) task.getResult().getData());
+    }
+
+    // TODO: improve fetch efficiency using query
+    public void fetchSocials() {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch followers");
+        }
+        db.collection("social").document(auth.getUid()).get().continueWith(task -> {
+            DocumentSnapshot doc = task.getResult();
+            followerIds = (HashMap) doc.get("followers");
+            followingIds = (HashMap) doc.get("following");
+            return null;
+        });
+    }
+
+    public HashMap<String, Date> getCachedFollowerIds() {return followerIds;}
+
+    public HashMap<String, Date> getCachedFollowingIds() {return followingIds;}
+
+    public void followUser(String uid) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to follow an account");
+        }
+        Date timestamp = new Date();
+        followingIds.put(uid, timestamp);
+        db.collection("social").document(auth.getUid()).update("following."+uid, timestamp);
+    }
+
+    public void unfollowUser(String uid) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to follow an account");
+        }
+        followingIds.remove(uid);
+        db.collection("social").document(auth.getUid()).update("following."+uid, FieldValue.delete());
     }
 }

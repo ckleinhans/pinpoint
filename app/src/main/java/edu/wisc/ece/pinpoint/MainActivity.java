@@ -15,6 +15,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
 public class MainActivity extends AppCompatActivity {
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
                     R.id.new_pin_fragment);
     private NavController navController;
+    private final FirebaseDriver firebase = FirebaseDriver.getInstance();
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -34,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         NotificationDriver.getInstance(this);
         navBar.getMenu().getItem(2).setEnabled(false);
         NavigationUI.setupWithNavController(navBar, navController);
-
+        // Set nav bar visibility
         navController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
             if (hiddenNavbarFragments.contains(navDestination.getId())) {
                 navBarContainer.setVisibility(View.GONE);
@@ -44,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
                 mapButton.setVisibility(View.VISIBLE);
             }
         });
+        // Fetch followers and followed users
+        firebase.fetchSocials();
     }
 
     public void onMapButtonClick(View view) {
