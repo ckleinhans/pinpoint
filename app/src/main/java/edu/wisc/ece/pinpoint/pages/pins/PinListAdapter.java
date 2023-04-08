@@ -16,6 +16,7 @@ import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedHashSet;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListViewHolder> {
     private final OrderedHashSet<String> pinIds;
@@ -41,12 +42,16 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     @Override
     public void onBindViewHolder(@NonNull PinListViewHolder holder, int position) {
         String pid = pinIds.get(position);
+        Pin pin = firebase.getCachedPin(pid);
 
-        if (firebase.getCachedPin(pid).getType() == Pin.PinType.IMAGE) {
+        if (pin.getType() == Pin.PinType.IMAGE) {
             firebase.loadPinImage(holder.image, parentContext, pid);
         } else {
             holder.image.setImageResource(R.drawable.oldnote);
         }
+        holder.overlayText.setText(
+                String.format("%s\n%s", FormatUtils.formattedDate(pin.getTimestamp()),
+                        FormatUtils.formattedTime(pin.getTimestamp())));
         holder.item.setOnClickListener(view -> navController.navigate(
                 edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
     }
@@ -61,13 +66,13 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         private final CardView item;
         private final ImageView image;
 
-        private TextView textView;
+        private final TextView overlayText;
 
         public PinListViewHolder(@NonNull View itemView) {
             super(itemView);
             item = itemView.findViewById(R.id.pinlist_item);
             image = itemView.findViewById(R.id.pinlist_item_image);
-            textView = itemView.findViewById(R.id.pinlist_image_text);
+            overlayText = itemView.findViewById(R.id.pinlist_image_text);
         }
     }
 }

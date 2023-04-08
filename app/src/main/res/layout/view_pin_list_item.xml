@@ -21,11 +21,11 @@
         android:id="@+id/pinlist_image_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textFontWeight="700"
-        android:text="time"
+        android:layout_gravity="bottom"
+        android:background="@drawable/image_overlay_gradient"
+        android:paddingHorizontal="5dp"
+        android:paddingTop="10dp"
         android:textColor="@color/white"
-        android:layout_gravity="bottom|center_horizontal"
-        android:background="@drawable/textlines"
-        />
+        android:textFontWeight="500" />
 
 </androidx.cardview.widget.CardView>
