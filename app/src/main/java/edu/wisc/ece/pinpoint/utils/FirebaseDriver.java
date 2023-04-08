@@ -24,6 +24,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,8 +33,9 @@ import javax.annotation.Nullable;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.GlideApp;
-import edu.wisc.ece.pinpoint.data.OrderedHashSet;
+import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
+import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.data.User;
 
 public class FirebaseDriver {
@@ -45,9 +47,9 @@ public class FirebaseDriver {
     private final FirebaseFunctions functions;
     private final Map<String, User> users;
     private final Map<String, Pin> pins;
-    private final Map<String, OrderedHashSet<String>> userPinIds;
-    private OrderedHashSet<String> foundPinIds;
-    private OrderedHashSet<String> droppedPinIds;
+    private final Map<String, OrderedPinMetadata> userPinMetadata;
+    private OrderedPinMetadata foundPinMetadata;
+    private OrderedPinMetadata droppedPinMetadata;
     private Long pinnies;
 
     private FirebaseDriver() {
@@ -61,7 +63,7 @@ public class FirebaseDriver {
         functions = FirebaseFunctions.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
-        userPinIds = new HashMap<>();
+        userPinMetadata = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -105,8 +107,8 @@ public class FirebaseDriver {
     }
 
     public Task<Void> logout(@NonNull Context context) {
-        foundPinIds = null;
-        droppedPinIds = null;
+        foundPinMetadata = null;
+        droppedPinMetadata = null;
         return AuthUI.getInstance().signOut(context);
     }
 
@@ -151,16 +153,14 @@ public class FirebaseDriver {
         final long initialBalance = 2000;
         HashMap<String, Object> data = new HashMap<>();
         data.put("currency", initialBalance);
-        db.collection("private")
-                .document(uid)
-                .set(data)
-                .addOnSuccessListener(t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
+        db.collection("private").document(uid).set(data).addOnSuccessListener(
+                        t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
                 .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
     }
 
     // TODO: improve fetch efficiency using query
-    public Task<OrderedHashSet<String>> fetchFoundPins() {
-        OrderedHashSet<String> foundPinIds = new OrderedHashSet<>();
+    public Task<OrderedPinMetadata> fetchFoundPins() {
+        OrderedPinMetadata foundPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
@@ -169,25 +169,26 @@ public class FirebaseDriver {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
                         String pinId = documentSnapshot.getId();
-                        foundPinIds.add(pinId);
+                        foundPinMetadata.add(new PinMetadata(pinId,
+                                documentSnapshot.get("timestamp", Date.class)));
                         if (getCachedPin(pinId) == null) {
                             fetchTasks.add(fetchPin(pinId));
                         }
                     }
                     return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
-                        this.foundPinIds = foundPinIds;
-                        return foundPinIds;
+                        this.foundPinMetadata = foundPinMetadata;
+                        return foundPinMetadata;
                     });
                 });
     }
 
-    public OrderedHashSet<String> getCachedFoundPinIds() {
-        return foundPinIds;
+    public OrderedPinMetadata getCachedFoundPinMetadata() {
+        return foundPinMetadata;
     }
 
     // TODO: improve fetch efficiency using query
-    public Task<OrderedHashSet<String>> fetchDroppedPins() {
-        OrderedHashSet<String> droppedPinIds = new OrderedHashSet<>();
+    public Task<OrderedPinMetadata> fetchDroppedPins() {
+        OrderedPinMetadata droppedPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
@@ -196,28 +197,31 @@ public class FirebaseDriver {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
                         String pinId = documentSnapshot.getId();
-                        droppedPinIds.add(pinId);
+                        droppedPinMetadata.add(new PinMetadata(pinId,
+                                documentSnapshot.get("timestamp", Date.class)));
                         if (getCachedPin(pinId) == null) {
                             fetchTasks.add(fetchPin(pinId));
                         }
                     }
                     return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
-                        this.droppedPinIds = droppedPinIds;
-                        return droppedPinIds;
+                        this.droppedPinMetadata = droppedPinMetadata;
+                        // Set current user pin metadata as well
+                        this.userPinMetadata.put(auth.getUid(), droppedPinMetadata);
+                        return droppedPinMetadata;
                     });
                 });
     }
 
-    public OrderedHashSet<String> getCachedDroppedPinIds() {
-        return droppedPinIds;
+    public OrderedPinMetadata getCachedDroppedPinMetadata() {
+        return droppedPinMetadata;
     }
 
-    public Task<OrderedHashSet<String>> fetchUserPins(@NonNull String uid) {
-        OrderedHashSet<String> newUserPinIds = new OrderedHashSet<>();
+    public Task<OrderedPinMetadata> fetchUserPins(@NonNull String uid) {
+        OrderedPinMetadata newUserPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
-        if (foundPinIds == null) {
+        if (foundPinMetadata == null) {
             throw new IllegalStateException("Must have already fetched found pins.");
         }
         return db.collection("users").document(uid).collection("dropped").orderBy("timestamp").get()
@@ -225,21 +229,22 @@ public class FirebaseDriver {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
                         String pinId = documentSnapshot.getId();
-                        newUserPinIds.add(pinId);
+                        newUserPinMetadata.add(new PinMetadata(pinId,
+                                documentSnapshot.get("timestamp", Date.class)));
                         // Only fetch pins that the user has found
-                        if (getCachedPin(pinId) == null && foundPinIds.contains(pinId)) {
+                        if (getCachedPin(pinId) == null && foundPinMetadata.contains(pinId)) {
                             fetchTasks.add(fetchPin(pinId));
                         }
                     }
                     return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
-                        userPinIds.put(uid, newUserPinIds);
-                        return newUserPinIds;
+                        userPinMetadata.put(uid, newUserPinMetadata);
+                        return newUserPinMetadata;
                     });
                 });
     }
 
-    public OrderedHashSet<String> getCachedUserPinIds(@NonNull String uid) {
-        return userPinIds.get(uid);
+    public OrderedPinMetadata getCachedUserPinMetadata(@NonNull String uid) {
+        return userPinMetadata.get(uid);
     }
 
     public Task<Pin> fetchPin(@NonNull String pid) {
@@ -271,24 +276,24 @@ public class FirebaseDriver {
         return functions.getHttpsCallable("dropPin").call(newPin.serialize()).continueWith(task -> {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
-            droppedPinIds.add(pid);
+            droppedPinMetadata.add(new PinMetadata(pid, new Date()));
             pinnies -= cost;
             return pid;
         });
     }
+
     public Task<Long> getPinnies() {
-            return db
-                    .collection("private")
-                    .document(auth.getUid())
-                    .get()
-                    .continueWith(task -> {
-                        Long pinniesResult = (Long) task.getResult().get("currency");
-                        pinnies = pinniesResult;
-                        return pinniesResult;
-                    });
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pinnies");
+        }
+        return db.collection("private").document(auth.getUid()).get().continueWith(task -> {
+            Long pinniesResult = (Long) task.getResult().get("currency");
+            pinnies = pinniesResult;
+            return pinniesResult;
+        });
     }
 
-    public Long getCachedPinnies(){
+    public Long getCachedPinnies() {
         return pinnies;
     }
 
@@ -309,7 +314,7 @@ public class FirebaseDriver {
         return functions.getHttpsCallable("findPin").call(data).continueWith(task -> {
             // For now don't do anything with returned pin data since it will be fetched
             // on pin view page load
-            foundPinIds.add(pid);
+            foundPinMetadata.add(new PinMetadata(pid, new Date()));
             return null;
         });
     }
