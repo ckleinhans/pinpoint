@@ -1,6 +1,7 @@
 package edu.wisc.ece.pinpoint.data;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -8,11 +9,11 @@ import java.util.Iterator;
  * Class that allows for O(1) searching, adding, and removing (like HashSet), but also supports an
  * indexed ordering of elements based on the insertion order.
  */
-public class OrderedHashSet<E> {
-    private final HashMap<E, Integer> hashMap;
-    private final ArrayList<E> list;
+public class OrderedPinMetadata {
+    private final HashMap<PinMetadata, Integer> hashMap;
+    private final ArrayList<PinMetadata> list;
 
-    public OrderedHashSet() {
+    public OrderedPinMetadata() {
         hashMap = new HashMap<>();
         list = new ArrayList<>();
     }
@@ -23,7 +24,7 @@ public class OrderedHashSet<E> {
      * @param element to be added
      * @return true if the element was added, false if the element was already present
      */
-    public boolean add(E element) {
+    public boolean add(PinMetadata element) {
         if (hashMap.containsKey(element)) {
             return false;
         }
@@ -38,7 +39,7 @@ public class OrderedHashSet<E> {
      * @param element to be removed
      * @return true if the item was removed, false if it wasn't present
      */
-    public boolean remove(E element) {
+    public boolean remove(PinMetadata element) {
         Integer listIndex = hashMap.remove(element);
         if (listIndex == null) {
             return false;
@@ -53,7 +54,7 @@ public class OrderedHashSet<E> {
      * @param index of the item to get
      * @return the item
      */
-    public E get(int index) {
+    public PinMetadata get(int index) {
         return list.get(list.size() - 1 - index);
     }
 
@@ -63,8 +64,18 @@ public class OrderedHashSet<E> {
      * @param element to check
      * @return true if present, false if not
      */
-    public boolean contains(E element) {
+    public boolean contains(PinMetadata element) {
         return hashMap.containsKey(element);
+    }
+
+    /**
+     * Checks if the specified item is present in O(1).
+     *
+     * @param pinId to check
+     * @return true if present, false if not
+     */
+    public boolean contains(String pinId) {
+        return hashMap.containsKey(new PinMetadata(pinId, new Date()));
     }
 
     /**
@@ -89,7 +100,7 @@ public class OrderedHashSet<E> {
         list.clear();
     }
 
-    public Iterator<E> getIterator() {
+    public Iterator<PinMetadata> getIterator() {
         return list.iterator();
     }
 }

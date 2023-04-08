@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.data.OrderedHashSet;
+import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class PinListFragment extends Fragment {
@@ -44,41 +44,41 @@ public class PinListFragment extends Fragment {
 
         // Get list type from arguments
         PinListType listType = PinListType.valueOf(requireArguments().getString(LIST_TYPE_ARG_KEY));
-        OrderedHashSet<String> pinIds;
+        OrderedPinMetadata pinMetadata;
         switch (listType) {
             case USER:
                 String uid = requireArguments().getString(UID_ARG_KEY);
-                if (firebase.getCachedUserPinIds(uid) == null) {
+                if (firebase.getCachedUserPinMetadata(uid) == null) {
                     firebase.fetchUserPins(uid)
-                            .addOnSuccessListener(pinIds1 -> setupRecyclerView(view, pinIds1))
+                            .addOnSuccessListener(metadata -> setupRecyclerView(view, metadata))
                             .addOnFailureListener(e -> {
                                 Log.w(TAG, e);
                                 Toast.makeText(requireContext(), R.string.pin_fetch_error,
                                         Toast.LENGTH_SHORT).show();
                             });
                 } else {
-                    pinIds = firebase.getCachedUserPinIds(uid);
-                    setupRecyclerView(view, pinIds);
+                    pinMetadata = firebase.getCachedUserPinMetadata(uid);
+                    setupRecyclerView(view, pinMetadata);
                 }
                 break;
             case DROPPED:
-                pinIds = firebase.getCachedDroppedPinIds();
-                setupRecyclerView(view, pinIds);
+                pinMetadata = firebase.getCachedDroppedPinMetadata();
+                setupRecyclerView(view, pinMetadata);
                 break;
             case FOUND:
-                pinIds = firebase.getCachedFoundPinIds();
-                setupRecyclerView(view, pinIds);
+                pinMetadata = firebase.getCachedFoundPinMetadata();
+                setupRecyclerView(view, pinMetadata);
                 break;
         }
     }
 
-    private void setupRecyclerView(View view, OrderedHashSet<String> pinIds) {
+    private void setupRecyclerView(View view, OrderedPinMetadata pinMetadata) {
         RecyclerView recyclerView = view.findViewById(R.id.pinlist_recycler_view);
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
-        recyclerView.setAdapter(new PinListAdapter(pinIds, navController));
+        recyclerView.setAdapter(new PinListAdapter(pinMetadata, navController));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 
