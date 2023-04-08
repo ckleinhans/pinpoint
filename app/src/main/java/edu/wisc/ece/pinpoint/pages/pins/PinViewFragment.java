@@ -15,12 +15,11 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
-import java.text.DateFormat;
-
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class PinViewFragment extends Fragment {
     private FirebaseDriver firebase;
@@ -86,8 +85,7 @@ public class PinViewFragment extends Fragment {
                     .addOnCompleteListener(task -> setPinAuthorData(task.getResult()));
         }
 
-        timestamp.setText(DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT)
-                .format(pin.getTimestamp()));
+        timestamp.setText(FormatUtils.formattedDateTime(pin.getTimestamp()));
         if (pin.getCaption() == null) {
             caption.setVisibility(View.GONE);
         } else {
