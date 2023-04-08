@@ -163,6 +163,7 @@ public class FirebaseDriver {
         db.collection("private").document(uid).set(data).addOnSuccessListener(
                         t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
                 .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
+
     }
 
     // TODO: improve fetch efficiency using query
@@ -360,6 +361,7 @@ public class FirebaseDriver {
         Date timestamp = new Date();
         followingIds.put(uid, timestamp);
         db.collection("social").document(auth.getUid()).update("following."+uid, timestamp);
+        db.collection("social").document(uid).update("followers."+auth.getUid(), timestamp);
     }
 
     public void unfollowUser(String uid) {
@@ -368,5 +370,6 @@ public class FirebaseDriver {
         }
         followingIds.remove(uid);
         db.collection("social").document(auth.getUid()).update("following."+uid, FieldValue.delete());
+        db.collection("social").document(uid).update("followers."+auth.getUid(), FieldValue.delete());
     }
 }
