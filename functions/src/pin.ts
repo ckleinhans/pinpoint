@@ -138,10 +138,6 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
     }
 
     // Check location is close enough
-    // const distanceMiles = haversineDistance(
-    //   new GeoPoint(latitude, longitude),
-    //   pinData.location
-    // );
     if (
       distanceBetween(
         [latitude, longitude],

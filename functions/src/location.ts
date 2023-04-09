@@ -5,28 +5,6 @@ import { GeoPoint } from "firebase-admin/firestore";
 
 const NEARBY_PIN_RADIUS_METERS = 1000;
 
-// export const toRadian = (angle: number) => (Math.PI / 180) * angle;
-// export const distance = (a: number, b: number) => (Math.PI / 180) * (a - b);
-
-// export const haversineDistance = (p1: GeoPoint, p2: GeoPoint) => {
-//   const [lat1, lon1] = [p1.latitude, p1.longitude];
-//   const [lat2, lon2] = [p2.latitude, p2.longitude];
-
-//   const dLat = distance(lat2, lat1);
-//   const dLon = distance(lon2, lon1);
-
-//   const lat1Rad = toRadian(lat1);
-//   const lat2Rad = toRadian(lat2);
-
-//   // Haversine Formula
-//   const a =
-//     Math.pow(Math.sin(dLat / 2), 2) +
-//     Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1Rad) * Math.cos(lat2Rad);
-//   const c = 2 * Math.asin(Math.sqrt(a));
-
-//   return EARTH_RADIUS_MILES * c;
-// };
-
 export const getPinsNearby = async (
   location: Geopoint,
   radiusMeters: number,
