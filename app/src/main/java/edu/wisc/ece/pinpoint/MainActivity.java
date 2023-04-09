@@ -15,6 +15,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.Arrays;
 import java.util.List;
 
+import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
 public class MainActivity extends AppCompatActivity {
@@ -44,6 +45,10 @@ public class MainActivity extends AppCompatActivity {
                 mapButton.setVisibility(View.VISIBLE);
             }
         });
+
+        // Fetch logged in user profile on app load
+        FirebaseDriver firebase = FirebaseDriver.getInstance();
+        firebase.fetchUser(firebase.getCurrentUser().getUid());
     }
 
     public void onMapButtonClick(View view) {
