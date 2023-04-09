@@ -1,5 +1,10 @@
 package edu.wisc.ece.pinpoint.utils;
 
+import static android.content.ContentValues.TAG;
+import static androidx.core.content.ContentProviderCompat.requireContext;
+
+import static com.google.android.material.internal.ContextUtils.getActivity;
+
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
@@ -10,7 +15,6 @@ import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.widget.Button;
 
 import com.google.android.gms.tasks.Task;
 
@@ -18,7 +22,6 @@ import java.util.Map;
 
 public class PinNotificationActivity extends Worker {
 
-    Button button;
 
     private Task<Location> location;
     private Location loc;
@@ -28,8 +31,6 @@ public class PinNotificationActivity extends Worker {
 
     FirebaseDriver firebaseDriver;
     Map<String, Object> nearbyPins;
-
-    NotificationDriver notificationDriver;
 
     Context context;
     String x;
@@ -65,20 +66,21 @@ public class PinNotificationActivity extends Worker {
                        nearbyPins = task1.getResult();
                        int i = nearbyPins.size();
                        x = String.valueOf(i);
-                       notificationDriver = NotificationDriver.getInstance(context);
+                       NotificationDriver notificationDriver = NotificationDriver.getInstance(null);
                        notificationDriver.updatePersistent("Pins", x + " pins found nearby");
                    });
                    }
                    else{
-                        notificationDriver = NotificationDriver.getInstance(context);
-                        notificationDriver.updatePersistent("Location Access disabled", "no pins");
+                       NotificationDriver notificationDriver = NotificationDriver.getInstance(null);
+                       notificationDriver.sendOneShot("Location Access disabled", "no pins");
+
                    }
                 });
             }
         }, 1000);
 
         // Indicate whether the work finished successfully with the Result
-        return Result.success();
+        return Result.retry();
     }
             }
 
