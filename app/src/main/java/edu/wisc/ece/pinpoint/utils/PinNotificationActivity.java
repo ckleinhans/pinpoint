@@ -1,47 +1,86 @@
 package edu.wisc.ece.pinpoint.utils;
 
+import static android.content.ContentValues.TAG;
+import static androidx.core.content.ContentProviderCompat.requireContext;
+
+import static com.google.android.material.internal.ContextUtils.getActivity;
+
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.work.ListenableWorker;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
-import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
+import android.location.Location;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 
-import com.google.common.util.concurrent.ListenableFuture;
+import com.google.android.gms.tasks.Task;
 
-import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.data.OrderedHashSet;
-import edu.wisc.ece.pinpoint.pages.pins.PinListAdapter;
-import edu.wisc.ece.pinpoint.pages.pins.PinListFragment;
+import java.util.Map;
 
 public class PinNotificationActivity extends Worker {
 
 
+    private Task<Location> location;
+    private Location loc;
+    private Task<Location> lastLocation;
+    double lat = 5.0;
+    Object l;
+
+    FirebaseDriver firebaseDriver;
+    Map<String, Object> nearbyPins;
+
+    Context context;
+    String x;
+
+
     public PinNotificationActivity(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
+        this.context = context;
+
+
     }
 
     @NonNull
     @Override
     public Result doWork() {
-        NotificationDriver notificationDriver = NotificationDriver.getInstance(null);
-        notificationDriver.sendOneShot("pin", "found");
-        return Result.success();
+
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                LocationDriver locationDriver = LocationDriver.getInstance(context);
+
+               location =  locationDriver.getCurrentLocation(context);
+               lastLocation = locationDriver.getLastLocation(context);
+
+                locationDriver.getCurrentLocation(context).addOnCompleteListener(task -> {
+                   loc = task.getResult();
+                   if(loc != null){
+                   firebaseDriver = FirebaseDriver.getInstance();
+                   firebaseDriver.fetchNearbyPins(loc).addOnCompleteListener(task1 -> {
+                       nearbyPins = task1.getResult();
+                       int i = nearbyPins.size();
+                       x = String.valueOf(i);
+                       NotificationDriver notificationDriver = NotificationDriver.getInstance(null);
+                       notificationDriver.updatePersistent("Pins", x + " pins found nearby");
+                   });
+                   }
+                   else{
+                       NotificationDriver notificationDriver = NotificationDriver.getInstance(null);
+                       notificationDriver.sendOneShot("Location Access disabled", "no pins");
+
+                   }
+                });
+            }
+        }, 1000);
+
+        // Indicate whether the work finished successfully with the Result
+        return Result.retry();
     }
+            }
 
-
-
-}
