@@ -163,7 +163,8 @@ public class FirebaseDriver {
         db.collection("private").document(uid).set(data).addOnSuccessListener(
                         t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
                 .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
-
+        db.collection("social").document(uid).set("followers");
+        db.collection("social").document(uid).set("following");
     }
 
     // TODO: improve fetch efficiency using query
@@ -346,6 +347,11 @@ public class FirebaseDriver {
             DocumentSnapshot doc = task.getResult();
             followerIds = (HashMap) doc.get("followers");
             followingIds = (HashMap) doc.get("following");
+            fetchUser(auth.getUid()).addOnSuccessListener(user -> {
+                user.setNumFollowers(followerIds.size());
+                user.setNumFollowing(followingIds.size());
+                user.save(auth.getUid());
+            });
             return null;
         });
     }

@@ -37,6 +37,7 @@ public class ProfilePageFragment extends Fragment {
     private TextView location;
     private TextView bio;
     private ImageView profilePic;
+    private Button button;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -63,7 +64,7 @@ public class ProfilePageFragment extends Fragment {
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
         profilePic = requireView().findViewById(R.id.profile_pic);
-        Button button = requireView().findViewById(R.id.profile_button);
+        button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
         String uid = args != null ? ProfilePageFragmentArgs.fromBundle(args).getUid() : null;
@@ -81,43 +82,19 @@ public class ProfilePageFragment extends Fragment {
             backButton.setVisibility(View.VISIBLE);
             backButton.setOnClickListener(v -> navController.popBackStack());
         }
-
         if (uid.equals(firebase.getCurrentUser().getUid())) {
             // Viewing own profile, button is for editing profile
             button.setText(R.string.edit_profile_text);
             button.setOnClickListener((buttonView) -> navController.navigate(
                     ProfilePageFragmentDirections.editProfile()));
-        } else {
-            // Viewing someone else's profile, button is for following
-            String finalUid = uid;
-            // if the user is already following this profile, show unfollow button
-            if (firebase.getCachedFollowingIds().containsKey(uid)) {
-                button.setText(R.string.unfollow_text);
-                button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.soft_red));
-                button.setOnClickListener((buttonView) -> {
-                    firebase.unfollowUser(finalUid);
-                });
-            }
-            // if this profile follows the user but the user does not, show follow back button
-            else if (firebase.getCachedFollowerIds().containsKey(uid)) {
-                button.setText(R.string.follow_back_text);
-                button.setOnClickListener((buttonView) -> {
-                    firebase.followUser(finalUid);
-                });
-            }
-            // if neither the user nor this profile follow each other, show regular follow button
-            else {
-                button.setOnClickListener((buttonView) -> {
-                    firebase.followUser(finalUid);
-                });
-            }
-        }
+        } else setButton(uid);
 
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {
-            setUserData(cachedUser);
+            setUserData(cachedUser, uid);
         }
-        firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult()));
+        String finalUid = uid;
+        firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult(), finalUid));
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
@@ -153,15 +130,22 @@ public class ProfilePageFragment extends Fragment {
         });
     }
 
-    public void setUserData(@NonNull User user) {
+    public void setUserData(@NonNull User user, String uid) {
         user.loadProfilePic(profilePic, this);
-        user.setNumFollowers(firebase.getCachedFollowerIds().size());
-        user.setNumFollowing(firebase.getCachedFollowingIds().size());
         username.setText(user.getUsername());
-        followerCount.setText(String.valueOf(user.getNumFollowers()));
-        followingCount.setText(String.valueOf(user.getNumFollowing()));
-        pinsDroppedCount.setText(String.valueOf(user.getNumPinsDropped()));
-        pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
+        if (uid.equals(firebase.getCurrentUser().getUid())) {
+            // if the profile belongs to the app user, display the cached values
+            followerCount.setText(String.valueOf(firebase.getCachedFollowerIds().size()));
+            followingCount.setText(String.valueOf(firebase.getCachedFollowingIds().size()));
+            pinsDroppedCount.setText(String.valueOf(firebase.getCachedDroppedPinMetadata().size()));
+            pinsFoundCount.setText(String.valueOf(firebase.getCachedFoundPinMetadata().size()));
+        }
+        else {
+            followerCount.setText(String.valueOf(user.getNumFollowers()));
+            followingCount.setText(String.valueOf(user.getNumFollowing()));
+            pinsDroppedCount.setText(String.valueOf(user.getNumPinsDropped()));
+            pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
+        }
         location.setText(user.getLocation());
         bio.setText(user.getBio());
         if (user.getLocation() == null) {
@@ -173,6 +157,31 @@ public class ProfilePageFragment extends Fragment {
             bio.setVisibility(View.GONE);
         } else {
             bio.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void setButton(String user) {
+        // Viewing someone else's profile, button is for following
+        final String uid = user;
+        // if the user is already following this profile, show unfollow button
+        if (firebase.getCachedFollowingIds().containsKey(uid)) {
+            button.setText(R.string.unfollow_text);
+            button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.soft_red));
+            button.setOnClickListener((buttonView) -> {
+                firebase.unfollowUser(uid);
+                setButton(user);
+            });
+        }
+        else {
+            // if this profile follows the user but the user does not, show follow back button
+            if (firebase.getCachedFollowerIds().containsKey(uid))
+                button.setText(R.string.follow_back_text);
+            else button.setText(R.string.follow_text);
+            button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.blue));
+            button.setOnClickListener((buttonView) -> {
+                firebase.followUser(uid);
+                setButton(user);
+            });
         }
     }
 }
