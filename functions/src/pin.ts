@@ -1,10 +1,10 @@
 import { firestore } from "firebase-admin";
+import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
 import { distanceBetween, geohashForLocation } from "geofire-common";
 
 import { calculateCost, calculateReward } from "./cost";
 import { Pin, PinType } from "./types";
-import { GeoPoint } from "firebase-admin/firestore";
 
 const PIN_FIND_RADIUS_KILOMETERS = 0.02; // 20 meters
 
@@ -37,11 +37,8 @@ export const dropPinHandler = async (
     .collection("private")
     .doc(context.auth.uid);
   const pinRef = firestore().collection("pins").doc();
-  const droppedRef = firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .collection("dropped")
-    .doc(pinRef.id);
+  const userRef = firestore().collection("users").doc(context.auth.uid);
+  const droppedRef = userRef.collection("dropped").doc(pinRef.id);
 
   // Perform validation & updates in transaction to enforce all or none
   await firestore().runTransaction(async (t) => {
@@ -75,6 +72,7 @@ export const dropPinHandler = async (
     t.update(privateDataRef, { currency: privateData.currency - pin.cost });
     t.create(pinRef, pin);
     t.create(droppedRef, { cost: pin.cost, timestamp: new Date() });
+    t.update(userRef, { numPinsDropped: FieldValue.increment(1) });
   });
   return pinRef.id;
 };
@@ -100,11 +98,8 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
     .collection("private")
     .doc(context.auth.uid);
   const pinRef = firestore().collection("pins").doc(pid);
-  const foundRef = firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .collection("found")
-    .doc(pid);
+  const userRef = firestore().collection("users").doc(context.auth.uid);
+  const foundRef = userRef.collection("found").doc(pid);
 
   // Check user has not found pin yet
   const foundData = (await foundRef.get()).data();
@@ -151,16 +146,9 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
     }
 
     const reward = calculateReward(pinData);
-    t.set(
-      privateDataRef,
-      { currency: firestore.FieldValue.increment(reward) },
-      { merge: true }
-    );
-    t.set(
-      pinRef,
-      { finds: firestore.FieldValue.increment(1) },
-      { merge: true }
-    );
+    t.update(privateDataRef, { currency: FieldValue.increment(reward) });
+    t.update(pinRef, { finds: FieldValue.increment(1) });
+    t.update(userRef, { numPinsFound: FieldValue.increment(1) });
     t.create(foundRef, { reward, timestamp: new Date() });
     return pinData;
   });
