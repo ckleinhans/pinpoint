@@ -163,8 +163,12 @@ public class FirebaseDriver {
         db.collection("private").document(uid).set(data).addOnSuccessListener(
                         t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
                 .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
-        db.collection("social").document(uid).set("followers");
-        db.collection("social").document(uid).set("following");
+
+        // create follower and following maps for new user
+        HashMap<String, Object> socials = new HashMap<>();
+        socials.put("followers", null);
+        socials.put("following", null);
+        db.collection("social").document(uid).set(socials);
     }
 
     // TODO: improve fetch efficiency using query
@@ -345,8 +349,10 @@ public class FirebaseDriver {
         }
         db.collection("social").document(auth.getUid()).get().continueWith(task -> {
             DocumentSnapshot doc = task.getResult();
-            followerIds = (HashMap) doc.get("followers");
-            followingIds = (HashMap) doc.get("following");
+            followerIds = (HashMap) doc.get("followers") != null ? (HashMap) doc.get("followers") :
+                    new HashMap<>();
+            followingIds = (HashMap) doc.get("following") != null ? (HashMap) doc.get("following") :
+                    new HashMap<>();
             fetchUser(auth.getUid()).addOnSuccessListener(user -> {
                 user.setNumFollowers(followerIds.size());
                 user.setNumFollowing(followingIds.size());
