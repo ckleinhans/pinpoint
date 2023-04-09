@@ -1,66 +1,79 @@
-import { GeoPoint } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
 import { firestore } from "firebase-admin";
+import { distanceBetween, geohashQueryBounds, Geopoint } from "geofire-common";
+import { GeoPoint } from "firebase-admin/firestore";
 
-export const EARTH_RADIUS_MILES = 3959;
-export const ONE_MILE_LATITUDE_DEGREES = 0.014492753623188;
-export const PIN_FIND_RADIUS_MILES = 0.0095; // 50 ft
-export const NEARBY_PIN_RADIUS_MILES = 0.5;
+const NEARBY_PIN_RADIUS_METERS = 1000;
 
-export const toRadian = (angle: number) => (Math.PI / 180) * angle;
-export const distance = (a: number, b: number) => (Math.PI / 180) * (a - b);
+// export const toRadian = (angle: number) => (Math.PI / 180) * angle;
+// export const distance = (a: number, b: number) => (Math.PI / 180) * (a - b);
 
-export const haversineDistance = (p1: GeoPoint, p2: GeoPoint) => {
-  const [lat1, lon1] = [p1.latitude, p1.longitude];
-  const [lat2, lon2] = [p2.latitude, p2.longitude];
+// export const haversineDistance = (p1: GeoPoint, p2: GeoPoint) => {
+//   const [lat1, lon1] = [p1.latitude, p1.longitude];
+//   const [lat2, lon2] = [p2.latitude, p2.longitude];
 
-  const dLat = distance(lat2, lat1);
-  const dLon = distance(lon2, lon1);
+//   const dLat = distance(lat2, lat1);
+//   const dLon = distance(lon2, lon1);
 
-  const lat1Rad = toRadian(lat1);
-  const lat2Rad = toRadian(lat2);
+//   const lat1Rad = toRadian(lat1);
+//   const lat2Rad = toRadian(lat2);
 
-  // Haversine Formula
-  const a =
-    Math.pow(Math.sin(dLat / 2), 2) +
-    Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1Rad) * Math.cos(lat2Rad);
-  const c = 2 * Math.asin(Math.sqrt(a));
+//   // Haversine Formula
+//   const a =
+//     Math.pow(Math.sin(dLat / 2), 2) +
+//     Math.pow(Math.sin(dLon / 2), 2) * Math.cos(lat1Rad) * Math.cos(lat2Rad);
+//   const c = 2 * Math.asin(Math.sqrt(a));
 
-  return EARTH_RADIUS_MILES * c;
-};
-
-export function calcOneMileLongitudeDegrees(latitude: number) {
-  return 1 / ((Math.PI / 180) * EARTH_RADIUS_MILES * Math.cos(latitude));
-}
+//   return EARTH_RADIUS_MILES * c;
+// };
 
 export const getPinsNearby = async (
-  latitude: number,
-  longitude: number,
-  radiusMiles: number,
+  location: Geopoint,
+  radiusMeters: number,
   transaction?: firestore.Transaction
 ) => {
-  const oneMileLongitudeDegrees = calcOneMileLongitudeDegrees(latitude);
+  // Each item in 'bounds' represents a startAt/endAt pair. We have to issue
+  // a separate query for each pair. There can be up to 9 pairs of bounds
+  // depending on overlap, but in most cases there are 4.
+  const bounds = geohashQueryBounds(location, radiusMeters);
+  const queries = bounds.map((b) =>
+    transaction
+      ? transaction.get(
+          firestore()
+            .collection("pins")
+            .orderBy("geohash")
+            .startAt(b[0])
+            .endAt(b[1])
+        )
+      : firestore()
+          .collection("pins")
+          .orderBy("geohash")
+          .startAt(b[0])
+          .endAt(b[1])
+          .get()
+  );
 
-  const lowerLat = latitude - ONE_MILE_LATITUDE_DEGREES * radiusMiles;
-  const lowerLon = longitude - oneMileLongitudeDegrees * radiusMiles;
+  // Wait for all queries to complete
+  const snapshots = await Promise.all(queries);
 
-  const upperLat = latitude + ONE_MILE_LATITUDE_DEGREES * radiusMiles;
-  const upperLon = longitude + oneMileLongitudeDegrees * radiusMiles;
+  // Get all documents & filter false positives (due to geohash accuracy)
+  return snapshots
+    .flat()
+    .map((snap) => snap.docs)
+    .flat()
+    .filter((doc) => {
+      const pinLoc: GeoPoint = doc.get("location");
+      return (
+        distanceBetween(location, [pinLoc.latitude, pinLoc.longitude]) * 1000 <=
+        radiusMeters
+      );
+    });
+};
 
-  const lowerGeopoint = new GeoPoint(lowerLat, lowerLon);
-  const upperGeopoint = new GeoPoint(upperLat, upperLon);
-
-  const query = firestore()
-    .collection("pins")
-    .where("location", ">", lowerGeopoint)
-    .where("location", "<", upperGeopoint);
-
-  const snapshot = await (transaction ? transaction.get(query) : query.get());
-
-  return snapshot.docs;
-}
-
-export const getNearbyPinsHandler = async ({ latitude, longitude }, context) => {
+export const getNearbyPinsHandler = async (
+  { latitude, longitude },
+  context
+) => {
   // Validate auth status and args
   if (!context || !context.auth || !context.auth.uid) {
     throw new functions.https.HttpsError(
@@ -76,9 +89,8 @@ export const getNearbyPinsHandler = async ({ latitude, longitude }, context) => 
   }
 
   const pins = await getPinsNearby(
-    latitude,
-    longitude,
-    NEARBY_PIN_RADIUS_MILES
+    [latitude, longitude],
+    NEARBY_PIN_RADIUS_METERS
   );
   return Object.fromEntries(pins.map((pin) => [pin.id, pin.data().location]));
-}
+};
