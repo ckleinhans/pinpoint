@@ -87,16 +87,8 @@ public class User {
         return numPinsDropped;
     }
 
-    public void setNumPinsDropped(int numPinsDropped) {
-        this.numPinsDropped = numPinsDropped;
-    }
-
     public int getNumPinsFound() {
         return numPinsFound;
-    }
-
-    public void setNumPinsFound(int numPinsFound) {
-        this.numPinsFound = numPinsFound;
     }
 
     public String getProfilePicUrl() {

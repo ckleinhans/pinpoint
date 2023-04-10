@@ -3,7 +3,7 @@ import { firestore } from "firebase-admin";
 import { distanceBetween, geohashQueryBounds, Geopoint } from "geofire-common";
 import { GeoPoint } from "firebase-admin/firestore";
 
-const NEARBY_PIN_RADIUS_METERS = 1000;
+const NEARBY_PIN_RADIUS_METERS = 1500;
 
 export const getPinsNearby = async (
   location: Geopoint,
