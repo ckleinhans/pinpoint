@@ -158,7 +158,6 @@ public class FirebaseDriver {
                 .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
     }
 
-    // TODO: improve fetch efficiency using query
     public Task<OrderedPinMetadata> fetchFoundPins() {
         OrderedPinMetadata foundPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
@@ -186,7 +185,6 @@ public class FirebaseDriver {
         return foundPinMetadata;
     }
 
-    // TODO: improve fetch efficiency using query
     public Task<OrderedPinMetadata> fetchDroppedPins() {
         OrderedPinMetadata droppedPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {

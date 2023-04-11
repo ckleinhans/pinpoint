@@ -1,10 +1,11 @@
 import * as functions from "firebase-functions";
-import { GeoPoint } from "firebase-admin/firestore";
+import { Transaction } from "firebase-admin/firestore";
+import { Geopoint, distanceBetween } from "geofire-common";
 
-import { getPinsNearby, haversineDistance } from "./location";
+import { getPinsNearby } from "./location";
 import { Pin } from "./types";
 
-export const BASE_COST = 50;
+const BASE_COST = 50;
 
 export const calcPinCostHandler = async ({ latitude, longitude }, context) => {
   if (!context || !context.auth || !context.auth.uid) {
@@ -19,19 +20,22 @@ export const calcPinCostHandler = async ({ latitude, longitude }, context) => {
       "calcPinCost must be called with a latitude and longitude."
     );
   }
-  return await calculateCost(new GeoPoint(latitude, longitude));
-}
+  return await calculateCost([latitude, longitude]);
+};
 
-export async function calculateCost(dropLoc: GeoPoint) {
-  const RADIUS = 2;
+export async function calculateCost(
+  dropLoc: Geopoint,
+  transaction?: Transaction
+) {
+  const RADIUS_METERS = 2000;
   const MAX_COEFF = 20;
   const SCALE = 4;
 
-  const pins = await getPinsNearby(dropLoc.latitude, dropLoc.longitude, RADIUS);
+  const pins = await getPinsNearby(dropLoc, RADIUS_METERS, transaction);
 
   // cost algorithm:
   //
-  // for every existing pin within RADIUS miles:
+  // for every existing pin within RADIUS_METERS:
   //  calculate dist (haversine) between existing pin and potential pin
   //  calculate multiplier between 0.1 and MAX_COEFF (exponential decay with
   //  SCALE * distance, SCALE makes the decay steeper)
@@ -41,32 +45,32 @@ export async function calculateCost(dropLoc: GeoPoint) {
   //  - prohibitively expensive to drop a pin right next to an existing one ($10+ in pinnies)
   //  - somewhat expensive to drop a pin that has a few neighbors within a few miles ($0.75 - $1.25)
   //  - cheap to drop a pin several miles away from any other pin ($0.1 - $0.2)
-  return pins.map(d => {
-    const p = d.data();
+  return pins
+    .map((d) => {
+      const p: Pin = <Pin>d.data();
 
-    const neighborLoc = new GeoPoint(
-      p.location.latitude,
-      p.location.longitude
-    );
+      const distance = distanceBetween(dropLoc, [
+        p.location.latitude,
+        p.location.longitude,
+      ]);
 
-    const distance = haversineDistance(dropLoc, neighborLoc);
+      const multiplier = MAX_COEFF / ((MAX_COEFF - 1) * SCALE * distance + 1);
+      const cost = multiplier * BASE_COST;
 
-    const multiplier = ( MAX_COEFF ) / ( (MAX_COEFF - 1) * SCALE * distance + 1 )
-    const cost = multiplier * BASE_COST;
+      console.log(`distance: ${distance}, cost: ${cost}`);
 
-    console.log(`distance: ${distance}, cost: ${cost}`);
-
-    return Math.round(cost);
-  }).reduce((total, n) => total + n, BASE_COST);
+      return Math.round(cost);
+    })
+    .reduce((total, n) => total + n, BASE_COST);
 }
 
 export function calculateReward(pin: Pin) {
   const DECAY_RATE = 0.6;
-  const ogCost = pin.cost ? pin.cost : BASE_COST; // old pins don't have a cost field
-  const reward = pin.finds > 15 // reward multiplier is like 0.01% once we have >= 15 rewards
-    ? BASE_COST                 // so might as well just return the base reward
-    : Math.round(ogCost * Math.pow(DECAY_RATE, pin.finds + 1) + BASE_COST);
+  const reward = Math.max(
+    BASE_COST,
+    Math.round(pin.cost * Math.pow(DECAY_RATE, pin.finds + 1))
+  );
 
-  console.log(`finds: ${pin.finds}, cost: ${ogCost}, reward: ${reward}`);
+  console.log(`finds: ${pin.finds}, cost: ${pin.cost}, reward: ${reward}`);
   return reward;
 }

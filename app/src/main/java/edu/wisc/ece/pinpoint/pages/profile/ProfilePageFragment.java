@@ -90,6 +90,8 @@ public class ProfilePageFragment extends Fragment {
             button.setOnClickListener((buttonView) -> {
                 // TODO: implement user following
             });
+            // Fetch updated pin metadata in case changed since last view
+            firebase.fetchUserPins(uid);
         }
 
         User cachedUser = firebase.getCachedUser(uid);
