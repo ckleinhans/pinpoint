@@ -66,10 +66,10 @@ export async function calculateCost(
 
 export function calculateReward(pin: Pin) {
   const DECAY_RATE = 0.6;
-  const reward =
-    pin.finds > 15 // reward multiplier is like 0.01% once we have >= 15 rewards
-      ? BASE_COST // so might as well just return the base reward
-      : Math.round(pin.cost * Math.pow(DECAY_RATE, pin.finds + 1) + BASE_COST);
+  const reward = Math.max(
+    BASE_COST,
+    Math.round(pin.cost * Math.pow(DECAY_RATE, pin.finds + 1))
+  );
 
   console.log(`finds: ${pin.finds}, cost: ${pin.cost}, reward: ${reward}`);
   return reward;

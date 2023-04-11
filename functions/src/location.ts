@@ -37,8 +37,7 @@ export const getPinsNearby = async (
   // Get all documents & filter false positives (due to geohash accuracy)
   return snapshots
     .flat()
-    .map((snap) => snap.docs)
-    .flat()
+    .flatMap((snap) => snap.docs)
     .filter((doc) => {
       const pinLoc: GeoPoint = doc.get("location");
       return (
