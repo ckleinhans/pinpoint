@@ -74,7 +74,7 @@ export const dropPinHandler = async (
       type: ActivityType.DROP,
       id: pinRef.id,
       author: context.auth.uid,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Deduct currency & create pin
@@ -82,8 +82,11 @@ export const dropPinHandler = async (
     t.create(pinRef, pin);
     t.create(droppedRef, { cost: pin.cost, timestamp: new Date() });
     t.update(userRef, { numPinsDropped: FieldValue.increment(1) });
-    // Add activity item
-    t.update(activityRef.update({activity: FieldValue.arrayUnion(activity)}));
+    t.set(
+      activityRef,
+      { activity: FieldValue.arrayUnion(activity) },
+      { merge: true }
+    );
   });
   return pinRef.id;
 };
@@ -162,7 +165,7 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
       type: ActivityType.FIND,
       id: pinRef.id,
       author: context.auth.uid,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     const reward = calculateReward(pinData);
@@ -170,8 +173,11 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
     t.update(pinRef, { finds: FieldValue.increment(1) });
     t.update(userRef, { numPinsFound: FieldValue.increment(1) });
     t.create(foundRef, { reward, timestamp: new Date() });
-    // Add activity item
-    t.update(activityRef.update({activity: FieldValue.arrayUnion(activity)}));
+    t.set(
+      activityRef,
+      { activity: FieldValue.arrayUnion(activity) },
+      { merge: true }
+    );
     return pinData;
   });
 };

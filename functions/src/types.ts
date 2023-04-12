@@ -21,7 +21,7 @@ export enum ActivityType {
   DROP = "DROP",
   FIND = "FIND",
   COMMENT = "COMMENT",
-  FOLLOW = "FOLLOW"
+  FOLLOW = "FOLLOW",
 }
 
 export type Activity = {
