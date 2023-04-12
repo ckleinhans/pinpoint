@@ -53,7 +53,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         ActivityItem action = activity.get(position);
         String id = action.getId();
         String author = action.getAuthor();
-        String type = action.getType();
+        ActivityItem.ActivityType type = action.getType();
         Date time = action.getTimestamp();
         // Set timestamp
         holder.timestamp.setText(FormatUtils.formattedDateTime(time));
@@ -62,7 +62,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 navController.navigate(NavigationDirections.profile().setUid(author)));
         // Clicking on the card will navigate to the action's relevant page
         holder.item.setOnClickListener(view -> {
-            if (type.equals("drop") || type.equals("find") || type.equals("comment")) {
+            if (type == ActivityItem.ActivityType.DROP || type == ActivityItem.ActivityType.FIND ||
+                    type == ActivityItem.ActivityType.COMMENT) {
                 if (firebase.getCachedFoundPinMetadata()
                         .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
                     navController.navigate(NavigationDirections.pinView(id));
@@ -70,7 +71,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                     Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
                                     Toast.LENGTH_SHORT).show();
 
-            } else if (type.equals("follow")) {
+            } else if (type == ActivityItem.ActivityType.FOLLOW) {
                 navController.navigate(NavigationDirections.profile().setUid(id));
             }
         });
@@ -85,21 +86,21 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         }
     }
 
-    private void setContents(User author, String type, String id, @NonNull FeedViewHolder holder){
+    private void setContents(User author, ActivityItem.ActivityType type, String id, @NonNull FeedViewHolder holder){
         author.loadProfilePic(holder.image, fragment);
         String username = author.getUsername();
         String textContents = "";
         switch(type){
-            case "drop":
+            case DROP:
                 textContents = username + " dropped a pin";
                 break;
-            case "find":
+            case FIND:
                 textContents = username + " found a pin";
                 break;
-            case "comment":
+            case COMMENT:
                 textContents = username + " commented on a pin";
                 break;
-            case "follow":
+            case FOLLOW:
                 User cachedPinAuthor = firebase.getCachedUser(id);
                 if (cachedPinAuthor != null) {
                     textContents = username + " followed " + cachedPinAuthor.getUsername();

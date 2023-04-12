@@ -5,13 +5,13 @@ import java.util.Date;
 public class ActivityItem {
     private String author;
     private String id;
-    private String type;
+    private ActivityType type;
     private Date timestamp;
 
     public ActivityItem() {
     }
 
-    public ActivityItem(String author, String id, String type, Date timestamp) {
+    public ActivityItem(String author, String id, ActivityType type, Date timestamp) {
         this.author = author;
         this.id = id;
         this.type = type;
@@ -26,11 +26,15 @@ public class ActivityItem {
         return id;
     }
 
-    public String getType() {
+    public ActivityType getType() {
         return type;
     }
 
     public Date getTimestamp() {
         return timestamp;
+    }
+
+    public enum ActivityType {
+        DROP, FIND, COMMENT, FOLLOW
     }
 }

@@ -393,11 +393,18 @@ public class FirebaseDriver {
 
     public Task<ActivityList> fetchActivity(String uid) {
         if (auth.getUid() == null) {
-            throw new IllegalStateException("User must be logged in to fetch followers");
+            throw new IllegalStateException("User must be logged in to fetch activity");
         }
         return db.collection("activity").document(uid).get().continueWith(task -> {
             activity = task.getResult().toObject(ActivityList.class);
             return activity;
         });
+    }
+
+    public void pushActivityItem(ActivityItem activityItem) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to push activity");
+        }
+        db.collection("activity").document(activityItem.getAuthor()).update("activity")});
     }
 }

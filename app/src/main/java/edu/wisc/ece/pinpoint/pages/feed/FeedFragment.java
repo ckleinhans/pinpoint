@@ -48,7 +48,7 @@ public class FeedFragment extends Fragment {
 
         }
         else {
-            firebase.fetchActivity(uid).addOnSuccessListener(task -> setupRecyclerView(view, task)).addOnFailureListener(e -> Log.w("TEST", e));
+            firebase.fetchActivity(uid).addOnSuccessListener(task -> setupRecyclerView(view, task));
         }
 
     }
