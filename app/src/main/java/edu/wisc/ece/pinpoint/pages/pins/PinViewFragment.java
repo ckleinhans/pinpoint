@@ -20,6 +20,12 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import java.lang.reflect.Field;
 
@@ -49,6 +55,8 @@ public class PinViewFragment extends Fragment {
     private ConstraintLayout metadataBar;
     private String pid;
     private String authorUID;
+    private RecyclerView commentRecyclerView;
+    private ArrayList<String> comments;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -77,6 +85,13 @@ public class PinViewFragment extends Fragment {
 
         backButton.setOnClickListener((v) -> navController.popBackStack());
         optionsButton.setOnClickListener(this::showOptionsMenu);
+
+        comments = new ArrayList<String>();
+        comments.add("BRUH");
+        comments.add("Did you ever hear the tragedy of Darth Plagueis The Wise? I thought not. It's not a story the Jedi would tell you. It's a Sith legend. Darth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life… He had such a knowledge of the dark side that he could even keep the ones he cared about from dying. The dark side of the Force is a pathway to many abilities some consider to be unnatural. He became so powerful… the only thing he was afraid of was losing his power, which eventually, of course, he did. Unfortunately, he taught his apprentice everything he knew, then his apprentice killed him in his sleep. Ironic. He could save others from death, but not himself.");
+        comments.add("this\n\n\n\nclass");
+        comments.add("rulz");
+        setupCommentRecyclerView(getView(), comments);
 
         // Fetch pin data & load using argument
         Bundle args = getArguments();
@@ -205,5 +220,14 @@ public class PinViewFragment extends Fragment {
                     .show();
             navController.popBackStack();
         });
+
+    private void setupCommentRecyclerView(View view, ArrayList<String> comments) {
+        commentRecyclerView = view.findViewById(R.id.comment_recycler_view);
+        NavController navController =
+                Navigation.findNavController(requireParentFragment().requireView());
+        commentRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 1));
+        commentRecyclerView.setAdapter(new PinCommentAdapter(comments, navController));
+        commentRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        commentRecyclerView.setNestedScrollingEnabled(false);
     }
 }

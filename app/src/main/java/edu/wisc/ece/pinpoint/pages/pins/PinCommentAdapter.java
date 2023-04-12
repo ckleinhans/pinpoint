@@ -13,6 +13,11 @@ import androidx.cardview.widget.CardView;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.card.MaterialCardView;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
@@ -25,44 +30,50 @@ public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.Pi
     private final FirebaseDriver firebase;
 
     private final NavController navController;
-
+    private ArrayList<String> comments;
     private Context parentContext;
 
-    public PinCommentAdapter(NavController navController) {
+    public PinCommentAdapter(ArrayList<String> comments, NavController navController) {
         firebase = FirebaseDriver.getInstance();
         this.navController = navController;
+        this.comments = comments;
     }
 
     @NonNull
     @Override
     public PinCommentAdapter.PinCommentViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.view_pin_list_item, parent, false);
+                .inflate(R.layout.view_comment_item, parent, false);
         parentContext = parent.getContext();
         return new PinCommentAdapter.PinCommentViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull PinCommentAdapter.PinCommentViewHolder holder, int position) {
-
+        String commentContent = comments.get(position);
+        holder.content.setText(commentContent);
     }
 
     @Override
     public int getItemCount() {
         //TODO: Add function to get number of comments on a pin
-        return 1;
+        return comments.size();
     }
 
     public static class PinCommentViewHolder extends RecyclerView.ViewHolder {
-        private final CardView item;
+        private final MaterialCardView item;
         private final ImageView image;
-        private final TextView overlayText;
+        private final TextView content;
+        private final TextView username;
+        private final TextView timestamp;
 
         public PinCommentViewHolder(@NonNull View itemView) {
             super(itemView);
-            item = itemView.findViewById(R.id.pinlist_item);
-            image = itemView.findViewById(R.id.pinlist_item_image);
-            overlayText = itemView.findViewById(R.id.pinlist_image_text);
+            item = itemView.findViewById(R.id.comment_item);
+            image = itemView.findViewById(R.id.comment_profile_image);
+            content = itemView.findViewById(R.id.comment_content);
+            username = itemView.findViewById(R.id.comment_username_text);
+            timestamp = itemView.findViewById(R.id.comment_timestamp);
         }
     }
 }
