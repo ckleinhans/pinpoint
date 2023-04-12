@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,6 +15,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -147,21 +149,32 @@ public class PinViewFragment extends Fragment {
                             Toast.LENGTH_SHORT).show();
                     return true;
                 case DELETE:
-                    firebase.deletePin(pid).addOnFailureListener(e -> {
-                        Log.w(TAG, e);
-                        Toast.makeText(requireContext(),
-                                "Something went wrong deleting your pin. Please try again later.",
-                                Toast.LENGTH_LONG).show();
-                    }).addOnSuccessListener(t -> {
-                        Toast.makeText(requireContext(), "Successfully deleted your pin!",
-                                Toast.LENGTH_LONG).show();
-                        navController.popBackStack();
+                    AlertDialog.Builder dialog = new AlertDialog.Builder(requireContext());
+                    dialog.setTitle(R.string.pin_delete_confirm_title);
+                    dialog.setMessage(R.string.pin_delete_confirm_message);
+                    dialog.setPositiveButton(R.string.delete_text, this::deletePin);
+                    dialog.setNegativeButton(R.string.cancel_text, (d, buttonId) -> {
+                        // Cancelled dialog
                     });
+                    dialog.show();
                     return true;
                 default:
                     return false;
             }
         });
         popup.show();
+    }
+
+    private void deletePin(DialogInterface dialog, int buttonId) {
+        firebase.deletePin(pid).addOnFailureListener(e -> {
+            Log.w(TAG, e);
+            Toast.makeText(requireContext(),
+                    "Something went wrong deleting your pin. Please try again later.",
+                    Toast.LENGTH_LONG).show();
+        }).addOnSuccessListener(t -> {
+            Toast.makeText(requireContext(), "Successfully deleted your pin!", Toast.LENGTH_LONG)
+                    .show();
+            navController.popBackStack();
+        });
     }
 }
