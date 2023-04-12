@@ -34,11 +34,11 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import java.lang.reflect.Field;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -65,7 +65,6 @@ public class PinViewFragment extends Fragment {
     private String pid;
     private String authorUID;
     private RecyclerView commentRecyclerView;
-    private ArrayList<String> comments;
     private ImageView addCommentButton;
     private TextInputLayout addCommentInputLayout;
     private TextInputEditText addCommentEditText;
@@ -74,6 +73,7 @@ public class PinViewFragment extends Fragment {
     private NestedScrollView scrollView;
 
     private final int COMMENT_FOCUS_SCROLL = 1000;
+    private ArrayList<Comment> comments;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -150,6 +150,12 @@ public class PinViewFragment extends Fragment {
             // Since pin data shouldn't change, only fetch if not cached
             firebase.fetchPin(pid).addOnCompleteListener(task -> setPinData(task.getResult()));
         }
+
+        firebase.fetchComments(pid).addOnCompleteListener(t -> {
+            comments = (ArrayList<Comment>) t.getResult();
+            //commentCount.setText(comments.size());
+            setupCommentRecyclerView(getView(), comments);
+        });
     }
 
     private void setPinData(Pin pin) {
@@ -180,9 +186,6 @@ public class PinViewFragment extends Fragment {
 
         foundCount.setText(pin.getFinds() == 1 ? getString(R.string.pin_finds_singular) :
                 String.format(getString(R.string.pin_finds_plural), pin.getFinds()));
-
-        // TODO dynamically set comments
-        commentCount.setText("20 Comments");
 
         if (pin.getType() == Pin.PinType.IMAGE) {
             firebase.loadPinImage(imageContent, requireContext(), pid);
@@ -264,7 +267,7 @@ public class PinViewFragment extends Fragment {
             navController.popBackStack();
         });
 
-    private void setupCommentRecyclerView(View view, ArrayList<String> comments) {
+    private void setupCommentRecyclerView(View view, ArrayList<Comment> comments) {
         commentRecyclerView = view.findViewById(R.id.comment_recycler_view);
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());

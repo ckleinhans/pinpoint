@@ -31,6 +31,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -338,9 +339,18 @@ public class NewPinFragment extends Fragment {
                                 dropButton.setEnabled(true);
                                 return;
                             }
+<<<<<<< HEAD
                             if (getContext() != null)
                                 Toast.makeText(getContext(), R.string.drop_pin_text,
                                         Toast.LENGTH_LONG).show();
+=======
+
+                            Comment c = new Comment("test comment");
+                            firebase.postComment(c, pid);
+
+                            Toast.makeText(requireContext(), R.string.drop_pin_text,
+                                    Toast.LENGTH_LONG).show();
+>>>>>>> 858eab2 (Add Commenting backend logic)
                             navController.popBackStack();
                             navController.navigate(NewPinFragmentDirections.pinView(pid));
 
