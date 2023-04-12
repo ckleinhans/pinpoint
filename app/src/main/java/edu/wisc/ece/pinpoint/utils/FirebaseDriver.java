@@ -35,6 +35,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.ActivityItem;
 import edu.wisc.ece.pinpoint.data.GlideApp;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
@@ -56,7 +57,7 @@ public class FirebaseDriver {
     private Long pinnies;
     private HashMap<String, Date> followerIds;
     private HashMap<String, Date> followingIds;
-    private List<HashMap<String, String>> activity;
+    private List<ActivityItem> activity;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -371,8 +372,10 @@ public class FirebaseDriver {
         }
         Date timestamp = new Date();
         followingIds.put(uid, timestamp);
-        db.collection("social").document(auth.getUid()).update("following."+uid, timestamp);
-        db.collection("social").document(uid).update("followers."+auth.getUid(), timestamp);
+        db.collection("social")
+                .document(auth.getUid()).update("following."+uid, timestamp);
+        db.collection("social")
+                .document(uid).update("followers."+auth.getUid(), timestamp);
     }
 
     public void unfollowUser(String uid) {
@@ -380,18 +383,20 @@ public class FirebaseDriver {
             throw new IllegalStateException("User must be logged in to follow an account");
         }
         followingIds.remove(uid);
-        db.collection("social").document(auth.getUid()).update("following."+uid, FieldValue.delete());
-        db.collection("social").document(uid).update("followers."+auth.getUid(), FieldValue.delete());
+        db.collection("social")
+                .document(auth.getUid()).update("following."+uid, FieldValue.delete());
+        db.collection("social")
+                .document(uid).update("followers."+auth.getUid(), FieldValue.delete());
     }
 
-    public void fetchActivity(String uid) {
+    public Task<List<ActivityItem>> fetchActivity(String uid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch followers");
         }
-        db.collection("activity").document(uid).get().continueWith(task -> {
+        return db.collection("activity").document(uid).get().continueWith(task -> {
             DocumentSnapshot doc = task.getResult();
-            activity = (List<HashMap<String, String>>) doc.get("activity");
-            return null;
+            activity = (List<ActivityItem>) doc.get("activity");
+            return activity;
         });
     }
 }
