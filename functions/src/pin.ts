@@ -4,7 +4,7 @@ import * as functions from "firebase-functions";
 import { distanceBetween, geohashForLocation } from "geofire-common";
 
 import { calculateCost, calculateReward } from "./cost";
-import { Pin, PinType } from "./types";
+import { Activity, ActivityType, Pin, PinType } from "./types";
 
 const PIN_FIND_RADIUS_KILOMETERS = 0.02; // 20 meters
 
@@ -39,6 +39,7 @@ export const dropPinHandler = async (
   const pinRef = firestore().collection("pins").doc();
   const userRef = firestore().collection("users").doc(context.auth.uid);
   const droppedRef = userRef.collection("dropped").doc(pinRef.id);
+  const activityRef = firestore().collection("activity").doc(context.auth.uid);
 
   // Perform validation & updates in transaction to enforce all or none
   await firestore().runTransaction(async (t) => {
@@ -68,11 +69,21 @@ export const dropPinHandler = async (
       );
     }
 
+    // Create activity to push
+    const activity: Activity = {
+      type: ActivityType.DROP,
+      id: pinRef.id,
+      author: context.auth.uid,
+      timestamp: new Date()
+    };
+
     // Deduct currency & create pin
     t.update(privateDataRef, { currency: privateData.currency - pin.cost });
     t.create(pinRef, pin);
     t.create(droppedRef, { cost: pin.cost, timestamp: new Date() });
     t.update(userRef, { numPinsDropped: FieldValue.increment(1) });
+    // Add activity item
+    t.update(activityRef.update({activity: FieldValue.arrayUnion(activity)}));
   });
   return pinRef.id;
 };
@@ -100,6 +111,7 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
   const pinRef = firestore().collection("pins").doc(pid);
   const userRef = firestore().collection("users").doc(context.auth.uid);
   const foundRef = userRef.collection("found").doc(pid);
+  const activityRef = firestore().collection("activity").doc(context.auth.uid);
 
   // Check user has not found pin yet
   const foundData = (await foundRef.get()).data();
@@ -145,11 +157,21 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
       );
     }
 
+    // Create activity to push
+    const activity: Activity = {
+      type: ActivityType.FIND,
+      id: pinRef.id,
+      author: context.auth.uid,
+      timestamp: new Date()
+    };
+
     const reward = calculateReward(pinData);
     t.update(privateDataRef, { currency: FieldValue.increment(reward) });
     t.update(pinRef, { finds: FieldValue.increment(1) });
     t.update(userRef, { numPinsFound: FieldValue.increment(1) });
     t.create(foundRef, { reward, timestamp: new Date() });
+    // Add activity item
+    t.update(activityRef.update({activity: FieldValue.arrayUnion(activity)}));
     return pinData;
   });
 };
