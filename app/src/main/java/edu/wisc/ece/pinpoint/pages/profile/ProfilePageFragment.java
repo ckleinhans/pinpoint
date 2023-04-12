@@ -137,8 +137,6 @@ public class ProfilePageFragment extends Fragment {
             // if the profile belongs to the app user, display the cached values
             followerCount.setText(String.valueOf(firebase.getCachedFollowerIds().size()));
             followingCount.setText(String.valueOf(firebase.getCachedFollowingIds().size()));
-            pinsDroppedCount.setText(String.valueOf(firebase.getCachedDroppedPinMetadata().size()));
-            pinsFoundCount.setText(String.valueOf(firebase.getCachedFoundPinMetadata().size()));
         }
         else {
             followerCount.setText(String.valueOf(user.getNumFollowers()));

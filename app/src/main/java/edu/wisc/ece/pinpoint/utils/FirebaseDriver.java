@@ -56,6 +56,7 @@ public class FirebaseDriver {
     private Long pinnies;
     private HashMap<String, Date> followerIds;
     private HashMap<String, Date> followingIds;
+    private List<HashMap<String, String>> activity;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -383,5 +384,16 @@ public class FirebaseDriver {
         followingIds.remove(uid);
         db.collection("social").document(auth.getUid()).update("following."+uid, FieldValue.delete());
         db.collection("social").document(uid).update("followers."+auth.getUid(), FieldValue.delete());
+    }
+
+    public void fetchActivity(String uid) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch followers");
+        }
+        db.collection("activity").document(uid).get().continueWith(task -> {
+            DocumentSnapshot doc = task.getResult();
+            activity = (List<HashMap<String, String>>) doc.get("activity");
+            return null;
+        });
     }
 }

@@ -8,6 +8,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.Lifecycle;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
 
+import edu.wisc.ece.pinpoint.pages.feed.FeedFragment;
 import edu.wisc.ece.pinpoint.pages.pins.PinListFragment;
 
 public class ProfileFragmentAdapter extends FragmentStateAdapter {
@@ -31,7 +32,11 @@ public class ProfileFragmentAdapter extends FragmentStateAdapter {
     @Override
     public Fragment createFragment(int position) {
         if (position == 0) {
-            return new ActivityFragment();
+            FeedFragment frag = new FeedFragment();
+            Bundle args = new Bundle();
+            args.putString(FeedFragment.UID_ARG_KEY, uid);
+            frag.setArguments(args);
+            return frag;
         } else {
             PinListFragment frag = new PinListFragment();
             Bundle args = new Bundle();
