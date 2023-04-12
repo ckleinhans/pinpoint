@@ -21,6 +21,8 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
+import java.lang.reflect.Field;
+
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
@@ -131,10 +133,11 @@ public class PinViewFragment extends Fragment {
     private void showOptionsMenu(View v) {
         PopupMenu popup = new PopupMenu(requireContext(), v);
         Menu menu = popup.getMenu();
-        menu.add(Menu.NONE, SHARE, Menu.NONE, "Share");
-        menu.add(Menu.NONE, REPORT, Menu.NONE, "Report");
+        menu.add(Menu.NONE, SHARE, Menu.NONE, "Share").setIcon(R.drawable.ic_nfc_share);
         if (authorUID.equals(firebase.getCurrentUser().getUid())) {
-            menu.add(Menu.NONE, DELETE, Menu.NONE, "Delete");
+            menu.add(Menu.NONE, DELETE, Menu.NONE, "Delete").setIcon(R.drawable.ic_delete);
+        } else {
+            menu.add(Menu.NONE, REPORT, Menu.NONE, "Report").setIcon(R.drawable.ic_flag);
         }
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
@@ -162,6 +165,20 @@ public class PinViewFragment extends Fragment {
                     return false;
             }
         });
+        // Hacky reflection to make menu show icons, couldn't find any better way online
+        try {
+            //noinspection DiscouragedPrivateApi,JavaReflectionMemberAccess
+            Field fMenuHelper = PopupMenu.class.getDeclaredField("mPopup");
+            fMenuHelper.setAccessible(true);
+            Object menuHelper = fMenuHelper.get(popup);
+            //noinspection rawtypes
+            Class[] argTypes = new Class[]{boolean.class};
+            //noinspection ConstantConditions
+            menuHelper.getClass().getDeclaredMethod("setForceShowIcon", argTypes)
+                    .invoke(menuHelper, true);
+        } catch (Exception e) {
+            // Error doesn't matter, menu will just show without icons
+        }
         popup.show();
     }
 
