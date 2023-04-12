@@ -19,9 +19,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -41,7 +41,7 @@ public class PinViewFragment extends Fragment {
     private ConstraintLayout metadataBar;
     private String pid;
     private RecyclerView commentRecyclerView;
-    private ArrayList<String> comments;
+    private ArrayList<Comment> comments;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -67,13 +67,6 @@ public class PinViewFragment extends Fragment {
 
         backButton.setOnClickListener((v) -> navController.popBackStack());
 
-        comments = new ArrayList<String>();
-        comments.add("BRUH");
-        comments.add("Did you ever hear the tragedy of Darth Plagueis The Wise? I thought not. It's not a story the Jedi would tell you. It's a Sith legend. Darth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life… He had such a knowledge of the dark side that he could even keep the ones he cared about from dying. The dark side of the Force is a pathway to many abilities some consider to be unnatural. He became so powerful… the only thing he was afraid of was losing his power, which eventually, of course, he did. Unfortunately, he taught his apprentice everything he knew, then his apprentice killed him in his sleep. Ironic. He could save others from death, but not himself.");
-        comments.add("this\n\n\n\nclass");
-        comments.add("rulz");
-        setupCommentRecyclerView(getView(), comments);
-
         // Fetch pin data & load using argument
         Bundle args = getArguments();
         pid = args != null ? PinViewFragmentArgs.fromBundle(args).getPid() : null;
@@ -88,6 +81,12 @@ public class PinViewFragment extends Fragment {
             // Since pin data shouldn't change, only fetch if not cached
             firebase.fetchPin(pid).addOnCompleteListener(task -> setPinData(task.getResult()));
         }
+
+        firebase.fetchComments(pid).addOnCompleteListener(t -> {
+            comments = (ArrayList<Comment>) t.getResult();
+            //commentCount.setText(comments.size());
+            setupCommentRecyclerView(getView(), comments);
+        });
     }
 
     public void setPinData(Pin pin) {
@@ -110,9 +109,6 @@ public class PinViewFragment extends Fragment {
         foundCount.setText(pin.getFinds() == 1 ? getString(R.string.pin_finds_singular) :
                 String.format(getString(R.string.pin_finds_plural), pin.getFinds()));
 
-        // TODO dynamically set comments
-        commentCount.setText("20 Comments");
-
         if (pin.getType() == Pin.PinType.IMAGE) {
             firebase.loadPinImage(imageContent, requireContext(), pid);
         } else {
@@ -129,7 +125,7 @@ public class PinViewFragment extends Fragment {
         author.loadProfilePic(authorProfilePic, this);
     }
 
-    private void setupCommentRecyclerView(View view, ArrayList<String> comments) {
+    private void setupCommentRecyclerView(View view, ArrayList<Comment> comments) {
         commentRecyclerView = view.findViewById(R.id.comment_recycler_view);
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());

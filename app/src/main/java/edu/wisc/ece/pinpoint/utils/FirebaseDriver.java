@@ -32,6 +32,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.GlideApp;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
@@ -325,5 +326,29 @@ public class FirebaseDriver {
         //noinspection unchecked
         return functions.getHttpsCallable("getNearbyPins").call(data)
                 .continueWith(task -> (Map<String, Object>) task.getResult().getData());
+    }
+
+    public void postComment(Comment comment, String pid) {
+        db.collection("pins")
+                .document(pid)
+                .collection("comments")
+                .add(comment.serialize())
+                .addOnSuccessListener(t -> Log.d(TAG, String.format("Comment on pin %s successfully posted.", pid)))
+                .addOnFailureListener(e -> Log.w(TAG, "Error posting comment", e));
+    }
+
+    public Task<List<Comment>> fetchComments(String pid) {
+        return db.collection("pins")
+                .document(pid)
+                .collection("comments")
+                .get()
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        return task.getResult().toObjects(Comment.class);
+                    } else {
+                        Log.e(TAG, "Error fetching comments", task.getException());
+                        return null;
+                    }
+                });
     }
 }

@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
+import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
@@ -30,10 +32,10 @@ public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.Pi
     private final FirebaseDriver firebase;
 
     private final NavController navController;
-    private ArrayList<String> comments;
+    private ArrayList<Comment> comments;
     private Context parentContext;
 
-    public PinCommentAdapter(ArrayList<String> comments, NavController navController) {
+    public PinCommentAdapter(ArrayList<Comment> comments, NavController navController) {
         firebase = FirebaseDriver.getInstance();
         this.navController = navController;
         this.comments = comments;
@@ -50,8 +52,11 @@ public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.Pi
 
     @Override
     public void onBindViewHolder(@NonNull PinCommentAdapter.PinCommentViewHolder holder, int position) {
-        String commentContent = comments.get(position);
-        holder.content.setText(commentContent);
+        Comment comment = comments.get(position);
+        User user = FirebaseDriver.getInstance().getCachedUser(comment.getAuthorUID());
+        holder.content.setText(comment.getContent());
+        holder.timestamp.setText(comment.getTimestamp().toString());
+        holder.username.setText(user.getUsername());
     }
 
     @Override
