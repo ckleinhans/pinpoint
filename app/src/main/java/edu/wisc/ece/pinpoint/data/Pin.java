@@ -13,7 +13,6 @@ import java.util.Map;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class Pin {
-    private static final String TAG = Pin.class.getName();
     private String authorUID;
     private String caption;
     // contents will be a text if PinType == TEXT
@@ -25,7 +24,8 @@ public class Pin {
     private Integer finds;
     private Long cost;
 
-    public Pin() {}
+    public Pin() {
+    }
 
     public Pin(String textContent, @NonNull PinType type, @NonNull Location location,
                String caption) {
@@ -64,11 +64,11 @@ public class Pin {
     }
 
     public Integer getFinds() {
-        return finds == null ? 0 : finds;
+        return finds;
     }
 
     public Long getCost() {
-        return cost == null ? 0 : cost;
+        return cost;
     }
 
     public Map<String, Object> serialize() {

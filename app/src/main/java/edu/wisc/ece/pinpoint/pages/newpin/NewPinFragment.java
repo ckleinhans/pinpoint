@@ -54,6 +54,7 @@ public class NewPinFragment extends Fragment {
     private ProgressBar pinCostProgressBar;
     private Long pinnieCount;
     private Long pinCost;
+    private Location pinLocation;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -132,39 +133,64 @@ public class NewPinFragment extends Fragment {
     }
 
     private void setPinnieCount() {
-        FirebaseDriver driver = FirebaseDriver.getInstance();
-
-        if(driver.getCachedPinnies() != null){
-            pinnieCount = driver.getCachedPinnies();
-            return;
+        if (firebase.getCachedPinnies() != null) {
+            pinnieCount = firebase.getCachedPinnies();
+            setPinnieCountUI();
+        } else {
+            firebase.getPinnies().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    pinnieCount = task.getResult();
+                    Log.d(TAG, String.format("Got %s pinnies for user", pinnieCount.toString()));
+                    setPinnieCountUI();
+                    if (pinCost != null) {
+                        setPinCostUI();
+                    }
+                } else {
+                    Log.d(TAG, "get failed with ", task.getException());
+                }
+            });
         }
+    }
 
-        driver.getPinnies().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                pinnieCount = task.getResult();
-                Log.d(TAG, String.format("Got %s pinnies for user", pinnieCount.toString()));
-                setPinniesUI();
-            } else {
-                Log.d(TAG, "get failed with ", task.getException());
-            }
-        });
+    private void setPinnieCountUI() {
+        userPinniesProgressBar.setVisibility(View.GONE);
+        pinnies_logo_topbar.setVisibility(View.VISIBLE);
+        topBarText.setText(String.format("%s %s", getString(R.string.new_pin_title_text),
+                FormatUtils.humanReadablePinnies(pinnieCount)));
     }
 
     private void setPinCost() {
-        LocationDriver.getInstance(requireContext()).getCurrentLocation(requireContext()).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Location loc = task.getResult();
-                Log.d(TAG, String.format("Location %s", loc.toString()));
-                FirebaseDriver.getInstance().calcPinCost(loc).addOnCompleteListener(t -> {
-                    pinCost = t.getResult().longValue();
-                    Log.d(TAG, String.format("Pin Cost: %s", pinCost.toString()));
-                    setPinniesUI();
+        LocationDriver.getInstance(requireContext()).getCurrentLocation(requireContext())
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        pinLocation = task.getResult();
+                        Log.d(TAG, String.format("Location %s", pinLocation.toString()));
+                        FirebaseDriver.getInstance().calcPinCost(pinLocation)
+                                .addOnCompleteListener(t -> {
+                                    pinCost = t.getResult().longValue();
+                                    Log.d(TAG, String.format("Pin Cost: %s", pinCost));
+                                    if (pinnieCount != null) {
+                                        setPinCostUI();
+                                    }
+                                });
+                    } else {
+                        Log.d(TAG, "get failed with ", task.getException());
+                    }
                 });
-            } else {
-                Log.d(TAG, "get failed with ", task.getException());
-            }
-    });
-}
+    }
+
+    private void setPinCostUI() {
+        dropButton.setText(String.format("%s %s", getString(R.string.drop_pin_button_text),
+                FormatUtils.humanReadablePinnies(pinCost)));
+        pinCostProgressBar.setVisibility(View.GONE);
+        pinnies_logo_button.setVisibility(View.VISIBLE);
+
+        if (pinnieCount >= pinCost) {
+            dropButton.setEnabled(true);
+        } else {
+            insufficientPinniesText.setVisibility(View.VISIBLE);
+        }
+    }
 
     private void createNewPin() {
         dropButton.setEnabled(false);
@@ -192,76 +218,50 @@ public class NewPinFragment extends Fragment {
             }
         }
 
-        locationDriver.getCurrentLocation(requireContext()).addOnCompleteListener(locationTask -> {
-            if (!locationTask.isSuccessful() || locationTask.getResult() == null) {
-                Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_LONG)
-                        .show();
-                dropButton.setEnabled(true);
-                return;
-            } else if (!locationDriver.hasFineLocation(requireContext())) {
-                Toast.makeText(requireContext(), R.string.fine_location_error_text,
-                        Toast.LENGTH_LONG).show();
-                dropButton.setEnabled(true);
-                return;
-            }
-
-            String textContent =
-                    type == PinType.TEXT ? textContentInput.getText().toString() : null;
-            Pin pin = new Pin(textContent, type, locationTask.getResult(), caption);
-
-            firebase.dropPin(pin, pinCost).addOnFailureListener(e -> {
-                Log.w(TAG, "Error adding pin document", e);
-                Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                dropButton.setEnabled(true);
-            }).addOnSuccessListener(pid -> {
-                if (pin.getType() == PinType.IMAGE) {
-                    Log.d(TAG, pid);
-                    firebase.uploadPinImage(fragmentAdapter.getImageContentFragment().photo_uri,
-                            pid).addOnCompleteListener(uploadTask -> {
-                        if (!uploadTask.isSuccessful()) {
-                            // TODO: create cloud function to delete pin & restore currency
-                            Toast.makeText(requireContext(), R.string.photo_upload_error_message,
-                                    Toast.LENGTH_LONG).show();
-                            dropButton.setEnabled(true);
-                            return;
-                        }
-                        Toast.makeText(requireContext(), R.string.drop_pin_text, Toast.LENGTH_LONG)
-                                .show();
-                        navController.popBackStack();
-                        navController.navigate(NewPinFragmentDirections.pinView(pid));
-
-                    });
-                } else {
-                    Toast.makeText(requireContext(), R.string.drop_pin_text, Toast.LENGTH_LONG)
-                            .show();
-                    navController.popBackStack();
-                    navController.navigate(NewPinFragmentDirections.pinView(pid));
-                }
-            });
-        });
-    }
-
-    private void setPinniesUI() {
-        // I'm so sorry
-        if (pinnieCount == null || pinCost == null) return;
-
-        if (pinnieCount >= pinCost){
+        if (pinLocation == null) {
+            Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_LONG)
+                    .show();
             dropButton.setEnabled(true);
-        } else {
-            insufficientPinniesText.setVisibility(View.VISIBLE);
+            return;
+        } else if (!locationDriver.hasFineLocation(requireContext())) {
+            Toast.makeText(requireContext(), R.string.fine_location_error_text, Toast.LENGTH_LONG)
+                    .show();
+            dropButton.setEnabled(true);
+            return;
         }
 
-        topBarText.setText(String.format("%s %s",
-                getString(R.string.new_pin_title_text),
-                FormatUtils.humanReadablePinnies(pinnieCount)));
-        dropButton.setText(String.format("%s %s",
-                getString(R.string.drop_pin_button_text),
-                FormatUtils.humanReadablePinnies(pinCost)));
+        String textContent = type == PinType.TEXT ? textContentInput.getText().toString() : null;
+        Pin pin = new Pin(textContent, type, pinLocation, caption);
 
-        pinCostProgressBar.setVisibility(View.GONE);
-        userPinniesProgressBar.setVisibility(View.GONE);
-        pinnies_logo_topbar.setVisibility(View.VISIBLE);
-        pinnies_logo_button.setVisibility(View.VISIBLE);
+        firebase.dropPin(pin, pinCost).addOnFailureListener(e -> {
+            Log.w(TAG, "Error adding pin document", e);
+            Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show();
+            dropButton.setEnabled(true);
+        }).addOnSuccessListener(pid -> {
+            if (pin.getType() == PinType.IMAGE) {
+                Log.d(TAG, pid);
+                firebase.uploadPinImage(fragmentAdapter.getImageContentFragment().photo_uri, pid)
+                        .addOnCompleteListener(uploadTask -> {
+                            if (!uploadTask.isSuccessful()) {
+                                // TODO: create cloud function to delete pin & restore currency
+                                Toast.makeText(requireContext(),
+                                                R.string.photo_upload_error_message,
+                                                Toast.LENGTH_LONG)
+                                        .show();
+                                dropButton.setEnabled(true);
+                                return;
+                            }
+                            Toast.makeText(requireContext(), R.string.drop_pin_text,
+                                    Toast.LENGTH_LONG).show();
+                            navController.popBackStack();
+                            navController.navigate(NewPinFragmentDirections.pinView(pid));
 
+                        });
+            } else {
+                Toast.makeText(requireContext(), R.string.drop_pin_text, Toast.LENGTH_LONG).show();
+                navController.popBackStack();
+                navController.navigate(NewPinFragmentDirections.pinView(pid));
+            }
+        });
     }
 }

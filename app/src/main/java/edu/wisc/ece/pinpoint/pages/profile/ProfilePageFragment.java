@@ -87,7 +87,12 @@ public class ProfilePageFragment extends Fragment {
             button.setText(R.string.edit_profile_text);
             button.setOnClickListener((buttonView) -> navController.navigate(
                     ProfilePageFragmentDirections.editProfile()));
-        } else setButton(uid);
+        } else {
+            // Fetch updated pin metadata in case changed since last view
+            firebase.fetchUserPins(uid);
+            // Configure button based on follow status
+            setButton(uid);
+        }
 
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {

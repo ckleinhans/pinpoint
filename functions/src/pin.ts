@@ -1,13 +1,18 @@
 import { firestore } from "firebase-admin";
+import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
-import { GeoPoint } from "firebase-admin/firestore";
+import { distanceBetween, geohashForLocation } from "geofire-common";
 
-import { calculateCost, calculateReward, BASE_COST } from "./cost";
+import { calculateCost, calculateReward } from "./cost";
 import { Pin, PinType } from "./types";
-import { haversineDistance, PIN_FIND_RADIUS_MILES } from "./location";
+
+const PIN_FIND_RADIUS_KILOMETERS = 0.02; // 20 meters
 
 // TODO: add anti-spoof check before dropping pin
-export const dropPinHandler = async ({ textContent, caption, type, latitude, longitude }, context) => {
+export const dropPinHandler = async (
+  { textContent, caption, type, latitude, longitude },
+  context
+) => {
   // Validate auth status and args
   if (!context || !context.auth || !context.auth.uid) {
     throw new functions.https.HttpsError(
@@ -27,36 +32,31 @@ export const dropPinHandler = async ({ textContent, caption, type, latitude, lon
     );
   }
 
-  const pin: Pin = {
-    caption,
-    type,
-    location: new GeoPoint(latitude, longitude),
-    authorUID: context.auth.uid,
-    timestamp: new Date(),
-    finds: 0,
-    cost: BASE_COST,
-  };
-
-  if (type === PinType.TEXT) pin.textContent = textContent;
-
   // Get document references for reading/writing
   const privateDataRef = firestore()
     .collection("private")
     .doc(context.auth.uid);
   const pinRef = firestore().collection("pins").doc();
-  const droppedRef = firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .collection("dropped")
-    .doc(pinRef.id);
+  const userRef = firestore().collection("users").doc(context.auth.uid);
+  const droppedRef = userRef.collection("dropped").doc(pinRef.id);
 
   // Perform validation & updates in transaction to enforce all or none
   await firestore().runTransaction(async (t) => {
-    // Read required data & calculate pin cost
-    const privateData = (await t.get(privateDataRef)).data();
-    pin.cost = await calculateCost(new GeoPoint(latitude, longitude));
+    // Create pin object & calculate cost
+    const pin: Pin = {
+      caption,
+      type,
+      location: new GeoPoint(latitude, longitude),
+      geohash: geohashForLocation([latitude, longitude]),
+      authorUID: context.auth.uid,
+      timestamp: new Date(),
+      finds: 0,
+      cost: await calculateCost([latitude, longitude], t),
+    };
+    if (type === PinType.TEXT) pin.textContent = textContent;
 
     // Check user has sufficient currency
+    const privateData = (await t.get(privateDataRef)).data();
     if (
       !privateData ||
       !privateData.currency ||
@@ -72,9 +72,10 @@ export const dropPinHandler = async ({ textContent, caption, type, latitude, lon
     t.update(privateDataRef, { currency: privateData.currency - pin.cost });
     t.create(pinRef, pin);
     t.create(droppedRef, { cost: pin.cost, timestamp: new Date() });
+    t.update(userRef, { numPinsDropped: FieldValue.increment(1) });
   });
   return pinRef.id;
-}
+};
 
 // TODO: add anti-spoof check before finding pin
 export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
@@ -97,11 +98,8 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
     .collection("private")
     .doc(context.auth.uid);
   const pinRef = firestore().collection("pins").doc(pid);
-  const foundRef = firestore()
-    .collection("users")
-    .doc(context.auth.uid)
-    .collection("found")
-    .doc(pid);
+  const userRef = firestore().collection("users").doc(context.auth.uid);
+  const foundRef = userRef.collection("found").doc(pid);
 
   // Check user has not found pin yet
   const foundData = (await foundRef.get()).data();
@@ -135,11 +133,12 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
     }
 
     // Check location is close enough
-    const distanceMiles = haversineDistance(
-      new GeoPoint(latitude, longitude),
-      pinData.location
-    );
-    if (distanceMiles > PIN_FIND_RADIUS_MILES) {
+    if (
+      distanceBetween(
+        [latitude, longitude],
+        [pinData.location.latitude, pinData.location.longitude]
+      ) > PIN_FIND_RADIUS_KILOMETERS
+    ) {
       throw new functions.https.HttpsError(
         "permission-denied",
         "Not close enough to find pin!"
@@ -147,17 +146,10 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
     }
 
     const reward = calculateReward(pinData);
-    t.set(
-      privateDataRef,
-      { currency: firestore.FieldValue.increment(reward) },
-      { merge: true }
-    );
-    t.set(
-      pinRef,
-      { finds: firestore.FieldValue.increment(1) },
-      { merge: true }
-    );
+    t.update(privateDataRef, { currency: FieldValue.increment(reward) });
+    t.update(pinRef, { finds: FieldValue.increment(1) });
+    t.update(userRef, { numPinsFound: FieldValue.increment(1) });
     t.create(foundRef, { reward, timestamp: new Date() });
     return pinData;
   });
-}
+};

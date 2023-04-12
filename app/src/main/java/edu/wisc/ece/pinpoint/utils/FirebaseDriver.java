@@ -172,7 +172,6 @@ public class FirebaseDriver {
         db.collection("social").document(uid).set(socials);
     }
 
-    // TODO: improve fetch efficiency using query
     public Task<OrderedPinMetadata> fetchFoundPins() {
         OrderedPinMetadata foundPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
@@ -200,7 +199,6 @@ public class FirebaseDriver {
         return foundPinMetadata;
     }
 
-    // TODO: improve fetch efficiency using query
     public Task<OrderedPinMetadata> fetchDroppedPins() {
         OrderedPinMetadata droppedPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
