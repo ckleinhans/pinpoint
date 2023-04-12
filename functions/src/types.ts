@@ -16,3 +16,10 @@ export type Pin = {
   finds: number;
   cost: number;
 };
+
+export type Activity = {
+  type: string;
+  id: string;
+  author: string;
+  timestamp: Date;
+};

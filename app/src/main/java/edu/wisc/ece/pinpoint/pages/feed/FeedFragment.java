@@ -1,6 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.feed;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,7 @@ import java.util.List;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.ActivityItem;
+import edu.wisc.ece.pinpoint.data.ActivityList;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class FeedFragment extends Fragment {
@@ -46,11 +48,12 @@ public class FeedFragment extends Fragment {
 
         }
         else {
-            firebase.fetchActivity(uid).addOnSuccessListener(task -> setupRecyclerView(view, task));
+            firebase.fetchActivity(uid).addOnSuccessListener(task -> setupRecyclerView(view, task)).addOnFailureListener(e -> Log.w("TEST", e));
         }
 
     }
-    private void setupRecyclerView(View view, List<ActivityItem> activity) {
+    private void setupRecyclerView(View view, ActivityList activity) {
+        Log.d("TEST", activity.get(0).toString());
         RecyclerView recyclerView = view.findViewById(R.id.feed_recycler_view);
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());

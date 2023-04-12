@@ -15,23 +15,23 @@ import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.Date;
-import java.util.List;
 
 import edu.wisc.ece.pinpoint.NavigationDirections;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.ActivityItem;
+import edu.wisc.ece.pinpoint.data.ActivityList;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder> {
-    private final List<ActivityItem> activity;
+    private final ActivityList activity;
     private final NavController navController;
     private final FirebaseDriver firebase;
     private Context parentContext;
     private final Fragment fragment;
 
-    public FeedAdapter(List<ActivityItem> activity, NavController navController, Fragment fragment) {
+    public FeedAdapter(ActivityList activity, NavController navController, Fragment fragment) {
         this.activity = activity;
         this.navController = navController;
         this.fragment = fragment;
@@ -51,7 +51,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     public void onBindViewHolder(@NonNull FeedViewHolder holder, int position) {
         // Single action in activity list
         ActivityItem action = activity.get(position);
-        String id = action.getId()
+        String id = action.getId();
         String author = action.getAuthor();
         String type = action.getType();
         Date time = action.getTimestamp();

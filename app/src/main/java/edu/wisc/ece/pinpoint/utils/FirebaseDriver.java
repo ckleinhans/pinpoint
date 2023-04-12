@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint.utils;
 
+import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.net.Uri;
@@ -36,6 +37,7 @@ import javax.annotation.Nullable;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.ActivityItem;
+import edu.wisc.ece.pinpoint.data.ActivityList;
 import edu.wisc.ece.pinpoint.data.GlideApp;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
@@ -57,7 +59,7 @@ public class FirebaseDriver {
     private Long pinnies;
     private HashMap<String, Date> followerIds;
     private HashMap<String, Date> followingIds;
-    private List<ActivityItem> activity;
+    private ActivityList activity;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -389,13 +391,12 @@ public class FirebaseDriver {
                 .document(uid).update("followers."+auth.getUid(), FieldValue.delete());
     }
 
-    public Task<List<ActivityItem>> fetchActivity(String uid) {
+    public Task<ActivityList> fetchActivity(String uid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch followers");
         }
         return db.collection("activity").document(uid).get().continueWith(task -> {
-            DocumentSnapshot doc = task.getResult();
-            activity = (List<ActivityItem>) doc.get("activity");
+            activity = task.getResult().toObject(ActivityList.class);
             return activity;
         });
     }
