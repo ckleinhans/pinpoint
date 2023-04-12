@@ -1,12 +1,16 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +26,10 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class PinViewFragment extends Fragment {
+    private static final String TAG = PinViewFragment.class.getName();
+    private static final int SHARE = 0;
+    private static final int REPORT = 1;
+    private static final int DELETE = 2;
     private FirebaseDriver firebase;
     private NavController navController;
     private TextView timestamp;
@@ -34,6 +42,7 @@ public class PinViewFragment extends Fragment {
     private ImageView imageContent;
     private ConstraintLayout metadataBar;
     private String pid;
+    private String authorUID;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -56,8 +65,10 @@ public class PinViewFragment extends Fragment {
         imageContent = requireView().findViewById(R.id.pin_image_content);
         metadataBar = requireView().findViewById(R.id.pin_view_metadata);
         ImageButton backButton = requireView().findViewById(R.id.pin_view_back_button);
+        ImageButton optionsButton = requireView().findViewById(R.id.pin_view_options_button);
 
         backButton.setOnClickListener((v) -> navController.popBackStack());
+        optionsButton.setOnClickListener(this::showOptionsMenu);
 
         // Fetch pin data & load using argument
         Bundle args = getArguments();
@@ -75,13 +86,14 @@ public class PinViewFragment extends Fragment {
         }
     }
 
-    public void setPinData(Pin pin) {
-        User cachedAuthor = firebase.getCachedUser(pin.getAuthorUID());
+    private void setPinData(Pin pin) {
+        authorUID = pin.getAuthorUID();
+        User cachedAuthor = firebase.getCachedUser(authorUID);
         if (cachedAuthor != null) {
             setPinAuthorData(cachedAuthor);
         } else {
             // Since only using author for profile pic & username, only fetch if not cached
-            firebase.fetchUser(pin.getAuthorUID())
+            firebase.fetchUser(authorUID)
                     .addOnCompleteListener(task -> setPinAuthorData(task.getResult()));
         }
 
@@ -109,8 +121,47 @@ public class PinViewFragment extends Fragment {
                 PinViewFragmentDirections.profile().setUid(pin.getAuthorUID())));
     }
 
-    public void setPinAuthorData(User author) {
+    private void setPinAuthorData(User author) {
         authorUsername.setText(author.getUsername());
         author.loadProfilePic(authorProfilePic, this);
+    }
+
+    private void showOptionsMenu(View v) {
+        PopupMenu popup = new PopupMenu(requireContext(), v);
+        Menu menu = popup.getMenu();
+        menu.add(Menu.NONE, SHARE, Menu.NONE, "Share");
+        menu.add(Menu.NONE, REPORT, Menu.NONE, "Report");
+        if (authorUID.equals(firebase.getCurrentUser().getUid())) {
+            menu.add(Menu.NONE, DELETE, Menu.NONE, "Delete");
+        }
+        popup.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+                case SHARE:
+                    // TODO: add NFC sharing logic here
+                    Toast.makeText(requireContext(), "NFC pin sharing not yet implemented!",
+                            Toast.LENGTH_SHORT).show();
+                    return true;
+                case REPORT:
+                    // TODO: add pin reporting logic here
+                    Toast.makeText(requireContext(), "Pin reporting not yet implemented!",
+                            Toast.LENGTH_SHORT).show();
+                    return true;
+                case DELETE:
+                    firebase.deletePin(pid).addOnFailureListener(e -> {
+                        Log.w(TAG, e);
+                        Toast.makeText(requireContext(),
+                                "Something went wrong deleting your pin. Please try again later.",
+                                Toast.LENGTH_LONG).show();
+                    }).addOnSuccessListener(t -> {
+                        Toast.makeText(requireContext(), "Successfully deleted your pin!",
+                                Toast.LENGTH_LONG).show();
+                        navController.popBackStack();
+                    });
+                    return true;
+                default:
+                    return false;
+            }
+        });
+        popup.show();
     }
 }

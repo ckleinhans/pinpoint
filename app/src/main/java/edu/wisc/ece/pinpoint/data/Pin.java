@@ -21,6 +21,7 @@ public class Pin {
     private PinType type;
     private Date timestamp;
     private GeoPoint location;
+    private String geohash;
     private Integer finds;
     private Long cost;
 
@@ -35,6 +36,7 @@ public class Pin {
         this.textContent = textContent;
         this.timestamp = new Date();
         this.location = new GeoPoint(location.getLatitude(), location.getLongitude());
+        this.geohash = null;
         this.finds = 0;
         this.cost = 0L;
     }
@@ -61,6 +63,10 @@ public class Pin {
 
     public GeoPoint getLocation() {
         return location;
+    }
+
+    public String getGeohash() {
+        return geohash;
     }
 
     public Integer getFinds() {

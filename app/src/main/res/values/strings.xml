@@ -63,4 +63,5 @@
     <string name="undiscovered_pin_locked">Travel close to this pin to unlock it on the map!</string>
     <string name="pin_finds_singular">1 find</string>
     <string name="pin_finds_plural">%d finds</string>
+    <string name="options_text">Options</string>
 </resources>

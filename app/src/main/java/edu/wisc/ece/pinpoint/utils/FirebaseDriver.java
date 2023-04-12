@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.auth.UserInfo;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.functions.FirebaseFunctions;
@@ -163,22 +164,29 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
-        return db.collection("users").document(auth.getUid()).collection("found")
-                .orderBy("timestamp").get().continueWithTask(task -> {
-                    List<Task<Pin>> fetchTasks = new ArrayList<>();
-                    for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
-                        String pinId = documentSnapshot.getId();
-                        foundPinMetadata.add(new PinMetadata(pinId,
-                                documentSnapshot.get("timestamp", Date.class)));
-                        if (getCachedPin(pinId) == null) {
-                            fetchTasks.add(fetchPin(pinId));
+        CollectionReference foundRef =
+                db.collection("users").document(auth.getUid()).collection("found");
+        return foundRef.orderBy("timestamp").get().continueWithTask(task -> {
+            List<Task<Pin>> fetchTasks = new ArrayList<>();
+            for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
+                String pinId = documentSnapshot.getId();
+                foundPinMetadata.add(
+                        new PinMetadata(pinId, documentSnapshot.get("timestamp", Date.class)));
+                if (getCachedPin(pinId) == null) {
+                    fetchTasks.add(fetchPin(pinId).continueWith(t -> {
+                        // If pin no longer exists don't add to cache
+                        if (t.isSuccessful() && t.getResult() == null) {
+                            foundPinMetadata.remove(pinId);
                         }
-                    }
-                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
-                        this.foundPinMetadata = foundPinMetadata;
-                        return foundPinMetadata;
-                    });
-                });
+                        return t.getResult();
+                    }));
+                }
+            }
+            return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
+                this.foundPinMetadata = foundPinMetadata;
+                return foundPinMetadata;
+            });
+        });
     }
 
     public OrderedPinMetadata getCachedFoundPinMetadata() {
@@ -198,7 +206,13 @@ public class FirebaseDriver {
                         droppedPinMetadata.add(new PinMetadata(pinId,
                                 documentSnapshot.get("timestamp", Date.class)));
                         if (getCachedPin(pinId) == null) {
-                            fetchTasks.add(fetchPin(pinId));
+                            fetchTasks.add(fetchPin(pinId).continueWith(t -> {
+                                // If pin no longer exists don't add to cache
+                                if (t.isSuccessful() && t.getResult() == null) {
+                                    droppedPinMetadata.remove(pinId);
+                                }
+                                return t.getResult();
+                            }));
                         }
                     }
                     return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
@@ -246,9 +260,28 @@ public class FirebaseDriver {
     }
 
     public Task<Pin> fetchPin(@NonNull String pid) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pins.");
+        }
         return db.collection("pins").document(pid).get().continueWith(task -> {
             Pin pin = task.getResult().toObject(Pin.class);
-            pins.put(pid, pin);
+            if (pin == null) {
+                // Pin was deleted, delete from cache & db found/dropped collections
+                pins.remove(pid);
+                if (foundPinMetadata != null) {
+                    if (foundPinMetadata.remove(pid)) {
+                        db.collection("users").document(auth.getUid()).collection("found")
+                                .document(pid).delete();
+                    }
+                } else if (droppedPinMetadata != null) {
+                    if (droppedPinMetadata.remove(pid)) {
+                        db.collection("users").document(auth.getUid()).collection("dropped")
+                                .document(pid).delete();
+                    }
+                }
+            } else {
+                pins.put(pid, pin);
+            }
             return pin;
         });
     }
@@ -280,29 +313,6 @@ public class FirebaseDriver {
         });
     }
 
-    public Task<Long> getPinnies() {
-        if (auth.getUid() == null) {
-            throw new IllegalStateException("User must be logged in to fetch pinnies");
-        }
-        return db.collection("private").document(auth.getUid()).get().continueWith(task -> {
-            Long pinniesResult = (Long) task.getResult().get("currency");
-            pinnies = pinniesResult;
-            return pinniesResult;
-        });
-    }
-
-    public Long getCachedPinnies() {
-        return pinnies;
-    }
-
-    public Task<Integer> calcPinCost(@NonNull Location location) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("latitude", location.getLatitude());
-        data.put("longitude", location.getLongitude());
-        return functions.getHttpsCallable("calcPinCost").call(data)
-                .continueWith(task -> (Integer) task.getResult().getData());
-    }
-
     public Task<Pin> findPin(String pid, Location location) {
         HashMap<String, Object> data = new HashMap<>();
         data.put("pid", pid);
@@ -325,5 +335,41 @@ public class FirebaseDriver {
         //noinspection unchecked
         return functions.getHttpsCallable("getNearbyPins").call(data)
                 .continueWith(task -> (Map<String, Object>) task.getResult().getData());
+    }
+
+    public Task<Void> deletePin(String pid) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to delete a pin");
+        }
+        return db.collection("pins").document(pid).delete().continueWithTask(
+                task1 -> db.collection("users").document(auth.getUid()).collection("dropped")
+                        .document(pid).delete()).continueWith(t -> {
+            pins.remove(pid);
+            droppedPinMetadata.remove(pid);
+            return null;
+        });
+    }
+
+    public Task<Long> getPinnies() {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch pinnies");
+        }
+        return db.collection("private").document(auth.getUid()).get().continueWith(task -> {
+            Long pinniesResult = (Long) task.getResult().get("currency");
+            pinnies = pinniesResult;
+            return pinniesResult;
+        });
+    }
+
+    public Long getCachedPinnies() {
+        return pinnies;
+    }
+
+    public Task<Integer> calcPinCost(@NonNull Location location) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("latitude", location.getLatitude());
+        data.put("longitude", location.getLongitude());
+        return functions.getHttpsCallable("calcPinCost").call(data)
+                .continueWith(task -> (Integer) task.getResult().getData());
     }
 }
