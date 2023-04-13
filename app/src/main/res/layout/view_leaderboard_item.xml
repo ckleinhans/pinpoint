@@ -25,7 +25,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/leaderboard_item_text"
+            android:id="@+id/leaderboard_item_username"
             style="@style/TextAppearance.Pinpoint.SmallThickText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -36,7 +36,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/leaderboard_item_time"
+            android:id="@+id/leaderboard_item_stat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -44,7 +44,7 @@
             android:textColor="?attr/colorOnBackground"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/leaderboard_item_image"
-            app:layout_constraintTop_toBottomOf="@id/leaderboard_item_text" />
+            app:layout_constraintTop_toBottomOf="@id/leaderboard_item_username" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

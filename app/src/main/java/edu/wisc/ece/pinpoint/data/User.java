@@ -9,8 +9,11 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.signature.ObjectKey;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import edu.wisc.ece.pinpoint.R;
 
@@ -28,16 +31,37 @@ public class User {
     public User() {
     }
 
-    public User(String username) {
+    public User(String username, String uid) {
         this.username = username;
         numFollowers = 0;
         numFollowing = 0;
         numPinsDropped = 0;
         numPinsFound = 0;
+        // Save new user to Firestore
+        FirebaseFirestore.getInstance().collection("users").document(uid).set(this);
+    }
+
+    public User(String username, String uid, String profilePicUrl) {
+        this.username = username;
+        numFollowers = 0;
+        numFollowing = 0;
+        numPinsDropped = 0;
+        numPinsFound = 0;
+        this.profilePicTimestamp = new Date();
+        this.profilePicUrl = profilePicUrl;
+        // Save new user to Firestore
+        FirebaseFirestore.getInstance().collection("users").document(uid).set(this);
     }
 
     public Task<Void> save(@NonNull String uid) {
-        return FirebaseFirestore.getInstance().collection("users").document(uid).set(this);
+        Map<String, Object> data = new HashMap<>();
+        data.put("username", username);
+        data.put("bio", bio);
+        data.put("location", location);
+        data.put("profilePicUrl", profilePicUrl);
+        data.put("profilePicTimestamp", profilePicTimestamp);
+        return FirebaseFirestore.getInstance().collection("users").document(uid)
+                .set(data, SetOptions.merge());
     }
 
     public String getUsername() {

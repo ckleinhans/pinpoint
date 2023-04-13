@@ -1,5 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.leaderboard;
 
+import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -18,18 +20,17 @@ public class LeaderboardTabAdapter extends FragmentStateAdapter {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        // TODO: make leaderboard list fragments
-//        PinListFragment frag = new PinListFragment();
-//        Bundle args = new Bundle();
-//        if (position == 0) {
-//            args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
-//                    PinListFragment.PinListType.FOUND.name());
-//        } else {
-//            args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
-//                    PinListFragment.PinListType.DROPPED.name());
-//        }
-//        frag.setArguments(args);
-        return null;
+        LeaderboardListFragment frag = new LeaderboardListFragment();
+        Bundle args = new Bundle();
+        if (position == 0) {
+            args.putString(LeaderboardListFragment.LIST_TYPE_ARG_KEY,
+                    LeaderboardListFragment.LeaderboardListType.FOUND.name());
+        } else {
+            args.putString(LeaderboardListFragment.LIST_TYPE_ARG_KEY,
+                    LeaderboardListFragment.LeaderboardListType.DROPPED.name());
+        }
+        frag.setArguments(args);
+        return frag;
     }
 
     @Override

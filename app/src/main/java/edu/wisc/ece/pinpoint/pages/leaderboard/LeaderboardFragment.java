@@ -13,15 +13,12 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.tabs.TabLayout;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class LeaderboardFragment extends Fragment {
-    private FirebaseDriver firebase;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        firebase = FirebaseDriver.getInstance();
     }
 
     @Override
@@ -36,8 +33,8 @@ public class LeaderboardFragment extends Fragment {
 
         TabLayout tabLayout = requireView().findViewById(R.id.tab_layout);
         ViewPager2 viewPager = requireView().findViewById(R.id.view_pager);
-        tabLayout.addTab(tabLayout.newTab().setText(R.string.global_text));
-        tabLayout.addTab(tabLayout.newTab().setText(R.string.following_text));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.pins_found_text));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.pins_dropped_text));
         LeaderboardTabAdapter fragmentAdapter =
                 new LeaderboardTabAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());

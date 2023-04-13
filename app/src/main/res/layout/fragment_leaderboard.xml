@@ -6,12 +6,33 @@
     android:layout_height="match_parent"
     tools:context=".pages.leaderboard.LeaderboardFragment">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/leaderboard_top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/leaderboard_title"
+            style="@style/TextAppearance.Pinpoint.ThickText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:text="@string/leaderboard_text"
+            android:textAlignment="center"
+            android:textColor="?attr/colorOnPrimary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/tab_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="?attr/colorBackgroundFloating"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/leaderboard_top_bar"
         app:tabIconTint="?attr/colorPrimary"
         app:tabIndicatorColor="?attr/colorPrimary"
         app:tabRippleColor="@color/fui_transparent"
