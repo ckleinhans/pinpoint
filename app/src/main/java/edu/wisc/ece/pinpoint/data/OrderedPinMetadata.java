@@ -1,7 +1,6 @@
 package edu.wisc.ece.pinpoint.data;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 
@@ -49,6 +48,21 @@ public class OrderedPinMetadata {
     }
 
     /**
+     * Removes the specified item with provided ID in O(n).
+     *
+     * @param pinId to be removed
+     * @return true if the item was removed, false if it wasn't present
+     */
+    public boolean remove(String pinId) {
+        Integer listIndex = hashMap.remove(new PinMetadata(pinId, null));
+        if (listIndex == null) {
+            return false;
+        }
+        list.remove((int) listIndex);
+        return true;
+    }
+
+    /**
      * Gets the item at the specified index in O(1).
      *
      * @param index of the item to get
@@ -75,7 +89,7 @@ public class OrderedPinMetadata {
      * @return true if present, false if not
      */
     public boolean contains(String pinId) {
-        return hashMap.containsKey(new PinMetadata(pinId, new Date()));
+        return hashMap.containsKey(new PinMetadata(pinId, null));
     }
 
     /**
