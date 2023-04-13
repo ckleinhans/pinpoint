@@ -134,9 +134,11 @@ public class User {
     }
 
     public void loadProfilePic(ImageView imageView, Fragment fragment) {
-        Glide.with(fragment).load(profilePicUrl).placeholder(R.drawable.ic_profile).signature(
-                        new ObjectKey(profilePicTimestamp != null ? profilePicTimestamp :
-                                "default"))
-                .circleCrop().into(imageView);
+        if (profilePicUrl != null) {
+            Glide.with(fragment).load(profilePicUrl).placeholder(R.drawable.ic_profile).signature(
+                            new ObjectKey(profilePicTimestamp != null ? profilePicTimestamp :
+                                    "default"))
+                    .circleCrop().into(imageView);
+        }
     }
 }

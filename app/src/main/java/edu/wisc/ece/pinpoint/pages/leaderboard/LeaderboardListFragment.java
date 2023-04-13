@@ -1,9 +1,11 @@
 package edu.wisc.ece.pinpoint.pages.leaderboard;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +15,9 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,9 +52,39 @@ public class LeaderboardListFragment extends Fragment {
         listType = LeaderboardListType.valueOf(requireArguments().getString(LIST_TYPE_ARG_KEY));
         List<String> userIds = new ArrayList<>();
         // TODO: add all users following
-        userIds.add(firebase.getCurrentUser().getUid());
-        userIds.add("xXKqynqDzpQTdHcexauUKi1bXnb2");
-        userIds.add("Ep3cXdoTQtZXUBofZ4emifyMVdX2");
+        List<String> followingUserIds = new ArrayList<>();
+        followingUserIds.add(firebase.getCurrentUser().getUid());
+        followingUserIds.add("xXKqynqDzpQTdHcexauUKi1bXnb2");
+        followingUserIds.add("Ep3cXdoTQtZXUBofZ4emifyMVdX2");
+        List<Task<Void>> fetchTasks = new ArrayList<>();
+        for (String userId : followingUserIds) {
+            if (firebase.getCachedUser(userId) == null) {
+                fetchTasks.add(firebase.fetchUser(userId).continueWith(task -> {
+                    if (!task.isSuccessful()) {
+                        // Couldn't fetch user, don't add user to list
+                        Log.w(TAG, task.getException());
+                        Toast.makeText(requireContext(), R.string.user_fetch_error_message,
+                                Toast.LENGTH_SHORT).show();
+                    } else {
+                        // Successfully fetched user, add to list
+                        userIds.add(userId);
+                    }
+                    return null;
+                }));
+            } else {
+                // User already cached, add user ID to list
+                userIds.add(userId);
+            }
+        }
+        Tasks.whenAllComplete(fetchTasks)
+                .addOnCompleteListener(task -> setupRecyclerView(view, userIds));
+    }
+
+    private void setupRecyclerView(View view, List<String> userIds) {
+        RecyclerView recyclerView = view.findViewById(R.id.leaderboard_recycler_view);
+        NavController navController =
+                Navigation.findNavController(requireParentFragment().requireView());
+
         userIds.sort((uid1, uid2) -> {
             User user1 = firebase.getCachedUser(uid1);
             User user2 = firebase.getCachedUser(uid2);
@@ -59,13 +94,6 @@ public class LeaderboardListFragment extends Fragment {
                 return user2.getNumPinsDropped() - user1.getNumPinsDropped();
             }
         });
-        setupRecyclerView(view, userIds);
-    }
-
-    private void setupRecyclerView(View view, List<String> userIds) {
-        RecyclerView recyclerView = view.findViewById(R.id.leaderboard_recycler_view);
-        NavController navController =
-                Navigation.findNavController(requireParentFragment().requireView());
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(new LeaderboardListAdapter(userIds, navController, this, listType));

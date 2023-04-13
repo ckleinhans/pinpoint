@@ -1,10 +1,13 @@
 package edu.wisc.ece.pinpoint.pages.leaderboard;
 
+import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
@@ -21,11 +24,13 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class LeaderboardListAdapter
         extends RecyclerView.Adapter<LeaderboardListAdapter.LeaderboardViewHolder> {
+    private static final String TAG = LeaderboardListAdapter.class.getName();
     private final List<String> userIds;
     private final NavController navController;
     private final FirebaseDriver firebase;
     private final Fragment fragment;
     private final LeaderboardListFragment.LeaderboardListType listType;
+    private Context parentContext;
 
     public LeaderboardListAdapter(List<String> userIds, NavController navController,
                                   Fragment fragment,
@@ -40,7 +45,8 @@ public class LeaderboardListAdapter
     @NonNull
     @Override
     public LeaderboardViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+        parentContext = parent.getContext();
+        View view = LayoutInflater.from(parentContext)
                 .inflate(R.layout.view_leaderboard_item, parent, false);
         return new LeaderboardViewHolder(view);
     }
@@ -48,14 +54,17 @@ public class LeaderboardListAdapter
     @Override
     public void onBindViewHolder(@NonNull LeaderboardViewHolder holder, int position) {
         String userId = userIds.get(position);
-        User user = firebase.getCachedUser(userId);
-        user.loadProfilePic(holder.image, fragment);
-        holder.username.setText(user.getUsername());
-        if (listType == LeaderboardListFragment.LeaderboardListType.FOUND) {
-            holder.stat.setText(String.valueOf(user.getNumPinsFound()));
+        if (firebase.getCachedUser(userId) != null) {
+            setUserInfo(holder, firebase.getCachedUser(userId));
         } else {
-            holder.stat.setText(String.valueOf(user.getNumPinsDropped()));
+            firebase.fetchUser(userId).addOnSuccessListener(user -> setUserInfo(holder, user))
+                    .addOnFailureListener(e -> {
+                        Log.w(TAG, e);
+                        Toast.makeText(parentContext, R.string.user_fetch_error_message,
+                                Toast.LENGTH_SHORT).show();
+                    });
         }
+        holder.rank.setText(String.valueOf(position + 1));
         holder.item.setOnClickListener(
                 view -> navController.navigate(NavigationDirections.profile().setUid(userId)));
     }
@@ -65,10 +74,21 @@ public class LeaderboardListAdapter
         return userIds.size();
     }
 
+    private void setUserInfo(@NonNull LeaderboardViewHolder holder, @NonNull User user) {
+        user.loadProfilePic(holder.image, fragment);
+        holder.username.setText(user.getUsername());
+        if (listType == LeaderboardListFragment.LeaderboardListType.FOUND) {
+            holder.stat.setText(String.valueOf(user.getNumPinsFound()));
+        } else {
+            holder.stat.setText(String.valueOf(user.getNumPinsDropped()));
+        }
+    }
+
     // View Holder Class to handle Recycler View.
     public static class LeaderboardViewHolder extends RecyclerView.ViewHolder {
         private final CardView item;
         private final ImageView image;
+        private final TextView rank;
         private final TextView username;
         private final TextView stat;
 
@@ -76,6 +96,7 @@ public class LeaderboardListAdapter
             super(itemView);
             item = itemView.findViewById(R.id.leaderboard_item);
             image = itemView.findViewById(R.id.leaderboard_item_image);
+            rank = itemView.findViewById(R.id.leaderboard_item_rank);
             username = itemView.findViewById(R.id.leaderboard_item_username);
             stat = itemView.findViewById(R.id.leaderboard_item_stat);
         }

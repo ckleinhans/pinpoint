@@ -13,38 +13,67 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/leaderboard_item_rank_layout"
+            android:layout_width="74dp"
+            android:layout_height="match_parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:id="@+id/leaderboard_item_rank"
+                style="@style/TextAppearance.Pinpoint.Numbers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/colorOnBackground"
+                android:textSize="40sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
         <ImageView
             android:id="@+id/leaderboard_item_image"
             android:layout_width="54dp"
             android:layout_height="54dp"
-            android:layout_margin="10dp"
-            android:contentDescription="@string/pin_thumbnail_text"
-            android:src="@drawable/ic_camera"
+            android:contentDescription="@string/profile_pic_text"
+            android:src="@drawable/ic_profile"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/leaderboard_item_rank_layout"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/leaderboard_item_username"
-            style="@style/TextAppearance.Pinpoint.SmallThickText"
-            android:layout_width="wrap_content"
+            style="@style/TextAppearance.Pinpoint.ThickText"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="10dp"
+            android:layout_marginStart="10dp"
+            android:ellipsize="end"
+            android:gravity="start"
+            android:maxLines="1"
             android:textColor="?attr/colorOnBackground"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/leaderboard_item_stat_layout"
             app:layout_constraintStart_toEndOf="@+id/leaderboard_item_image"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:id="@+id/leaderboard_item_stat"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_margin="10dp"
-            android:textColor="?attr/colorOnBackground"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/leaderboard_item_image"
-            app:layout_constraintTop_toBottomOf="@id/leaderboard_item_username" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/leaderboard_item_stat_layout"
+            android:layout_width="74dp"
+            android:layout_height="match_parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView
+                android:id="@+id/leaderboard_item_stat"
+                style="@style/TextAppearance.Pinpoint.Numbers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="40sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
