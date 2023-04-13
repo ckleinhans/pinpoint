@@ -142,12 +142,12 @@ public class FirebaseDriver {
     public void handleNewUser() {
         // User is new, push user data to new node in DB
         FirebaseUser user = getCurrentUser();
-        String uid = user.getUid();
-        UserInfo providerData = user.getProviderData().get(1);
         User userData = new User(user.getDisplayName());
+        UserInfo providerData = user.getProviderData().get(1);
         if (providerData.getPhotoUrl() != null) {
             userData.setProfilePicUrl(providerData.getPhotoUrl().toString());
         }
+        String uid = user.getUid();
         userData.save(uid);
 
         // create Pinnie wallet for new user
