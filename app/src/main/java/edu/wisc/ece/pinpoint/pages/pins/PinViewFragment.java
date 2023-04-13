@@ -3,6 +3,7 @@ package edu.wisc.ece.pinpoint.pages.pins;
 import android.content.DialogInterface;
 import static com.firebase.ui.auth.AuthUI.getApplicationContext;
 
+import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,6 +22,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -68,6 +70,10 @@ public class PinViewFragment extends Fragment {
     private TextInputLayout addCommentInputLayout;
     private TextInputEditText addCommentEditText;
     private ImageButton backButton;
+    private ImageView sendCommentButton;
+    private NestedScrollView scrollView;
+
+    private final int COMMENT_FOCUS_SCROLL = 1000;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -93,18 +99,33 @@ public class PinViewFragment extends Fragment {
         metadataBar = requireView().findViewById(R.id.pin_view_metadata);
         backButton = requireView().findViewById(R.id.pin_view_back_button);
         addCommentButton = requireView().findViewById(R.id.add_comment_button);
+        sendCommentButton = requireView().findViewById(R.id.send_comment_button);
         addCommentEditText = requireView().findViewById(R.id.comment_edittext_layout);
         addCommentInputLayout = requireView().findViewById(R.id.comment_input_layout);
+        scrollView = requireView().findViewById(R.id.viewpin_scrollview);
 
         backButton.setOnClickListener((v) -> navController.popBackStack());
+
         addCommentButton.setOnClickListener((v) -> {
             if(addCommentInputLayout.getVisibility() == View.GONE){
                 addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_cancel_comment));
                 addCommentInputLayout.setVisibility(View.VISIBLE);
+                sendCommentButton.setVisibility(View.VISIBLE);
             }
             else{
                 addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_add_comment));
                 addCommentInputLayout.setVisibility(View.GONE);
+                sendCommentButton.setVisibility(View.GONE);
+            }
+        });
+
+        sendCommentButton.setOnClickListener((v) -> {
+            //TODO: add code to send comment here. Text should come from the addCommentEditTextLayout
+        });
+
+        addCommentEditText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                scrollView.postDelayed(() -> scrollView.scrollTo(0, COMMENT_FOCUS_SCROLL), 100);
             }
         });
 

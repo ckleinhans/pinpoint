@@ -59,7 +59,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/newpin_scrollview"
+        android:id="@+id/viewpin_scrollview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/top_bar">
@@ -220,19 +220,41 @@
 >>>>>>> 2f26601 (Add button to display and hide comment input layout)
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+            <ImageView
+                android:id="@+id/send_comment_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="false"
+                android:background="@drawable/ic_circle"
+                android:backgroundTint="?attr/colorPrimary"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="@drawable/ic_send"
+                android:foregroundTint="?attr/colorOnSecondary"
+                android:scaleType="fitCenter"
+                android:layout_marginRight="18dp"
+                android:visibility="gone"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toBottomOf="@+id/comment_input_layout"
+                app:layout_constraintTop_toTopOf="@+id/comment_input_layout" />
+
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_marginTop="10dp"
                 android:id="@+id/comment_input_layout"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toBottomOf="@+id/pin_info_layout"
+                android:layout_marginHorizontal="5dp"
+                android:paddingRight="80dp"
                 android:visibility="gone">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/comment_edittext_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="hint" />
+                    android:importantForAutofill="no"
+                    android:hint="@string/add_a_comment" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <androidx.recyclerview.widget.RecyclerView
