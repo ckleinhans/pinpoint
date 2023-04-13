@@ -384,15 +384,16 @@ public class FirebaseDriver {
         followingIds.add(uid);
         // Add target to following
         db.collection("social")
-                .document(auth.getUid()).update("following", FieldValue.arrayUnion(uid));
-        db.collection("users").document(auth.getUid()).update("numFollowing",
-                FieldValue.increment(1));
+                .document(auth.getUid()).update("following", FieldValue.arrayUnion(uid))
+                .addOnSuccessListener(complete -> db.collection("users").document(
+                        auth.getUid()).update("numFollowing", FieldValue.increment(1)));
+
 
         // Add self to target's followers
         db.collection("social")
-                .document(uid).update("followers", FieldValue.arrayUnion(auth.getUid()));
-        db.collection("users").document(uid).update("numFollowers",
-                FieldValue.increment(1));
+                .document(uid).update("followers", FieldValue.arrayUnion(auth.getUid()))
+                .addOnSuccessListener(complete -> db.collection("users").document(uid)
+                        .update("numFollowers", FieldValue.increment(1)));
 
         pushActivityItem(new ActivityItem(auth.getUid(), uid, ActivityItem.ActivityType.FOLLOW, timestamp));
     }
@@ -404,15 +405,15 @@ public class FirebaseDriver {
         followingIds.remove(uid);
         // Remove target from following list
         db.collection("social")
-                .document(auth.getUid()).update("following."+uid, FieldValue.delete());
-        db.collection("users").document(auth.getUid()).update("numFollowing",
-                FieldValue.increment(-1));
+                .document(auth.getUid()).update("following."+uid, FieldValue.delete())
+                .addOnSuccessListener(complete -> db.collection("users").document(
+                        auth.getUid()).update("numFollowing", FieldValue.increment(-1)));
 
         // Remove self from target's followers
         db.collection("social")
-                .document(uid).update("followers."+auth.getUid(), FieldValue.delete());
-        db.collection("users").document(uid).update("numFollowers",
-                FieldValue.increment(-1));
+                .document(uid).update("followers."+auth.getUid(), FieldValue.delete())
+                .addOnSuccessListener(complete -> db.collection("users").document(uid)
+                        .update("numFollowers", FieldValue.increment(-1)));
     }
 
     public Task<ActivityList> fetchActivity(String uid) {

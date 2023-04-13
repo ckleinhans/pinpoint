@@ -91,19 +91,26 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
     private void setContents(User author, ActivityItem.ActivityType type, String id, @NonNull FeedViewHolder holder, boolean isCurrentUser){
         author.loadProfilePic(holder.image, fragment);
-        String username = isCurrentUser ? "You" : author.getUsername();
+        // Detect if the activity belongs to current user, and trim if username is too long
+        String username = isCurrentUser ? "You" :
+                author.getUsername().length() > 12 ? author.getUsername().substring(0, 9)+"..." :
+                        author.getUsername();
         String textContents = "";
         switch(type){
             case DROP:
                 textContents = username + " dropped a pin";
+                holder.icon.setImageResource(R.drawable.ic_drop);
                 break;
             case FIND:
                 textContents = username + " found a pin";
+                holder.icon.setImageResource(R.drawable.ic_search);
                 break;
             case COMMENT:
                 textContents = username + " commented on a pin";
+                holder.icon.setImageResource(R.drawable.ic_comment);
                 break;
             case FOLLOW:
+                holder.icon.setImageResource(R.drawable.ic_follow);
                 User cachedPinAuthor = firebase.getCachedUser(id);
                 if (cachedPinAuthor != null) {
                     textContents = username + " followed " + cachedPinAuthor.getUsername();
@@ -132,6 +139,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         private final ImageView image;
         private final TextView text;
         private final TextView timestamp;
+        private final ImageView icon;
 
 
         public FeedViewHolder(@NonNull View itemView) {
@@ -140,6 +148,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
             image = itemView.findViewById(R.id.feed_item_image);
             text = itemView.findViewById(R.id.feed_item_text);
             timestamp = itemView.findViewById(R.id.feed_item_time);
+            icon = itemView.findViewById(R.id.feed_item_icon);
         }
     }
 }

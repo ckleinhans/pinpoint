@@ -3,7 +3,31 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".pages.feed.FeedFragment">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/top_bar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:layout_constraintTop_toTopOf="parent"
+        android:elevation="1dp">
+
+        <TextView
+            android:id="@+id/feed_bar_text"
+            style="@style/TextAppearance.Pinpoint.ThickText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="15dp"
+            android:textAlignment="center"
+            android:textColor="?attr/colorOnPrimary"
+            android:text="@string/feed_bar_text"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/feed_recycler_view"
@@ -11,6 +35,7 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingBottom="95dp"
-        android:paddingTop="5dp"/>
+        android:paddingTop="?attr/actionBarSize"
+        android:layout_marginTop="5dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

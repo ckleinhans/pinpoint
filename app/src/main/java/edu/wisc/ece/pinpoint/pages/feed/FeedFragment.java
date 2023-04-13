@@ -4,9 +4,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -46,6 +48,9 @@ public class FeedFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         RecyclerView recyclerView = view.findViewById(R.id.feed_recycler_view);
+        ConstraintLayout topBar = view.findViewById(R.id.top_bar);
+        // Scale factor for setting padding in dp
+        float scale = getResources().getDisplayMetrics().density;
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());
 
@@ -57,6 +62,10 @@ public class FeedFragment extends Fragment {
         // Get list type from arguments
         String uid = requireArguments().getString(UID_ARG_KEY);
         if (uid == null) {
+            // Show top bar and push down recycler view
+            topBar.setVisibility(View.VISIBLE);
+            recyclerView.setPadding(0,(int) (56*scale+0.5f),0, (int) (95*scale+0.5f));
+
             // List of tasks to wait for before displaying activity
             List<Task<ActivityList>> fetchTasks = new ArrayList<>();
             // Master list with activity from all followed users
@@ -77,6 +86,10 @@ public class FeedFragment extends Fragment {
 
         }
         else {
+            // Hide top bar and push up recycler view
+            topBar.setVisibility(View.GONE);
+            recyclerView.setPadding(0,0,0, (int) (95*scale+0.5f));
+
             // Attempt to use cached activity before of fetching
             ActivityList cachedActivity = firebase.getCachedActivity(uid);
             if (cachedActivity != null)
