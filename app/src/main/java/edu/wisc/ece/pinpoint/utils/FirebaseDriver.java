@@ -1,6 +1,5 @@
 package edu.wisc.ece.pinpoint.utils;
 
-import android.app.Activity;
 import android.content.Context;
 import android.location.Location;
 import android.net.Uri;
@@ -26,7 +25,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.lang.reflect.Field;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -58,8 +57,8 @@ public class FirebaseDriver {
     private OrderedPinMetadata foundPinMetadata;
     private OrderedPinMetadata droppedPinMetadata;
     private Long pinnies;
-    private HashMap<String, Date> followerIds;
-    private HashMap<String, Date> followingIds;
+    private HashSet<String> followerIds;
+    private HashSet<String> followingIds;
     private final HashMap<String, ActivityList> activityMap;
 
     private FirebaseDriver() {
@@ -170,10 +169,10 @@ public class FirebaseDriver {
                         t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
                 .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
 
-        // create follower and following maps for new user
-        HashMap<String, Object> socials = new HashMap<>();
-        socials.put("followers", null);
-        socials.put("following", null);
+        // create follower and following sets for new user
+        HashSet<String> socials = new HashSet<>();
+        socials.add("followers");
+        socials.add("following");
         db.collection("social").document(uid).set(socials);
     }
 
@@ -351,13 +350,20 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch followers");
         }
+        followerIds = new HashSet<>();
+        followingIds = new HashSet<>();
         db.collection("social").document(auth.getUid()).get().continueWith(task -> {
             DocumentSnapshot doc = task.getResult();
-            // Create parent class containing these 2 for automatic casting
-            followerIds = doc.get("followers") != null ? (HashMap) doc.get("followers") :
-                    new HashMap<>();
-            followingIds = doc.get("following") != null ? (HashMap) doc.get("following") :
-                    new HashMap<>();
+            ArrayList<String> followers = doc.get("followers") != null ? (ArrayList) doc.get("followers") :
+                    new ArrayList<>();
+            ArrayList<String> following = doc.get("following") != null ? (ArrayList) doc.get("following") :
+                    new ArrayList<>();
+            for(String person : followers){
+                followerIds.add(person);
+            }
+            for(String person : following){
+                followingIds.add(person);
+            }
             db.collection("users").document(auth.getUid()).update("numFollowers",
                     followerIds.size());
             db.collection("users").document(auth.getUid()).update("numFollowing",
@@ -366,25 +372,25 @@ public class FirebaseDriver {
         });
     }
 
-    public HashMap<String, Date> getCachedFollowerIds() {return followerIds;}
+    public HashSet<String> getCachedFollowerIds() {return followerIds;}
 
-    public HashMap<String, Date> getCachedFollowingIds() {return followingIds;}
+    public HashSet<String> getCachedFollowingIds() {return followingIds;}
 
     public void followUser(String uid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to follow an account");
         }
         Date timestamp = new Date();
-        followingIds.put(uid, timestamp);
-        // Add target to following list
+        followingIds.add(uid);
+        // Add target to following
         db.collection("social")
-                .document(auth.getUid()).update("following."+uid, timestamp);
+                .document(auth.getUid()).update("following", FieldValue.arrayUnion(uid));
         db.collection("users").document(auth.getUid()).update("numFollowing",
                 FieldValue.increment(1));
 
         // Add self to target's followers
         db.collection("social")
-                .document(uid).update("followers."+auth.getUid(), timestamp);
+                .document(uid).update("followers", FieldValue.arrayUnion(auth.getUid()));
         db.collection("users").document(uid).update("numFollowers",
                 FieldValue.increment(1));
 
