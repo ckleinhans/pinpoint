@@ -1,6 +1,9 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
 import android.content.DialogInterface;
+import static com.firebase.ui.auth.AuthUI.getApplicationContext;
+
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,12 +20,16 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +64,10 @@ public class PinViewFragment extends Fragment {
     private String authorUID;
     private RecyclerView commentRecyclerView;
     private ArrayList<String> comments;
+    private ImageView addCommentButton;
+    private TextInputLayout addCommentInputLayout;
+    private TextInputEditText addCommentEditText;
+    private ImageButton backButton;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -80,11 +91,22 @@ public class PinViewFragment extends Fragment {
         textContent = requireView().findViewById(R.id.pin_text_content);
         imageContent = requireView().findViewById(R.id.pin_image_content);
         metadataBar = requireView().findViewById(R.id.pin_view_metadata);
-        ImageButton backButton = requireView().findViewById(R.id.pin_view_back_button);
-        ImageButton optionsButton = requireView().findViewById(R.id.pin_view_options_button);
+        backButton = requireView().findViewById(R.id.pin_view_back_button);
+        addCommentButton = requireView().findViewById(R.id.add_comment_button);
+        addCommentEditText = requireView().findViewById(R.id.comment_edittext_layout);
+        addCommentInputLayout = requireView().findViewById(R.id.comment_input_layout);
 
         backButton.setOnClickListener((v) -> navController.popBackStack());
-        optionsButton.setOnClickListener(this::showOptionsMenu);
+        addCommentButton.setOnClickListener((v) -> {
+            if(addCommentInputLayout.getVisibility() == View.GONE){
+                addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_cancel_comment));
+                addCommentInputLayout.setVisibility(View.VISIBLE);
+            }
+            else{
+                addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_add_comment));
+                addCommentInputLayout.setVisibility(View.GONE);
+            }
+        });
 
         comments = new ArrayList<String>();
         comments.add("BRUH");

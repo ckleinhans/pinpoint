@@ -6,29 +6,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.material.card.MaterialCardView;
-
 import java.util.ArrayList;
-import java.util.List;
-
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
-import edu.wisc.ece.pinpoint.data.Pin;
-import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
-import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.PinCommentViewHolder> {
 
     private final FirebaseDriver firebase;
-
     private final NavController navController;
     private ArrayList<String> comments;
     private Context parentContext;
