@@ -8,6 +8,10 @@ public class ActivityList {
     public ActivityList() {
     }
 
+    public ActivityList(List<ActivityItem> activity) {
+        this.activity = activity;
+    }
+
     public List<ActivityItem> getActivity() {
         return activity;
     }
@@ -19,4 +23,9 @@ public class ActivityList {
     public ActivityItem get(int index) {
         return activity.get(index);
     }
+
+    public void add(ActivityItem activityItem) {
+        activity.add(activityItem);
+    }
+
 }

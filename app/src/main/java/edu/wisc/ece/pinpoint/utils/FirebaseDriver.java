@@ -20,6 +20,7 @@ import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -378,6 +379,8 @@ public class FirebaseDriver {
                 .document(auth.getUid()).update("following."+uid, timestamp);
         db.collection("social")
                 .document(uid).update("followers."+auth.getUid(), timestamp);
+
+        pushActivityItem(new ActivityItem(auth.getUid(), uid, ActivityItem.ActivityType.FOLLOW, timestamp));
     }
 
     public void unfollowUser(String uid) {
@@ -396,6 +399,10 @@ public class FirebaseDriver {
             throw new IllegalStateException("User must be logged in to fetch activity");
         }
         return db.collection("activity").document(uid).get().continueWith(task -> {
+            if (!task.getResult().exists()) {
+                System.out.println("NULL DOC");
+                return new ActivityList(new ArrayList<>());
+            }
             activity = task.getResult().toObject(ActivityList.class);
             return activity;
         });
@@ -405,6 +412,11 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to push activity");
         }
-        db.collection("activity").document(activityItem.getAuthor()).update("activity")});
+        activity.add(activityItem);
+        // Create map to store field name and activity item
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("activity",FieldValue.arrayUnion(activityItem));
+        // Push activity item to firebase
+        db.collection("activity").document(activityItem.getAuthor()).set(map, SetOptions.merge());
     }
 }

@@ -14,6 +14,8 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.Date;
 
 import edu.wisc.ece.pinpoint.NavigationDirections;
@@ -49,12 +51,13 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull FeedViewHolder holder, int position) {
-        // Single action in activity list
-        ActivityItem action = activity.get(position);
+        // Single action in activity list, reverse order
+        ActivityItem action = activity.get(activity.size() - position - 1);
         String id = action.getId();
         String author = action.getAuthor();
         ActivityItem.ActivityType type = action.getType();
         Date time = action.getTimestamp();
+        boolean isCurrentUser = author.equals(FirebaseAuth.getInstance().getUid());
         // Set timestamp
         holder.timestamp.setText(FormatUtils.formattedDateTime(time));
         // Clicking on the picture of the action's author will navigate to their profile
@@ -78,17 +81,17 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         User cachedAuthor = firebase.getCachedUser(author);
         if (cachedAuthor != null) {
             // put author data in feed item
-            setContents(cachedAuthor, type, id, holder);
+            setContents(cachedAuthor, type, id, holder, isCurrentUser);
         } else {
             // Since only using author for profile pic & username, only fetch if not cached
             firebase.fetchUser(author)
-                    .addOnCompleteListener(task -> setContents(task.getResult(), type, id, holder));
+                    .addOnCompleteListener(task -> setContents(task.getResult(), type, id, holder, isCurrentUser));
         }
     }
 
-    private void setContents(User author, ActivityItem.ActivityType type, String id, @NonNull FeedViewHolder holder){
+    private void setContents(User author, ActivityItem.ActivityType type, String id, @NonNull FeedViewHolder holder, boolean isCurrentUser){
         author.loadProfilePic(holder.image, fragment);
-        String username = author.getUsername();
+        String username = isCurrentUser ? "You" : author.getUsername();
         String textContents = "";
         switch(type){
             case DROP:
