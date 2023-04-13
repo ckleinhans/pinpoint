@@ -14,6 +14,12 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.ActivityList;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -41,10 +47,32 @@ public class FeedFragment extends Fragment {
         // Get list type from arguments
         String uid = requireArguments().getString(UID_ARG_KEY);
         if (uid == null) {
+//            // List of tasks to wait for before displaying activity
+//            List<Task<ActivityList>> fetchTasks = new ArrayList<>();
+//            // Master list with activity from all followed users
+//            ActivityList masterList = new ActivityList();
+//            // For each followed user, check if their activity is cached, then add it to master list
+//            firebase.getCachedFollowingIds().forEach((k, v) -> {
+//                ActivityList cachedActivity = firebase.getCachedActivity(k);
+//                if (cachedActivity != null) {
+//                    masterList.addAll(cachedActivity);
+//                }
+//                else fetchTasks.add(firebase.fetchActivity(k).addOnSuccessListener(task ->
+//                        masterList.addAll(task)));
+//            });
+//            Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(activityFetchingComplete -> {
+//                masterList.sort();
+//                setupRecyclerView(view, masterList);
+//            });
 
         }
         else {
-            firebase.fetchActivity(uid).addOnSuccessListener(task -> setupRecyclerView(view, task));
+            // Attempt to use cached activity before of fetching
+            ActivityList cachedActivity = firebase.getCachedActivity(uid);
+            if (cachedActivity != null)
+                setupRecyclerView(view, cachedActivity);
+            else firebase.fetchActivity(uid).addOnSuccessListener(task ->
+                    setupRecyclerView(view, task));
         }
 
     }

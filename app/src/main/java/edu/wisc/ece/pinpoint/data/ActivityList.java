@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint.data;
 
+import java.util.Comparator;
 import java.util.List;
 
 public class ActivityList {
@@ -28,4 +29,18 @@ public class ActivityList {
         activity.add(activityItem);
     }
 
+    public void addAll(ActivityList activityList) {
+        activity.addAll(activityList.getActivity());
+    }
+
+    public void sort() {
+        activity.sort(new SortByTimestamp());
+    }
+
+    private class SortByTimestamp implements Comparator<ActivityItem> {
+        @Override
+        public int compare(ActivityItem itemA, ActivityItem itemB) {
+            return itemA.getTimestamp().compareTo(itemB.getTimestamp());
+        }
+    }
 }

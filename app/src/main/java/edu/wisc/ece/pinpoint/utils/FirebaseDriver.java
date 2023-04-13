@@ -60,7 +60,7 @@ public class FirebaseDriver {
     private Long pinnies;
     private HashMap<String, Date> followerIds;
     private HashMap<String, Date> followingIds;
-    private ActivityList activity;
+    private final HashMap<String, ActivityList> activityMap;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -74,6 +74,7 @@ public class FirebaseDriver {
         users = new HashMap<>();
         pins = new HashMap<>();
         userPinMetadata = new HashMap<>();
+        activityMap = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -352,15 +353,15 @@ public class FirebaseDriver {
         }
         db.collection("social").document(auth.getUid()).get().continueWith(task -> {
             DocumentSnapshot doc = task.getResult();
-            followerIds = (HashMap) doc.get("followers") != null ? (HashMap) doc.get("followers") :
+            // Create parent class containing these 2 for automatic casting
+            followerIds = doc.get("followers") != null ? (HashMap) doc.get("followers") :
                     new HashMap<>();
-            followingIds = (HashMap) doc.get("following") != null ? (HashMap) doc.get("following") :
+            followingIds = doc.get("following") != null ? (HashMap) doc.get("following") :
                     new HashMap<>();
-            fetchUser(auth.getUid()).addOnSuccessListener(user -> {
-                user.setNumFollowers(followerIds.size());
-                user.setNumFollowing(followingIds.size());
-                user.save(auth.getUid());
-            });
+            db.collection("users").document(auth.getUid()).update("numFollowers",
+                    followerIds.size());
+            db.collection("users").document(auth.getUid()).update("numFollowing",
+                    followingIds.size());
             return null;
         });
     }
@@ -375,10 +376,17 @@ public class FirebaseDriver {
         }
         Date timestamp = new Date();
         followingIds.put(uid, timestamp);
+        // Add target to following list
         db.collection("social")
                 .document(auth.getUid()).update("following."+uid, timestamp);
+        db.collection("users").document(auth.getUid()).update("numFollowing",
+                FieldValue.increment(1));
+
+        // Add self to target's followers
         db.collection("social")
                 .document(uid).update("followers."+auth.getUid(), timestamp);
+        db.collection("users").document(uid).update("numFollowers",
+                FieldValue.increment(1));
 
         pushActivityItem(new ActivityItem(auth.getUid(), uid, ActivityItem.ActivityType.FOLLOW, timestamp));
     }
@@ -388,10 +396,17 @@ public class FirebaseDriver {
             throw new IllegalStateException("User must be logged in to follow an account");
         }
         followingIds.remove(uid);
+        // Remove target from following list
         db.collection("social")
                 .document(auth.getUid()).update("following."+uid, FieldValue.delete());
+        db.collection("users").document(auth.getUid()).update("numFollowing",
+                FieldValue.increment(-1));
+
+        // Remove self from target's followers
         db.collection("social")
                 .document(uid).update("followers."+auth.getUid(), FieldValue.delete());
+        db.collection("users").document(uid).update("numFollowers",
+                FieldValue.increment(-1));
     }
 
     public Task<ActivityList> fetchActivity(String uid) {
@@ -399,24 +414,33 @@ public class FirebaseDriver {
             throw new IllegalStateException("User must be logged in to fetch activity");
         }
         return db.collection("activity").document(uid).get().continueWith(task -> {
-            if (!task.getResult().exists()) {
-                System.out.println("NULL DOC");
-                return new ActivityList(new ArrayList<>());
-            }
-            activity = task.getResult().toObject(ActivityList.class);
+            ActivityList activity;
+            if (!task.getResult().exists())
+                activity = new ActivityList();
+            else activity = task.getResult().toObject(ActivityList.class);
+            activityMap.put(uid, activity);
             return activity;
         });
+    }
+
+    public ActivityList getCachedActivity(String uid) {
+        if(activityMap.containsKey(uid))
+            return activityMap.get(uid);
+        return null;
     }
 
     public void pushActivityItem(ActivityItem activityItem) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to push activity");
         }
-        activity.add(activityItem);
+        String authorId = activityItem.getAuthor();
+        if (!activityMap.containsKey(authorId))
+            activityMap.put(authorId, new ActivityList());
+        activityMap.get(authorId).add(activityItem);
         // Create map to store field name and activity item
         HashMap<String, Object> map = new HashMap<>();
         map.put("activity",FieldValue.arrayUnion(activityItem));
         // Push activity item to firebase
-        db.collection("activity").document(activityItem.getAuthor()).set(map, SetOptions.merge());
+        db.collection("activity").document(authorId).set(map, SetOptions.merge());
     }
 }
