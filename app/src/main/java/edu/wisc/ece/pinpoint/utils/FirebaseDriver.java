@@ -144,11 +144,11 @@ public class FirebaseDriver {
         FirebaseUser user = getCurrentUser();
         String uid = user.getUid();
         UserInfo providerData = user.getProviderData().get(1);
+        User userData = new User(user.getDisplayName());
         if (providerData.getPhotoUrl() != null) {
-            new User(user.getDisplayName(), uid, providerData.getPhotoUrl().toString());
-        } else {
-            new User(user.getDisplayName(), uid);
+            userData.setProfilePicUrl(providerData.getPhotoUrl().toString());
         }
+        userData.save(uid);
 
         // create Pinnie wallet for new user
         final long initialBalance = 2000;
