@@ -169,7 +169,7 @@ public class FirebaseDriver {
                         t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
                 .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
 
-        // create follower and following sets for new user
+        // create follower and following maps for new user
         HashMap<String, Object> socials = new HashMap<>();
         socials.put("followers", null);
         socials.put("following", null);
@@ -463,8 +463,6 @@ public class FirebaseDriver {
             throw new IllegalStateException("User must be logged in to push activity");
         }
         String authorId = activityItem.getAuthor();
-        if (!activityMap.containsKey(authorId))
-            activityMap.put(authorId, new ActivityList());
         activityMap.get(authorId).add(activityItem);
         // Create map to store field name and activity item
         HashMap<String, Object> map = new HashMap<>();
