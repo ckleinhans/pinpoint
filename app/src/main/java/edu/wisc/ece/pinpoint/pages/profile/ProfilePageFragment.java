@@ -145,9 +145,9 @@ public class ProfilePageFragment extends Fragment {
         else {
             followerCount.setText(String.valueOf(user.getNumFollowers()));
             followingCount.setText(String.valueOf(user.getNumFollowing()));
-            pinsDroppedCount.setText(String.valueOf(user.getNumPinsDropped()));
-            pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
         }
+        pinsDroppedCount.setText(String.valueOf(user.getNumPinsDropped()));
+        pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
         location.setText(user.getLocation());
         bio.setText(user.getBio());
         if (user.getLocation() == null) {

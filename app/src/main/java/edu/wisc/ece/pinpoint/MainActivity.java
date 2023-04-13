@@ -51,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
         firebase.fetchUser(firebase.getCurrentUser().getUid());
         // Fetch followers and followed users
         firebase.fetchSocials();
-        System.out.println("REFETCHING USER");
     }
 
     public void onMapButtonClick(View view) {
