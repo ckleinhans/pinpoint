@@ -25,7 +25,6 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -170,9 +169,9 @@ public class FirebaseDriver {
                 .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
 
         // create follower and following sets for new user
-        HashSet<String> socials = new HashSet<>();
-        socials.add("followers");
-        socials.add("following");
+        HashMap<String, Object> socials = new HashMap<>();
+        socials.put("followers", null);
+        socials.put("following", null);
         db.collection("social").document(uid).set(socials);
     }
 
@@ -405,13 +404,13 @@ public class FirebaseDriver {
         followingIds.remove(uid);
         // Remove target from following list
         db.collection("social")
-                .document(auth.getUid()).update("following."+uid, FieldValue.delete())
+                .document(auth.getUid()).update("following", FieldValue.arrayRemove(uid))
                 .addOnSuccessListener(complete -> db.collection("users").document(
                         auth.getUid()).update("numFollowing", FieldValue.increment(-1)));
 
         // Remove self from target's followers
         db.collection("social")
-                .document(uid).update("followers."+auth.getUid(), FieldValue.delete())
+                .document(uid).update("followers", FieldValue.arrayRemove(auth.getUid()))
                 .addOnSuccessListener(complete -> db.collection("users").document(uid)
                         .update("numFollowers", FieldValue.increment(-1)));
     }
