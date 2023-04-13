@@ -48,6 +48,15 @@ public class LeaderboardListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Initialize recycler view with empty adapter
+        RecyclerView recyclerView = view.findViewById(R.id.leaderboard_recycler_view);
+        NavController navController =
+                Navigation.findNavController(requireParentFragment().requireView());
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(
+                new LeaderboardListAdapter(new ArrayList<>(), navController, this, listType));
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
+
         // Get list type from arguments
         listType = LeaderboardListType.valueOf(requireArguments().getString(LIST_TYPE_ARG_KEY));
         List<String> userIds = new ArrayList<>();
@@ -76,28 +85,19 @@ public class LeaderboardListFragment extends Fragment {
                 userIds.add(userId);
             }
         }
-        Tasks.whenAllComplete(fetchTasks)
-                .addOnCompleteListener(task -> setupRecyclerView(view, userIds));
-    }
-
-    private void setupRecyclerView(View view, List<String> userIds) {
-        RecyclerView recyclerView = view.findViewById(R.id.leaderboard_recycler_view);
-        NavController navController =
-                Navigation.findNavController(requireParentFragment().requireView());
-
-        userIds.sort((uid1, uid2) -> {
-            User user1 = firebase.getCachedUser(uid1);
-            User user2 = firebase.getCachedUser(uid2);
-            if (listType == LeaderboardListType.FOUND) {
-                return user2.getNumPinsFound() - user1.getNumPinsFound();
-            } else {
-                return user2.getNumPinsDropped() - user1.getNumPinsDropped();
-            }
+        Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(task -> {
+            userIds.sort((uid1, uid2) -> {
+                User user1 = firebase.getCachedUser(uid1);
+                User user2 = firebase.getCachedUser(uid2);
+                if (listType == LeaderboardListType.FOUND) {
+                    return user2.getNumPinsFound() - user1.getNumPinsFound();
+                } else {
+                    return user2.getNumPinsDropped() - user1.getNumPinsDropped();
+                }
+            });
+            recyclerView.setAdapter(
+                    new LeaderboardListAdapter(userIds, navController, this, listType));
         });
-
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(new LeaderboardListAdapter(userIds, navController, this, listType));
-        recyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 
     public enum LeaderboardListType {
