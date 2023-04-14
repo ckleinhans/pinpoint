@@ -10,6 +10,8 @@ export type Pin = {
   textContent?: string;
   type: PinType;
   location: GeoPoint;
+  nearbyLocationName: string;
+  broadLocationName: string;
   geohash: String;
   authorUID: string;
   timestamp: Date;

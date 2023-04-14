@@ -10,7 +10,7 @@ const PIN_FIND_RADIUS_KILOMETERS = 0.02; // 20 meters
 
 // TODO: add anti-spoof check before dropping pin
 export const dropPinHandler = async (
-  { textContent, caption, type, latitude, longitude },
+  { textContent, caption, type, latitude, longitude, nearbyLocationName, broadLocationName },
   context
 ) => {
   // Validate auth status and args
@@ -24,6 +24,8 @@ export const dropPinHandler = async (
     !type ||
     !latitude ||
     !longitude ||
+    // TODO: uncomment once merged
+    // !broadLocationName ||
     (type === PinType.TEXT && !textContent)
   ) {
     throw new functions.https.HttpsError(
@@ -47,6 +49,8 @@ export const dropPinHandler = async (
       caption,
       type,
       location: new GeoPoint(latitude, longitude),
+      nearbyLocationName,
+      broadLocationName,
       geohash: geohashForLocation([latitude, longitude]),
       authorUID: context.auth.uid,
       timestamp: new Date(),
