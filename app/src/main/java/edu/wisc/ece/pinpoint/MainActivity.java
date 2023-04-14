@@ -1,12 +1,17 @@
 package edu.wisc.ece.pinpoint;
 
 import android.content.Context;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.Constraints;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
@@ -14,6 +19,9 @@ import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.WorkRequest;
+import androidx.work.NetworkType;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -24,6 +32,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.AlarmReceiver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
 
@@ -32,8 +41,6 @@ public class MainActivity extends AppCompatActivity {
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
                     R.id.new_pin_fragment);
     private NavController navController;
-
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -83,12 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
-
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbar_map);
     }
-
-
 }
