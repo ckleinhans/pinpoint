@@ -1,10 +1,5 @@
 package edu.wisc.ece.pinpoint.utils;
 
-import static android.content.ContentValues.TAG;
-import static androidx.core.content.ContentProviderCompat.requireContext;
-
-import static com.google.android.material.internal.ContextUtils.getActivity;
-
 import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
