@@ -1,9 +1,11 @@
 package edu.wisc.ece.pinpoint.pages.feed;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,6 +29,7 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class FeedFragment extends Fragment {
     public static final String UID_ARG_KEY = "uid";
+    private static final String TAG = FeedFragment.class.getName();
     private FirebaseDriver firebase;
 
     @Override
@@ -75,8 +78,12 @@ public class FeedFragment extends Fragment {
                 if (cachedActivity != null) {
                     masterList.addAll(cachedActivity);
                 }
-                else fetchTasks.add(firebase.fetchActivity(k).addOnSuccessListener(task ->
-                        masterList.addAll(task)));
+                else fetchTasks.add(firebase.fetchActivity(k)
+                        .addOnSuccessListener(masterList::addAll).addOnFailureListener(e -> {
+                            Log.w(TAG, e);
+                            Toast.makeText(requireContext(), R.string.activity_fetch_error,
+                                    Toast.LENGTH_SHORT).show();
+                        }));
             });
             Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(activityFetchingComplete -> {
                 masterList.sort();
@@ -94,7 +101,12 @@ public class FeedFragment extends Fragment {
             if (cachedActivity != null)
                 recyclerView.setAdapter(new FeedAdapter(cachedActivity, navController, this));
             else firebase.fetchActivity(uid).addOnSuccessListener(task ->
-                    recyclerView.setAdapter(new FeedAdapter(task, navController, this)));
+                    recyclerView.setAdapter(new FeedAdapter(task, navController, this)))
+                    .addOnFailureListener(e -> {
+                        Log.w(TAG, e);
+                        Toast.makeText(requireContext(), R.string.activity_fetch_error,
+                        Toast.LENGTH_SHORT).show();
+            });
         }
 
     }

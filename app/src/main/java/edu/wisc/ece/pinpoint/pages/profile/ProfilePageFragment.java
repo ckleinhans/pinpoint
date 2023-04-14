@@ -137,15 +137,8 @@ public class ProfilePageFragment extends Fragment {
     public void setUserData(@NonNull User user, String uid) {
         user.loadProfilePic(profilePic, this);
         username.setText(user.getUsername());
-        if (uid.equals(firebase.getCurrentUser().getUid())) {
-            // if the profile belongs to the app user, display the cached values
-            followerCount.setText(String.valueOf(firebase.getCachedFollowerIds().size()));
-            followingCount.setText(String.valueOf(firebase.getCachedFollowingIds().size()));
-        }
-        else {
-            followerCount.setText(String.valueOf(user.getNumFollowers()));
-            followingCount.setText(String.valueOf(user.getNumFollowing()));
-        }
+        followerCount.setText(String.valueOf(user.getNumFollowers()));
+        followingCount.setText(String.valueOf(user.getNumFollowing()));
         pinsDroppedCount.setText(String.valueOf(user.getNumPinsDropped()));
         pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
         location.setText(user.getLocation());

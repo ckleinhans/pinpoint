@@ -70,9 +70,6 @@
         android:id="@+id/board"
         app:destination="@id/navbar_board" />
     <action
-        android:id="@+id/feed"
-        app:destination="@id/navbar_feed" />
-    <action
         android:id="@+id/pinView"
         app:destination="@id/pin_view" />
     <fragment

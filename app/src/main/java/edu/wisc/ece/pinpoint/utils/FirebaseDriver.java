@@ -74,6 +74,8 @@ public class FirebaseDriver {
         pins = new HashMap<>();
         userPinMetadata = new HashMap<>();
         activityMap = new HashMap<>();
+        followerIds = new HashSet<>();
+        followingIds = new HashSet<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -119,8 +121,8 @@ public class FirebaseDriver {
     public Task<Void> logout(@NonNull Context context) {
         foundPinMetadata = null;
         droppedPinMetadata = null;
-        followerIds = null;
-        followingIds = null;
+        followerIds = new HashSet<>();
+        followingIds = new HashSet<>();
         return AuthUI.getInstance().signOut(context);
     }
 
@@ -359,9 +361,8 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch followers");
         }
-        followerIds = new HashSet<>();
-        followingIds = new HashSet<>();
-        db.collection("social").document(auth.getUid()).get().continueWith(task -> {
+
+        db.collection("social").document(auth.getUid()).get().addOnCompleteListener(task -> {
             DocumentSnapshot doc = task.getResult();
             ArrayList<String> followers = doc.get("followers") != null ? (ArrayList) doc.get("followers") :
                     new ArrayList<>();
@@ -373,11 +374,6 @@ public class FirebaseDriver {
             for(String person : following){
                 followingIds.add(person);
             }
-            db.collection("users").document(auth.getUid()).update("numFollowers",
-                    followerIds.size());
-            db.collection("users").document(auth.getUid()).update("numFollowing",
-                    followingIds.size());
-            return null;
         });
     }
 

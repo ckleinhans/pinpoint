@@ -37,7 +37,7 @@ public class ActivityList {
         activity.sort(new SortByTimestamp());
     }
 
-    private class SortByTimestamp implements Comparator<ActivityItem> {
+    private static class SortByTimestamp implements Comparator<ActivityItem> {
         @Override
         public int compare(ActivityItem itemA, ActivityItem itemB) {
             return itemA.getTimestamp().compareTo(itemB.getTimestamp());
