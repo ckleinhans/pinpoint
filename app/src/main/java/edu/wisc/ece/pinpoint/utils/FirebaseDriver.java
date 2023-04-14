@@ -121,8 +121,6 @@ public class FirebaseDriver {
     public Task<Void> logout(@NonNull Context context) {
         foundPinMetadata = null;
         droppedPinMetadata = null;
-        followerIds = new HashSet<>();
-        followingIds = new HashSet<>();
         return AuthUI.getInstance().signOut(context);
     }
 
