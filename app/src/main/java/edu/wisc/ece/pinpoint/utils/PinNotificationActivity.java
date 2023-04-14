@@ -32,6 +32,8 @@ public class PinNotificationActivity extends Worker {
     FirebaseDriver firebaseDriver;
     Map<String, Object> nearbyPins;
 
+    NotificationDriver notificationDriver;
+
     Context context;
     String x;
 
@@ -66,14 +68,13 @@ public class PinNotificationActivity extends Worker {
                        nearbyPins = task1.getResult();
                        int i = nearbyPins.size();
                        x = String.valueOf(i);
-                       NotificationDriver notificationDriver = NotificationDriver.getInstance(null);
+                       notificationDriver = NotificationDriver.getInstance(context);
                        notificationDriver.updatePersistent("Pins", x + " pins found nearby");
                    });
                    }
                    else{
-                       NotificationDriver notificationDriver = NotificationDriver.getInstance(null);
-                       notificationDriver.sendOneShot("Location Access disabled", "no pins");
-
+                        notificationDriver = NotificationDriver.getInstance(context);
+                        notificationDriver.updatePersistent("Location Access disabled", "no pins");
                    }
                 });
             }
