@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         NotificationDriver.getInstance(this);
         navBar.getMenu().getItem(2).setEnabled(false);
         NavigationUI.setupWithNavController(navBar, navController);
-
+        // Set nav bar visibility
         navController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
             if (hiddenNavbarFragments.contains(navDestination.getId())) {
                 navBarContainer.setVisibility(View.GONE);
@@ -46,9 +46,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Fetch logged in user profile on app load
+        // Fetch logged in user profile, followers/following, & activity on app load
         FirebaseDriver firebase = FirebaseDriver.getInstance();
-        firebase.fetchUser(firebase.getCurrentUser().getUid());
+        String uid = firebase.getCurrentUser().getUid();
+        firebase.fetchUser(uid);
+        firebase.fetchSocials(uid);
+        firebase.fetchActivity(uid);
     }
 
     public void onMapButtonClick(View view) {

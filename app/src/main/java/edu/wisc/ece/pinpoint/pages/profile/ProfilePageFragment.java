@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -35,6 +36,7 @@ public class ProfilePageFragment extends Fragment {
     private TextView location;
     private TextView bio;
     private ImageView profilePic;
+    private Button button;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -61,7 +63,7 @@ public class ProfilePageFragment extends Fragment {
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
         profilePic = requireView().findViewById(R.id.profile_pic);
-        Button button = requireView().findViewById(R.id.profile_button);
+        button = requireView().findViewById(R.id.profile_button);
 
         Bundle args = getArguments();
         String uid = args != null ? ProfilePageFragmentArgs.fromBundle(args).getUid() : null;
@@ -79,26 +81,25 @@ public class ProfilePageFragment extends Fragment {
             backButton.setVisibility(View.VISIBLE);
             backButton.setOnClickListener(v -> navController.popBackStack());
         }
-
         if (uid.equals(firebase.getCurrentUser().getUid())) {
             // Viewing own profile, button is for editing profile
             button.setText(R.string.edit_profile_text);
             button.setOnClickListener((buttonView) -> navController.navigate(
                     ProfilePageFragmentDirections.editProfile()));
         } else {
-            // Viewing someone else's profile, button is for following
-            button.setOnClickListener((buttonView) -> {
-                // TODO: implement user following
-            });
             // Fetch updated pin metadata in case changed since last view
             firebase.fetchUserPins(uid);
+            // Configure button based on follow status
+            setButton(uid);
         }
 
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {
-            setUserData(cachedUser);
+            setUserData(cachedUser, uid);
         }
-        firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult()));
+        String finalUid = uid;
+        firebase.fetchUser(uid)
+                .addOnCompleteListener(task -> setUserData(task.getResult(), finalUid));
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
@@ -134,7 +135,7 @@ public class ProfilePageFragment extends Fragment {
         });
     }
 
-    public void setUserData(@NonNull User user) {
+    public void setUserData(@NonNull User user, String uid) {
         user.loadProfilePic(profilePic, this);
         username.setText(user.getUsername());
         followerCount.setText(String.valueOf(user.getNumFollowers()));
@@ -152,6 +153,41 @@ public class ProfilePageFragment extends Fragment {
             bio.setVisibility(View.GONE);
         } else {
             bio.setVisibility(View.VISIBLE);
+        }
+    }
+
+    public void setButton(String user) {
+        // Viewing someone else's profile, button is for following
+        final String uid = user;
+        // if the user is already following this profile, show unfollow button
+        if (firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing()
+                .contains(uid)) {
+            button.setText(R.string.unfollow_text);
+            button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.soft_red));
+            button.setOnClickListener((buttonView) -> {
+                buttonView.setEnabled(false);
+                firebase.unfollowUser(uid).addOnCompleteListener(t -> {
+                    followerCount.setText(String.valueOf(
+                            Integer.parseInt(followerCount.getText().toString()) - 1));
+                    setButton(user);
+                    buttonView.setEnabled(true);
+                });
+            });
+        } else {
+            // if this profile follows the user but the user does not, show follow back button
+            if (firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowers()
+                    .contains(uid)) button.setText(R.string.follow_back_text);
+            else button.setText(R.string.follow_text);
+            button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.blue));
+            button.setOnClickListener((buttonView) -> {
+                buttonView.setEnabled(false);
+                firebase.followUser(uid).addOnCompleteListener(t -> {
+                    followerCount.setText(String.valueOf(
+                            Integer.parseInt(followerCount.getText().toString()) + 1));
+                    setButton(user);
+                    buttonView.setEnabled(true);
+                });
+            });
         }
     }
 }
