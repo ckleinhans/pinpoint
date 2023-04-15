@@ -20,8 +20,9 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
+import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.functions.HttpsCallableResult;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -29,9 +30,9 @@ import com.google.firebase.storage.UploadTask;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -42,6 +43,7 @@ import edu.wisc.ece.pinpoint.data.GlideApp;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
+import edu.wisc.ece.pinpoint.data.SocialData;
 import edu.wisc.ece.pinpoint.data.User;
 
 public class FirebaseDriver {
@@ -54,12 +56,11 @@ public class FirebaseDriver {
     private final Map<String, User> users;
     private final Map<String, Pin> pins;
     private final Map<String, OrderedPinMetadata> userPinMetadata;
+    private final HashMap<String, ActivityList> activityMap;
+    private final HashMap<String, SocialData> userSocialData;
     private OrderedPinMetadata foundPinMetadata;
     private OrderedPinMetadata droppedPinMetadata;
     private Long pinnies;
-    private HashSet<String> followerIds;
-    private HashSet<String> followingIds;
-    private final HashMap<String, ActivityList> activityMap;
 
     private FirebaseDriver() {
         if (instance != null) {
@@ -74,8 +75,7 @@ public class FirebaseDriver {
         pins = new HashMap<>();
         userPinMetadata = new HashMap<>();
         activityMap = new HashMap<>();
-        followerIds = new HashSet<>();
-        followingIds = new HashSet<>();
+        userSocialData = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -143,15 +143,18 @@ public class FirebaseDriver {
             User user = task.getResult().toObject(User.class);
             users.put(uid, user);
             return user;
-        });
+        }).addOnFailureListener(e -> Log.w(TAG, String.format("Error fetching user %s", uid), e));
     }
 
     public User getCachedUser(@NonNull String uid) {
         return users.get(uid);
     }
 
-    public void handleNewUser() {
-        // User is new, push user data to new node in DB
+    public Task<Void> handleNewUser() {
+        // Perform all writes in one batch to ensure all complete successfully
+        WriteBatch batch = db.batch();
+
+        // Create user object
         FirebaseUser user = getCurrentUser();
         User userData = new User(user.getDisplayName());
         UserInfo providerData = user.getProviderData().get(1);
@@ -159,21 +162,26 @@ public class FirebaseDriver {
             userData.setProfilePicUrl(providerData.getPhotoUrl().toString());
         }
         String uid = user.getUid();
-        userData.save(uid);
+        batch.set(db.collection("users").document(uid), userData);
 
-        // create Pinnie wallet for new user
+        // Create Pinnie wallet for new user
         final long initialBalance = 2000;
-        HashMap<String, Object> data = new HashMap<>();
-        data.put("currency", initialBalance);
-        db.collection("private").document(uid).set(data).addOnSuccessListener(
-                        t -> Log.d(TAG, String.format("Wallet for user %s created!", uid)))
-                .addOnFailureListener(e -> Log.w(TAG, "Error creating wallet document", e));
+        HashMap<String, Object> wallet = new HashMap<>();
+        wallet.put("currency", initialBalance);
+        batch.set(db.collection("private").document(uid), wallet);
 
-        // create follower and following maps for new user
+        // Create follower and following maps for new user
         HashMap<String, Object> socials = new HashMap<>();
-        socials.put("followers", null);
-        socials.put("following", null);
-        db.collection("social").document(uid).set(socials);
+        socials.put("followers", new ArrayList<>());
+        socials.put("following", new ArrayList<>());
+        batch.set(db.collection("social").document(uid), socials);
+
+        // Create empty activity list
+        HashMap<String, Object> activity = new HashMap<>();
+        activity.put("activity", new ArrayList<>());
+        batch.set(db.collection("activity").document(uid), activity);
+
+        return batch.commit().addOnFailureListener(e -> Log.w(TAG, "Error creating new user:", e));
     }
 
     public Task<OrderedPinMetadata> fetchFoundPins() {
@@ -203,7 +211,7 @@ public class FirebaseDriver {
                 this.foundPinMetadata = foundPinMetadata;
                 return foundPinMetadata;
             });
-        });
+        }).addOnFailureListener(e -> Log.w(TAG, "Error fetching found pins.", e));
     }
 
     public OrderedPinMetadata getCachedFoundPinMetadata() {
@@ -238,7 +246,7 @@ public class FirebaseDriver {
                         this.userPinMetadata.put(auth.getUid(), droppedPinMetadata);
                         return droppedPinMetadata;
                     });
-                });
+                }).addOnFailureListener(e -> Log.w(TAG, "Error fetching dropped pins.", e));
     }
 
     public OrderedPinMetadata getCachedDroppedPinMetadata() {
@@ -269,7 +277,8 @@ public class FirebaseDriver {
                         userPinMetadata.put(uid, newUserPinMetadata);
                         return newUserPinMetadata;
                     });
-                });
+                }).addOnFailureListener(
+                        e -> Log.w(TAG, String.format("Error fetching pins for user %s.", uid), e));
     }
 
     public OrderedPinMetadata getCachedUserPinMetadata(@NonNull String uid) {
@@ -300,7 +309,7 @@ public class FirebaseDriver {
                 pins.put(pid, pin);
             }
             return pin;
-        });
+        }).addOnFailureListener(e -> Log.w(TAG, "Error fetching pin.", e));
     }
 
     public Pin getCachedPin(@NonNull String pid) {
@@ -327,21 +336,19 @@ public class FirebaseDriver {
             droppedPinMetadata.add(new PinMetadata(pid, new Date()));
             pinnies -= cost;
             return pid;
-        });
+        }).addOnFailureListener(e -> Log.w(TAG, "Error dropping pin.", e));
     }
 
-    public Task<Pin> findPin(String pid, Location location) {
+    public Task<HttpsCallableResult> findPin(String pid, Location location) {
         HashMap<String, Object> data = new HashMap<>();
         data.put("pid", pid);
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
 
-        return functions.getHttpsCallable("findPin").call(data).continueWith(task -> {
-            // For now don't do anything with returned pin data since it will be fetched
-            // on pin view page load
+        return functions.getHttpsCallable("findPin").call(data).addOnSuccessListener(task -> {
+            // TODO: make cloud function return reward & update cached pinnie count with it
             foundPinMetadata.add(new PinMetadata(pid, new Date()));
-            return null;
-        });
+        }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin.", e));
     }
 
     public Task<Map<String, Object>> fetchNearbyPins(@NonNull Location location) {
@@ -351,85 +358,110 @@ public class FirebaseDriver {
 
         //noinspection unchecked
         return functions.getHttpsCallable("getNearbyPins").call(data)
-                .continueWith(task -> (Map<String, Object>) task.getResult().getData());
+                .continueWith(task -> (Map<String, Object>) task.getResult().getData())
+                .addOnFailureListener(e -> Log.w(TAG, "Error fetching nearby pins.", e));
     }
 
-    // TODO: improve fetch efficiency using query
-    public void fetchSocials() {
+    public Task<SocialData> fetchSocials(String uid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch followers");
         }
 
-        db.collection("social").document(auth.getUid()).get().addOnCompleteListener(task -> {
-            DocumentSnapshot doc = task.getResult();
-            ArrayList<String> followers = doc.get("followers") != null ? (ArrayList) doc.get("followers") :
-                    new ArrayList<>();
-            ArrayList<String> following = doc.get("following") != null ? (ArrayList) doc.get("following") :
-                    new ArrayList<>();
-            for(String person : followers){
-                followerIds.add(person);
-            }
-            for(String person : following){
-                followingIds.add(person);
-            }
-        });
+        return db.collection("social").document(uid).get().continueWith(task -> {
+            SocialData socialData = new SocialData(task.getResult());
+            userSocialData.put(uid, socialData);
+            return socialData;
+        }).addOnFailureListener(
+                e -> Log.w(TAG, String.format("Error fetching socials for user %s", uid), e));
+    }
+
+    public SocialData getCachedSocials(String uid) {
+        return userSocialData.get(uid);
     }
 
     public Task<Void> deletePin(String pid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to delete a pin");
         }
-        return db.collection("pins").document(pid).delete().continueWithTask(
-                task1 -> db.collection("users").document(auth.getUid()).collection("dropped")
-                        .document(pid).delete()).continueWith(t -> {
+        WriteBatch batch = db.batch();
+        batch.delete(db.collection("pins").document(pid));
+        batch.delete(
+                db.collection("users").document(auth.getUid()).collection("dropped").document(pid));
+        return batch.commit().addOnSuccessListener(t -> {
             pins.remove(pid);
             droppedPinMetadata.remove(pid);
-            return null;
-        });
+        }).addOnFailureListener(e -> Log.w(TAG, "Error deleting pin.", e));
     }
 
-    public HashSet<String> getCachedFollowerIds() {return followerIds;}
-
-    public HashSet<String> getCachedFollowingIds() {return followingIds;}
-
-    public void followUser(String uid) {
+    public Task<Void> followUser(String uid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to follow an account");
         }
-        Date timestamp = new Date();
-        followingIds.add(uid);
-        // Add target to following
-        db.collection("social")
-                .document(auth.getUid()).update("following", FieldValue.arrayUnion(uid))
-                .addOnSuccessListener(complete -> db.collection("users").document(
-                        auth.getUid()).update("numFollowing", FieldValue.increment(1)));
+        SocialData socialData = userSocialData.get(auth.getUid());
+        if (socialData == null) {
+            throw new IllegalStateException(
+                    "User must have fetched their own social data before following a user");
+        }
+        ActivityList activity = activityMap.get(auth.getUid());
+        if (activity == null) {
+            throw new IllegalStateException(
+                    "User must have fetched their own activity before following a user");
+        }
+        WriteBatch batch = db.batch();
 
+        // Add other user to own following & increment own numFollowing
+        batch.update(db.collection("social").document(auth.getUid()), "following",
+                FieldValue.arrayUnion(uid));
+        batch.update(db.collection("users").document(auth.getUid()), "numFollowing",
+                FieldValue.increment(1));
 
-        // Add self to target's followers
-        db.collection("social")
-                .document(uid).update("followers", FieldValue.arrayUnion(auth.getUid()))
-                .addOnSuccessListener(complete -> db.collection("users").document(uid)
-                        .update("numFollowers", FieldValue.increment(1)));
+        // Add self to other user's followers & increment their numFollowers
+        batch.update(db.collection("social").document(uid), "followers",
+                FieldValue.arrayUnion(auth.getUid()));
+        batch.update(db.collection("users").document(uid), "numFollowers", FieldValue.increment(1));
 
-        pushActivityItem(new ActivityItem(auth.getUid(), uid, ActivityItem.ActivityType.FOLLOW, timestamp));
+        // Create new activity item for follow event
+        ActivityItem item;
+        if (activity.size() == 0 || !Objects.equals(activity.get(0).getId(), uid)) {
+            // Don't create activity if last activity was follow of same person
+            item = new ActivityItem(auth.getUid(), uid, ActivityItem.ActivityType.FOLLOW);
+            batch.update(db.collection("activity").document(auth.getUid()), "activity",
+                    FieldValue.arrayUnion(item));
+        } else item = null;
+
+        return batch.commit().addOnSuccessListener(t -> {
+            socialData.addFollowing(uid);
+            if (item != null) activity.add(item);
+        }).addOnFailureListener(e -> Log.w(TAG, String.format("Error following user %s.", uid), e));
     }
 
-    public void unfollowUser(String uid) {
+    public Task<Void> unfollowUser(String uid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to follow an account");
         }
-        followingIds.remove(uid);
-        // Remove target from following list
-        db.collection("social")
-                .document(auth.getUid()).update("following", FieldValue.arrayRemove(uid))
-                .addOnSuccessListener(complete -> db.collection("users").document(
-                        auth.getUid()).update("numFollowing", FieldValue.increment(-1)));
+        if (userSocialData.get(auth.getUid()) == null) {
+            throw new IllegalStateException(
+                    "User must have fetched their own social data before unfollowing a user");
+        }
+        WriteBatch batch = db.batch();
 
-        // Remove self from target's followers
-        db.collection("social")
-                .document(uid).update("followers", FieldValue.arrayRemove(auth.getUid()))
-                .addOnSuccessListener(complete -> db.collection("users").document(uid)
-                        .update("numFollowers", FieldValue.increment(-1)));
+        // Remove other user to own following & decrement own numFollowing
+        batch.update(db.collection("social").document(auth.getUid()), "following",
+                FieldValue.arrayRemove(uid));
+        batch.update(db.collection("users").document(auth.getUid()), "numFollowing",
+                FieldValue.increment(-1));
+
+        // Remove self to other user's followers & decrement their numFollowers
+        batch.update(db.collection("social").document(uid), "followers",
+                FieldValue.arrayRemove(auth.getUid()));
+        batch.update(db.collection("users").document(uid), "numFollowers",
+                FieldValue.increment(-1));
+
+        //noinspection ConstantConditions
+        return batch.commit()
+                .addOnSuccessListener(t -> userSocialData.get(auth.getUid()).removeFollowing(uid))
+                .addOnFailureListener(
+                        e -> Log.w(TAG, String.format("Error unfollowing user %s.", uid), e));
     }
 
     public Task<ActivityList> fetchActivity(String uid) {
@@ -437,34 +469,17 @@ public class FirebaseDriver {
             throw new IllegalStateException("User must be logged in to fetch activity");
         }
         return db.collection("activity").document(uid).get().continueWith(task -> {
-            ActivityList activity;
-            if (!task.getResult().exists())
-                activity = new ActivityList();
-            else activity = task.getResult().toObject(ActivityList.class);
+            ActivityList activity = task.getResult().toObject(ActivityList.class);
             activityMap.put(uid, activity);
             return activity;
-        });
+        }).addOnFailureListener(
+                e -> Log.w(TAG, String.format("Error fetching activity for user %s.", uid), e));
     }
 
     public ActivityList getCachedActivity(String uid) {
-        if(activityMap.containsKey(uid))
-            return activityMap.get(uid);
-        return null;
+        return activityMap.get(uid);
     }
 
-    public void pushActivityItem(ActivityItem activityItem) {
-        if (auth.getUid() == null) {
-            throw new IllegalStateException("User must be logged in to push activity");
-        }
-        String authorId = activityItem.getAuthor();
-        activityMap.get(authorId).add(activityItem);
-        // Create map to store field name and activity item
-        HashMap<String, Object> map = new HashMap<>();
-        map.put("activity",FieldValue.arrayUnion(activityItem));
-        // Push activity item to firebase
-        db.collection("activity").document(authorId).set(map, SetOptions.merge());
-    }
-    
     public Task<Long> getPinnies() {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pinnies");
@@ -473,7 +488,7 @@ public class FirebaseDriver {
             Long pinniesResult = (Long) task.getResult().get("currency");
             pinnies = pinniesResult;
             return pinniesResult;
-        });
+        }).addOnFailureListener(e -> Log.w(TAG, "Error fetching pinnies.", e));
     }
 
     public Long getCachedPinnies() {
@@ -485,6 +500,7 @@ public class FirebaseDriver {
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
         return functions.getHttpsCallable("calcPinCost").call(data)
-                .continueWith(task -> (Integer) task.getResult().getData());
+                .continueWith(task -> (Integer) task.getResult().getData())
+                .addOnFailureListener(e -> Log.w(TAG, "Error calculating pin cost.", e));
     }
 }

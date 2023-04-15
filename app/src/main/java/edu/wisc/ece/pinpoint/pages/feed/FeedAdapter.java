@@ -30,8 +30,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     private final ActivityList activity;
     private final NavController navController;
     private final FirebaseDriver firebase;
-    private Context parentContext;
     private final Fragment fragment;
+    private Context parentContext;
 
     public FeedAdapter(ActivityList activity, NavController navController, Fragment fragment) {
         this.activity = activity;
@@ -52,7 +52,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     @Override
     public void onBindViewHolder(@NonNull FeedViewHolder holder, int position) {
         // Single action in activity list, reverse order
-        ActivityItem action = activity.get(activity.size() - position - 1);
+        ActivityItem action = activity.get(position);
         String id = action.getId();
         String author = action.getAuthor();
         ActivityItem.ActivityType type = action.getType();
@@ -61,18 +61,16 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         // Set timestamp
         holder.timestamp.setText(FormatUtils.formattedDateTime(time));
         // Clicking on the picture of the action's author will navigate to their profile
-        holder.image.setOnClickListener(view ->
-                navController.navigate(NavigationDirections.profile().setUid(author)));
+        holder.image.setOnClickListener(
+                view -> navController.navigate(NavigationDirections.profile().setUid(author)));
         // Clicking on the card will navigate to the action's relevant page
         holder.item.setOnClickListener(view -> {
-            if (type == ActivityItem.ActivityType.DROP || type == ActivityItem.ActivityType.FIND ||
-                    type == ActivityItem.ActivityType.COMMENT) {
+            if (type == ActivityItem.ActivityType.DROP || type == ActivityItem.ActivityType.FIND || type == ActivityItem.ActivityType.COMMENT) {
                 if (firebase.getCachedFoundPinMetadata()
                         .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
                     navController.navigate(NavigationDirections.pinView(id));
-                else
-                    Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
-                                    Toast.LENGTH_SHORT).show();
+                else Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
+                        Toast.LENGTH_SHORT).show();
 
             } else if (type == ActivityItem.ActivityType.FOLLOW) {
                 navController.navigate(NavigationDirections.profile().setUid(id));
@@ -84,19 +82,25 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
             setContents(cachedAuthor, type, id, holder, isCurrentUser);
         } else {
             // Since only using author for profile pic & username, only fetch if not cached
-            firebase.fetchUser(author)
-                    .addOnCompleteListener(task -> setContents(task.getResult(), type, id, holder, isCurrentUser));
+            firebase.fetchUser(author).addOnCompleteListener(
+                    task -> setContents(task.getResult(), type, id, holder, isCurrentUser));
         }
     }
 
-    private void setContents(User author, ActivityItem.ActivityType type, String id, @NonNull FeedViewHolder holder, boolean isCurrentUser){
+    @Override
+    public int getItemCount() {
+        return activity.size();
+    }
+
+    private void setContents(User author, ActivityItem.ActivityType type, String id,
+                             @NonNull FeedViewHolder holder, boolean isCurrentUser) {
         author.loadProfilePic(holder.image, fragment);
         // Detect if the activity belongs to current user, and trim if username is too long
         String username = isCurrentUser ? "You" :
-                author.getUsername().length() > 12 ? author.getUsername().substring(0, 9)+"..." :
+                author.getUsername().length() > 12 ? author.getUsername().substring(0, 9) + "..." :
                         author.getUsername();
         String textContents = "";
-        switch(type){
+        switch (type) {
             case DROP:
                 textContents = username + " dropped a pin";
                 holder.icon.setImageResource(R.drawable.ic_drop);
@@ -123,14 +127,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 }
                 break;
         }
-        if (!textContents.isEmpty())
-            holder.text.setText(textContents);
+        if (!textContents.isEmpty()) holder.text.setText(textContents);
 
-    }
-
-    @Override
-    public int getItemCount() {
-        return activity.size();
     }
 
     // View Holder Class to handle Recycler View.

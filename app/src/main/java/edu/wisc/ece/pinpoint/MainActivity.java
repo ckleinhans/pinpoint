@@ -46,11 +46,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Fetch logged in user profile on app load
+        // Fetch logged in user profile & followers/following on app load
         FirebaseDriver firebase = FirebaseDriver.getInstance();
-        firebase.fetchUser(firebase.getCurrentUser().getUid());
-        // Fetch followers and followed users
-        firebase.fetchSocials();
+        String uid = firebase.getCurrentUser().getUid();
+        firebase.fetchUser(uid);
+        firebase.fetchSocials(uid);
     }
 
     public void onMapButtonClick(View view) {

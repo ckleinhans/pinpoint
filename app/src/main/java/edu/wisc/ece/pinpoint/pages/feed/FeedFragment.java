@@ -56,9 +56,10 @@ public class FeedFragment extends Fragment {
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext(),
-                LinearLayoutManager.VERTICAL, false));
-        recyclerView.setAdapter(new FeedAdapter(new ActivityList(new ArrayList<>()), navController, this));
+        recyclerView.setLayoutManager(
+                new LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false));
+        recyclerView.setAdapter(
+                new FeedAdapter(new ActivityList(new ArrayList<>()), navController, this));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         // Get list type from arguments
@@ -66,47 +67,49 @@ public class FeedFragment extends Fragment {
         if (uid == null) {
             // Show top bar and push down recycler view
             topBar.setVisibility(View.VISIBLE);
-            recyclerView.setPadding(0,(int) (56*scale+0.5f),0, (int) (95*scale+0.5f));
+            recyclerView.setPadding(0, (int) (56 * scale + 0.5f), 0, (int) (95 * scale + 0.5f));
 
             // List of tasks to wait for before displaying activity
             List<Task<ActivityList>> fetchTasks = new ArrayList<>();
             // Master list with activity from all followed users
             ActivityList masterList = new ActivityList(new ArrayList<>());
             // For each followed user, check if their activity is cached, then add it to master list
-            firebase.getCachedFollowingIds().forEach((k) -> {
-                ActivityList cachedActivity = firebase.getCachedActivity(k);
-                if (cachedActivity != null) {
-                    masterList.addAll(cachedActivity);
-                }
-                else fetchTasks.add(firebase.fetchActivity(k)
-                        .addOnSuccessListener(masterList::addAll).addOnFailureListener(e -> {
-                            Log.w(TAG, e);
-                            Toast.makeText(requireContext(), R.string.activity_fetch_error,
-                                    Toast.LENGTH_SHORT).show();
-                        }));
-            });
+            firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing()
+                    .forEach((k) -> {
+                        ActivityList cachedActivity = firebase.getCachedActivity(k);
+                        if (cachedActivity != null) {
+                            masterList.addAll(cachedActivity);
+                        } else fetchTasks.add(
+                                firebase.fetchActivity(k).addOnSuccessListener(masterList::addAll)
+                                        .addOnFailureListener(e -> {
+                                            Log.w(TAG, e);
+                                            Toast.makeText(requireContext(),
+                                                    R.string.activity_fetch_error,
+                                                    Toast.LENGTH_SHORT).show();
+                                        }));
+                    });
             Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(activityFetchingComplete -> {
                 masterList.sort();
                 recyclerView.setAdapter(new FeedAdapter(masterList, navController, this));
             });
 
-        }
-        else {
+        } else {
             // Hide top bar and push up recycler view
             topBar.setVisibility(View.GONE);
-            recyclerView.setPadding(0,0,0, (int) (95*scale+0.5f));
+            recyclerView.setPadding(0, 0, 0, (int) (95 * scale + 0.5f));
 
-            // Attempt to use cached activity before of fetching
+            // Attempt to use cached activity before fetching
             ActivityList cachedActivity = firebase.getCachedActivity(uid);
             if (cachedActivity != null)
                 recyclerView.setAdapter(new FeedAdapter(cachedActivity, navController, this));
-            else firebase.fetchActivity(uid).addOnSuccessListener(task ->
-                    recyclerView.setAdapter(new FeedAdapter(task, navController, this)))
+            else firebase.fetchActivity(uid).addOnSuccessListener(
+                            activityList -> recyclerView.setAdapter(
+                                    new FeedAdapter(activityList, navController, this)))
                     .addOnFailureListener(e -> {
                         Log.w(TAG, e);
                         Toast.makeText(requireContext(), R.string.activity_fetch_error,
-                        Toast.LENGTH_SHORT).show();
-            });
+                                Toast.LENGTH_SHORT).show();
+                    });
         }
 
     }

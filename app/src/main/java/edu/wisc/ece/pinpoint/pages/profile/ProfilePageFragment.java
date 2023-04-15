@@ -98,7 +98,8 @@ public class ProfilePageFragment extends Fragment {
             setUserData(cachedUser, uid);
         }
         String finalUid = uid;
-        firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult(), finalUid));
+        firebase.fetchUser(uid)
+                .addOnCompleteListener(task -> setUserData(task.getResult(), finalUid));
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
@@ -159,23 +160,33 @@ public class ProfilePageFragment extends Fragment {
         // Viewing someone else's profile, button is for following
         final String uid = user;
         // if the user is already following this profile, show unfollow button
-        if (firebase.getCachedFollowingIds().contains(uid)) {
+        if (firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing()
+                .contains(uid)) {
             button.setText(R.string.unfollow_text);
             button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.soft_red));
             button.setOnClickListener((buttonView) -> {
-                firebase.unfollowUser(uid);
-                setButton(user);
+                buttonView.setEnabled(false);
+                firebase.unfollowUser(uid).addOnCompleteListener(t -> {
+                    followerCount.setText(String.valueOf(
+                            Integer.parseInt(followerCount.getText().toString()) - 1));
+                    setButton(user);
+                    buttonView.setEnabled(true);
+                });
             });
-        }
-        else {
+        } else {
             // if this profile follows the user but the user does not, show follow back button
-            if (firebase.getCachedFollowerIds().contains(uid))
-                button.setText(R.string.follow_back_text);
+            if (firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowers()
+                    .contains(uid)) button.setText(R.string.follow_back_text);
             else button.setText(R.string.follow_text);
             button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.blue));
             button.setOnClickListener((buttonView) -> {
-                firebase.followUser(uid);
-                setButton(user);
+                buttonView.setEnabled(false);
+                firebase.followUser(uid).addOnCompleteListener(t -> {
+                    followerCount.setText(String.valueOf(
+                            Integer.parseInt(followerCount.getText().toString()) + 1));
+                    setButton(user);
+                    buttonView.setEnabled(true);
+                });
             });
         }
     }

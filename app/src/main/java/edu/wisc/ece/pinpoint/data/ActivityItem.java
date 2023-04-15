@@ -10,8 +10,8 @@ public class ActivityItem {
 
     public ActivityItem() {
     }
-
-    public ActivityItem(String author, String id, ActivityType type, Date timestamp) {
+    
+    public ActivityItem(String author, String id, ActivityType type) {
         this.author = author;
         this.id = id;
         this.type = type;

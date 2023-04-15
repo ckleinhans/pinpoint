@@ -22,7 +22,8 @@ public class ActivityList {
     }
 
     public ActivityItem get(int index) {
-        return activity.get(index);
+        // Return last items (most recent items) first
+        return activity.get(activity.size() - 1 - index);
     }
 
     public void add(ActivityItem activityItem) {

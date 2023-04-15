@@ -71,16 +71,8 @@ public class User {
         return numFollowers;
     }
 
-    public void setNumFollowers(int numFollowers) {
-        this.numFollowers = numFollowers;
-    }
-
     public int getNumFollowing() {
         return numFollowing;
-    }
-
-    public void setNumFollowing(int numFollowing) {
-        this.numFollowing = numFollowing;
     }
 
     public int getNumPinsDropped() {
