@@ -13,9 +13,6 @@ import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Comment;
-import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
-import edu.wisc.ece.pinpoint.data.Pin;
-import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
@@ -23,7 +20,7 @@ public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.Pi
 
     private final FirebaseDriver firebase;
     private final NavController navController;
-    private ArrayList<Comment> comments;
+    private final ArrayList<Comment> comments;
     private Context parentContext;
 
     public PinCommentAdapter(ArrayList<Comment> comments, NavController navController) {
@@ -52,8 +49,7 @@ public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.Pi
 
     @Override
     public int getItemCount() {
-        //TODO: Add function to get number of comments on a pin
-        return comments.size();
+        return comments == null ? 0 : comments.size();
     }
 
     public static class PinCommentViewHolder extends RecyclerView.ViewHolder {

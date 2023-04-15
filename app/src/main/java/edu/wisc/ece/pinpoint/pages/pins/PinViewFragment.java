@@ -1,10 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
 import android.content.DialogInterface;
-import static com.firebase.ui.auth.AuthUI.getApplicationContext;
 
-import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -120,7 +117,21 @@ public class PinViewFragment extends Fragment {
         });
 
         sendCommentButton.setOnClickListener((v) -> {
-            //TODO: add code to send comment here. Text should come from the addCommentEditTextLayout
+            if (addCommentEditText.getText() != null) {
+                Comment comment = new Comment(addCommentEditText.getText().toString());
+                firebase.postComment(comment, pid);
+
+                // clear comment text and hide posting components
+                addCommentEditText.setText("");
+                addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_add_comment));
+                addCommentInputLayout.setVisibility(View.GONE);
+                sendCommentButton.setVisibility(View.GONE);
+
+                // refetch and display comments
+                comments.add(0, comment);
+                commentCount.setText(String.format("comments: %d", comments.size()));
+                setupCommentRecyclerView(getView(), comments);
+            }
         });
 
         addCommentEditText.setOnFocusChangeListener((v, hasFocus) -> {
@@ -128,13 +139,6 @@ public class PinViewFragment extends Fragment {
                 scrollView.postDelayed(() -> scrollView.scrollTo(0, COMMENT_FOCUS_SCROLL), 100);
             }
         });
-
-        comments = new ArrayList<String>();
-        comments.add("BRUH");
-        comments.add("Did you ever hear the tragedy of Darth Plagueis The Wise? I thought not. It's not a story the Jedi would tell you. It's a Sith legend. Darth Plagueis was a Dark Lord of the Sith, so powerful and so wise he could use the Force to influence the midichlorians to create life… He had such a knowledge of the dark side that he could even keep the ones he cared about from dying. The dark side of the Force is a pathway to many abilities some consider to be unnatural. He became so powerful… the only thing he was afraid of was losing his power, which eventually, of course, he did. Unfortunately, he taught his apprentice everything he knew, then his apprentice killed him in his sleep. Ironic. He could save others from death, but not himself.");
-        comments.add("this\n\n\n\nclass");
-        comments.add("rulz");
-        setupCommentRecyclerView(getView(), comments);
 
         // Fetch pin data & load using argument
         Bundle args = getArguments();
@@ -151,9 +155,13 @@ public class PinViewFragment extends Fragment {
             firebase.fetchPin(pid).addOnCompleteListener(task -> setPinData(task.getResult()));
         }
 
+        fetchAndDisplayComments();
+    }
+
+    private void fetchAndDisplayComments() {
         firebase.fetchComments(pid).addOnCompleteListener(t -> {
             comments = (ArrayList<Comment>) t.getResult();
-            //commentCount.setText(comments.size());
+            commentCount.setText(String.format("comments: %d", comments.size()));
             setupCommentRecyclerView(getView(), comments);
         });
     }
@@ -266,6 +274,7 @@ public class PinViewFragment extends Fragment {
                     .show();
             navController.popBackStack();
         });
+    }
 
     private void setupCommentRecyclerView(View view, ArrayList<Comment> comments) {
         commentRecyclerView = view.findViewById(R.id.comment_recycler_view);

@@ -21,6 +21,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.functions.HttpsCallableResult;
 import com.google.firebase.storage.FirebaseStorage;
@@ -558,6 +559,7 @@ public class FirebaseDriver {
                 .addOnFailureListener(e -> Log.w(TAG, "Error calculating pin cost.", e));
 =======
                 .continueWith(task -> (Integer) task.getResult().getData());
+    }
 
     public void postComment(Comment comment, String pid) {
         db.collection("pins")
@@ -572,6 +574,7 @@ public class FirebaseDriver {
         return db.collection("pins")
                 .document(pid)
                 .collection("comments")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
                 .get()
                 .continueWith(task -> {
                     if (task.isSuccessful()) {
