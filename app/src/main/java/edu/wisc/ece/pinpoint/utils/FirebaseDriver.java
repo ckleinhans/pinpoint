@@ -330,16 +330,27 @@ public class FirebaseDriver {
     }
 
     public Task<String> dropPin(Pin newPin, Long cost) {
+        ActivityList activity = activityMap.get(auth.getUid());
+        if (activity == null) {
+            throw new IllegalStateException(
+                    "User must fetch their own activity before dropping a pin");
+        }
         return functions.getHttpsCallable("dropPin").call(newPin.serialize()).continueWith(task -> {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
             droppedPinMetadata.add(new PinMetadata(pid, new Date()));
+            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.DROP));
             pinnies -= cost;
             return pid;
         }).addOnFailureListener(e -> Log.w(TAG, "Error dropping pin.", e));
     }
 
     public Task<HttpsCallableResult> findPin(String pid, Location location) {
+        ActivityList activity = activityMap.get(auth.getUid());
+        if (activity == null) {
+            throw new IllegalStateException(
+                    "User must fetch their own activity before dropping a pin");
+        }
         HashMap<String, Object> data = new HashMap<>();
         data.put("pid", pid);
         data.put("latitude", location.getLatitude());
@@ -347,6 +358,7 @@ public class FirebaseDriver {
 
         return functions.getHttpsCallable("findPin").call(data).addOnSuccessListener(task -> {
             // TODO: make cloud function return reward & update cached pinnie count with it
+            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND));
             foundPinMetadata.add(new PinMetadata(pid, new Date()));
         }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin.", e));
     }

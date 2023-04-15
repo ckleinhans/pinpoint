@@ -43,6 +43,7 @@ export const dropPinHandler = async (
 
   // Perform validation & updates in transaction to enforce all or none
   await firestore().runTransaction(async (t) => {
+    const timestamp = new Date();
     // Create pin object & calculate cost
     const pin: Pin = {
       caption,
@@ -50,7 +51,7 @@ export const dropPinHandler = async (
       location: new GeoPoint(latitude, longitude),
       geohash: geohashForLocation([latitude, longitude]),
       authorUID: context.auth.uid,
-      timestamp: new Date(),
+      timestamp,
       finds: 0,
       cost: await calculateCost([latitude, longitude], t),
     };
@@ -74,13 +75,13 @@ export const dropPinHandler = async (
       type: ActivityType.DROP,
       id: pinRef.id,
       author: context.auth.uid,
-      timestamp: new Date(),
+      timestamp,
     };
 
     // Deduct currency & create pin
     t.update(privateDataRef, { currency: privateData.currency - pin.cost });
     t.create(pinRef, pin);
-    t.create(droppedRef, { cost: pin.cost, timestamp: new Date() });
+    t.create(droppedRef, { cost: pin.cost, timestamp });
     t.update(userRef, { numPinsDropped: FieldValue.increment(1) });
     t.set(
       activityRef,
@@ -130,6 +131,7 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
 
   // Perform pin read, reward calculation, & writes in one transaction
   return await firestore().runTransaction(async (t) => {
+    const timestamp = new Date();
     // Check pin exists
     const pinData: Pin = <Pin>(await pinRef.get()).data();
     if (pinData === undefined) {
@@ -165,14 +167,14 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
       type: ActivityType.FIND,
       id: pinRef.id,
       author: context.auth.uid,
-      timestamp: new Date(),
+      timestamp,
     };
 
     const reward = calculateReward(pinData);
     t.update(privateDataRef, { currency: FieldValue.increment(reward) });
     t.update(pinRef, { finds: FieldValue.increment(1) });
     t.update(userRef, { numPinsFound: FieldValue.increment(1) });
-    t.create(foundRef, { reward, timestamp: new Date() });
+    t.create(foundRef, { reward, timestamp });
     t.set(
       activityRef,
       { activity: FieldValue.arrayUnion(activity) },
