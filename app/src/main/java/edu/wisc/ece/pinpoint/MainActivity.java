@@ -65,24 +65,25 @@ public class MainActivity extends AppCompatActivity {
 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(new Runnable() {
-        @Override
-        public void run() {
+            @Override
+            public void run() {
 
-            PeriodicWorkRequest saveRequest =
-                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 15, TimeUnit.MINUTES)
-                            // Constraints
-                            .build();
+                PeriodicWorkRequest saveRequest =
+                        new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 15, TimeUnit.MINUTES)
+                                // Constraints
+                                .build();
 
-            WorkManager work = WorkManager.getInstance(getApplicationContext());
-            work.enqueue(saveRequest);
-                                }
-        },1);
+                WorkManager work = WorkManager.getInstance(getApplicationContext());
+                work.enqueue(saveRequest);
+            }
 
 
+        }, 1);
 
     }
 
     public void onMapButtonClick(View view) {
         navController.navigate(R.id.navbar_map);
     }
+
 }
