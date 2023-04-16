@@ -18,7 +18,6 @@ import java.util.Map;
 
 public class PinNotificationActivity extends Worker {
 
-    Button button;
 
     private Task<Location> location;
     private Location loc;
@@ -26,10 +25,10 @@ public class PinNotificationActivity extends Worker {
     double lat = 5.0;
     Object l;
 
+    private NotificationDriver notificationDriver;
+
     FirebaseDriver firebaseDriver;
     Map<String, Object> nearbyPins;
-
-    NotificationDriver notificationDriver;
 
     Context context;
     String x;
@@ -65,6 +64,7 @@ public class PinNotificationActivity extends Worker {
                        nearbyPins = task1.getResult();
                        int i = nearbyPins.size();
                        x = String.valueOf(i);
+
                        notificationDriver = NotificationDriver.getInstance(context);
                        notificationDriver.updatePersistent("Pins", x + " pins found nearby");
                    });
