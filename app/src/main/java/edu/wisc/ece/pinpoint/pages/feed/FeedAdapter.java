@@ -14,8 +14,6 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.auth.FirebaseAuth;
-
 import java.util.Date;
 
 import edu.wisc.ece.pinpoint.NavigationDirections;
@@ -28,13 +26,16 @@ import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder> {
     private final ActivityList activity;
+    private final FeedSource source;
     private final NavController navController;
     private final FirebaseDriver firebase;
     private final Fragment fragment;
     private Context parentContext;
 
-    public FeedAdapter(ActivityList activity, NavController navController, Fragment fragment) {
+    public FeedAdapter(ActivityList activity, NavController navController, Fragment fragment,
+                       FeedSource source) {
         this.activity = activity;
+        this.source = source;
         this.navController = navController;
         this.fragment = fragment;
         firebase = FirebaseDriver.getInstance();
@@ -57,11 +58,12 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         String author = action.getAuthor();
         ActivityItem.ActivityType type = action.getType();
         Date time = action.getTimestamp();
-        boolean isCurrentUser = author.equals(FirebaseAuth.getInstance().getUid());
+        boolean isCurrentUser = author.equals(firebase.getCurrentUser().getUid());
         // Set timestamp
         holder.timestamp.setText(FormatUtils.formattedDateTime(time));
         // Clicking on the picture of the action's author will navigate to their profile
-        holder.image.setOnClickListener(
+        // Don't navigate to profile if already on profile
+        if (source != FeedSource.PROFILE) holder.image.setOnClickListener(
                 view -> navController.navigate(NavigationDirections.profile().setUid(author)));
         // Clicking on the card will navigate to the action's relevant page
         holder.item.setOnClickListener(view -> {
@@ -115,20 +117,28 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 break;
             case FOLLOW:
                 holder.icon.setImageResource(R.drawable.ic_follow);
-                User cachedPinAuthor = firebase.getCachedUser(id);
-                if (cachedPinAuthor != null) {
-                    textContents = username + " followed " + cachedPinAuthor.getUsername();
+                if (firebase.getCurrentUser().getUid().equals(id)) {
+                    textContents = username + " followed you";
                 } else {
-                    firebase.fetchUser(id).addOnCompleteListener(task -> {
-                        String finalTextContents =
-                                username + " followed " + task.getResult().getUsername();
-                        holder.text.setText(finalTextContents);
-                    });
+                    User cachedPinAuthor = firebase.getCachedUser(id);
+                    if (cachedPinAuthor != null) {
+                        textContents = username + " followed " + cachedPinAuthor.getUsername();
+                    } else {
+                        firebase.fetchUser(id).addOnCompleteListener(task -> {
+                            String finalTextContents =
+                                    username + " followed " + task.getResult().getUsername();
+                            holder.text.setText(finalTextContents);
+                        });
+                    }
                 }
                 break;
         }
         if (!textContents.isEmpty()) holder.text.setText(textContents);
 
+    }
+
+    public enum FeedSource {
+        FEED, PROFILE
     }
 
     // View Holder Class to handle Recycler View.
