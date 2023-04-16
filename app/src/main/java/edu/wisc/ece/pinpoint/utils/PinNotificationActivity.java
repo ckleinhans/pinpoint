@@ -4,24 +4,16 @@ import androidx.annotation.NonNull;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
-import android.widget.Button;
-
-import com.google.android.gms.tasks.Task;
 
 import java.util.Map;
 
 public class PinNotificationActivity extends Worker {
 
-
-    private Task<Location> location;
     private Location loc;
-    private Task<Location> lastLocation;
     double lat = 5.0;
     Object l;
 
@@ -53,10 +45,7 @@ public class PinNotificationActivity extends Worker {
             {
                 LocationDriver locationDriver = LocationDriver.getInstance(context);
 
-               location =  locationDriver.getCurrentLocation(context);
-               lastLocation = locationDriver.getLastLocation(context);
-
-                locationDriver.getCurrentLocation(context).addOnCompleteListener(task -> {
+                locationDriver.getLastLocation(context).addOnCompleteListener(task -> {
                    loc = task.getResult();
                    if(loc != null){
                    firebaseDriver = FirebaseDriver.getInstance();
@@ -69,10 +58,7 @@ public class PinNotificationActivity extends Worker {
                        notificationDriver.updatePersistent("Pins", x + " pins found nearby");
                    });
                    }
-                   else{
-                        notificationDriver = NotificationDriver.getInstance(context);
-                        notificationDriver.updatePersistent("Location Access disabled", "no pins");
-                   }
+                  
                 });
             }
         }, 1000);
