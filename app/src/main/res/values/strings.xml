@@ -5,6 +5,8 @@
 
     <string name="app_name">PinPoint</string>
     <string name="follow_text">Follow</string>
+    <string name="unfollow_text">Unfollow</string>
+    <string name="follow_back_text">Follow Back</string>
     <string name="pins_found_text">Pins Found</string>
     <string name="pins_dropped_text">Pins Dropped</string>
     <string name="following_text">Following</string>
@@ -37,8 +39,6 @@
     <string name="pin_thumbnail_text">Pin Thumbnail</string>
     <string name="pin_image_text">Pin Image</string>
     <string name="drop_pin_button_text">Drop Pin -</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="caption_text">Caption</string>
     <string name="pin_content_text">Write your Pin here!</string>
     <string name="new_pin_title_text">Balance:</string>
@@ -59,6 +59,7 @@
     <string name="undiscovered_pin_message">Travel close to this pin and click here to reveal its contents!</string>
     <string name="insufficient_pinnies">Insufficient Pinnies</string>
     <string name="pin_fetch_error">Something went wrong fetching pins. Try again later.</string>
+    <string name="activity_fetch_error">Something went wrong fetching activity. Try again later.</string>
     <string name="undiscovered_pin_not_close_enough">You have to move a bit closer to this pin to discover it!</string>
     <string name="undiscovered_pin_locked">Travel close to this pin to unlock it on the map!</string>
     <string name="pin_finds_singular">1 find</string>
@@ -75,4 +76,5 @@
     <string name="loading_text">Loading…</string>
     <string name="no_nearby_locations_text">No nearby locations found.</string>
     <string name="nearby_place_fetch_error_message_short">Error fetching nearby locations</string>
+    <string name="feed_bar_text">Feed</string>
 </resources>

@@ -72,4 +72,15 @@
     <action
         android:id="@+id/pinView"
         app:destination="@id/pin_view" />
+    <fragment
+        android:id="@+id/navbar_feed"
+        android:name="edu.wisc.ece.pinpoint.pages.feed.FeedFragment"
+        android:label="fragment_feed"
+        tools:layout="@layout/fragment_feed" >
+        <argument
+            android:name="uid"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
 </navigation>
