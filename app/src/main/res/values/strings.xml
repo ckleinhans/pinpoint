@@ -77,4 +77,5 @@
     <string name="no_nearby_locations_text">No nearby locations found.</string>
     <string name="nearby_place_fetch_error_message_short">Error fetching nearby locations</string>
     <string name="feed_bar_text">Feed</string>
+    <string name="pin_location_icon_text">Pin Location Icon</string>
 </resources>

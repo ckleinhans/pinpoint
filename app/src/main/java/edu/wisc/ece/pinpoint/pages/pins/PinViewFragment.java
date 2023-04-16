@@ -43,6 +43,8 @@ public class PinViewFragment extends Fragment {
     private TextView foundCount;
     private TextView commentCount;
     private TextView textContent;
+    private TextView location;
+    private ConstraintLayout locationLayout;
     private ImageView imageContent;
     private ConstraintLayout metadataBar;
     private String pid;
@@ -63,6 +65,8 @@ public class PinViewFragment extends Fragment {
         authorUsername = requireView().findViewById(R.id.pin_author_username);
         authorProfilePic = requireView().findViewById(R.id.pin_author_profile_pic);
         caption = requireView().findViewById(R.id.pin_caption);
+        location = requireView().findViewById(R.id.pin_location);
+        locationLayout = requireView().findViewById(R.id.pin_location_layout);
         foundCount = requireView().findViewById(R.id.pin_found_count);
         commentCount = requireView().findViewById(R.id.pin_comment_count);
         textContent = requireView().findViewById(R.id.pin_text_content);
@@ -106,6 +110,17 @@ public class PinViewFragment extends Fragment {
             caption.setVisibility(View.GONE);
         } else {
             caption.setText(pin.getCaption());
+        }
+
+        String locationText = pin.getNearbyLocationName();
+        if (pin.getBroadLocationName() != null) {
+            locationText = locationText == null ? pin.getBroadLocationName() :
+                    String.format("%s in %s", locationText, pin.getBroadLocationName());
+        }
+        if (locationText != null) {
+            location.setText(locationText);
+        } else {
+            locationLayout.setVisibility(View.GONE);
         }
 
         foundCount.setText(pin.getFinds() == 1 ? getString(R.string.pin_finds_singular) :
