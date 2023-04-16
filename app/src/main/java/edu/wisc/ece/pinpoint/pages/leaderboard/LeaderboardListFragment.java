@@ -1,7 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.leaderboard;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +27,6 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class LeaderboardListFragment extends Fragment {
     public static final String LIST_TYPE_ARG_KEY = "leaderboardListType";
-    private static final String TAG = LeaderboardListFragment.class.getName();
     private FirebaseDriver firebase;
     private LeaderboardListType listType;
 
@@ -53,6 +51,7 @@ public class LeaderboardListFragment extends Fragment {
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        // TODO: update adapter to ListAdapter
         recyclerView.setAdapter(
                 new LeaderboardListAdapter(new ArrayList<>(), navController, this, listType));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -60,18 +59,13 @@ public class LeaderboardListFragment extends Fragment {
         // Get list type from arguments
         listType = LeaderboardListType.valueOf(requireArguments().getString(LIST_TYPE_ARG_KEY));
         List<String> userIds = new ArrayList<>();
-        // TODO: add all users following
-        List<String> followingUserIds = new ArrayList<>();
-        followingUserIds.add(firebase.getCurrentUser().getUid());
-        followingUserIds.add("xXKqynqDzpQTdHcexauUKi1bXnb2");
-        followingUserIds.add("Ep3cXdoTQtZXUBofZ4emifyMVdX2");
+        String uid = firebase.getCurrentUser().getUid();
+        userIds.add(uid);
         List<Task<Void>> fetchTasks = new ArrayList<>();
-        for (String userId : followingUserIds) {
+        for (String userId : firebase.getCachedSocials(uid).getFollowing()) {
             if (firebase.getCachedUser(userId) == null) {
                 fetchTasks.add(firebase.fetchUser(userId).continueWith(task -> {
                     if (!task.isSuccessful()) {
-                        // Couldn't fetch user, don't add user to list
-                        Log.w(TAG, task.getException());
                         Toast.makeText(requireContext(), R.string.user_fetch_error_message,
                                 Toast.LENGTH_SHORT).show();
                     } else {

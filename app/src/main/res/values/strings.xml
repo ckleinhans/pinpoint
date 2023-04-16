@@ -72,4 +72,5 @@
     <string name="pin_delete_confirm_title">Confirm Pin Deletion</string>
     <string name="delete_text">Delete</string>
     <string name="feed_bar_text">Feed</string>
+    <string name="user_rank_text">User Rank</string>
 </resources>
