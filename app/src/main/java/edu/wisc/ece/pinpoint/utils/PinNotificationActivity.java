@@ -78,6 +78,6 @@ public class PinNotificationActivity extends Worker {
         }, 1000);
 
         // Indicate whether the work finished successfully with the Result
-        return Result.retry();
+        return Result.success();
     }
             }
