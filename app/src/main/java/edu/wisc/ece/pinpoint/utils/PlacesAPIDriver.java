@@ -24,10 +24,10 @@ public class PlacesAPIDriver {
             Arrays.asList(Type.AIRPORT, Type.AMUSEMENT_PARK, Type.AQUARIUM, Type.ART_GALLERY,
                     Type.BAKERY, Type.BAR, Type.BOOK_STORE, Type.BOWLING_ALLEY, Type.CAFE,
                     Type.CAMPGROUND, Type.CASINO, Type.CHURCH, Type.GYM, Type.HINDU_TEMPLE,
-                    Type.LIBRARY, Type.MOSQUE, Type.MUSEUM, Type.NIGHT_CLUB, Type.PARK,
-                    Type.RESTAURANT, Type.PRIMARY_SCHOOL, Type.SECONDARY_SCHOOL, Type.SCHOOL,
-                    Type.SHOPPING_MALL, Type.STADIUM, Type.SYNAGOGUE, Type.TOURIST_ATTRACTION,
-                    Type.UNIVERSITY, Type.ZOO));
+                    Type.LIBRARY, Type.MOSQUE, Type.MUSEUM, Type.NATURAL_FEATURE, Type.NIGHT_CLUB,
+                    Type.PARK, Type.RESTAURANT, Type.PRIMARY_SCHOOL, Type.SECONDARY_SCHOOL,
+                    Type.SCHOOL, Type.SHOPPING_MALL, Type.STADIUM, Type.SYNAGOGUE,
+                    Type.TOURIST_ATTRACTION, Type.UNIVERSITY, Type.ZOO));
     private static PlacesAPIDriver instance;
     private final PlacesClient client;
 
@@ -76,13 +76,13 @@ public class PlacesAPIDriver {
             places.add(String.format("%s, %s", city, state));
             // Iterate through remaining places to filter out irrelevant types
             for (PlaceLikelihood likelihood : likelihoods) {
-                //noinspection ConstantConditions
-                for (Type type : likelihood.getPlace().getTypes()) {
-                    if (NEARBY_PLACE_TYPE_FILTER.contains(type)) {
-                        places.add(likelihood.getPlace().getName());
-                        break;
+                if (likelihood.getPlace().getTypes() != null)
+                    for (Type type : likelihood.getPlace().getTypes()) {
+                        if (NEARBY_PLACE_TYPE_FILTER.contains(type)) {
+                            places.add(likelihood.getPlace().getName());
+                            break;
+                        }
                     }
-                }
             }
             return places;
         });

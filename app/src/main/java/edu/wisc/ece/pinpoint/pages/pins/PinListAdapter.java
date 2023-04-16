@@ -64,10 +64,18 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
                     view -> Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
                             Toast.LENGTH_SHORT).show());
         }
-        // Set timestamp to metadata timestamps
-        holder.overlayText.setText(
-                String.format("%s\n%s", FormatUtils.formattedDate(metadata.getTimestamp()),
-                        FormatUtils.formattedTime(metadata.getTimestamp())));
+
+        if (metadata.getBroadLocationName() != null) {
+            holder.broadLocation.setText(metadata.getBroadLocationName());
+        } else {
+            holder.broadLocation.setVisibility(View.GONE);
+        }
+        if (metadata.getNearbyLocationName() != null) {
+            holder.nearbyLocation.setText(metadata.getNearbyLocationName());
+        } else {
+            holder.nearbyLocation.setVisibility(View.GONE);
+        }
+        holder.timestamp.setText(FormatUtils.formattedDateTime(metadata.getTimestamp()));
     }
 
     @Override
@@ -79,13 +87,17 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     public static class PinListViewHolder extends RecyclerView.ViewHolder {
         private final CardView item;
         private final ImageView image;
-        private final TextView overlayText;
+        private final TextView timestamp;
+        private final TextView nearbyLocation;
+        private final TextView broadLocation;
 
         public PinListViewHolder(@NonNull View itemView) {
             super(itemView);
             item = itemView.findViewById(R.id.pinlist_item);
             image = itemView.findViewById(R.id.pinlist_item_image);
-            overlayText = itemView.findViewById(R.id.pinlist_image_text);
+            timestamp = itemView.findViewById(R.id.pinlist_image_timestamp);
+            nearbyLocation = itemView.findViewById(R.id.pinlist_image_nearby_location);
+            broadLocation = itemView.findViewById(R.id.pinlist_image_broad_location);
         }
     }
 }

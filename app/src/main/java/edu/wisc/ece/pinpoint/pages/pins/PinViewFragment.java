@@ -112,11 +112,8 @@ public class PinViewFragment extends Fragment {
             caption.setText(pin.getCaption());
         }
 
-        String locationText = pin.getNearbyLocationName();
-        if (pin.getBroadLocationName() != null) {
-            locationText = locationText == null ? pin.getBroadLocationName() :
-                    String.format("%s in %s", locationText, pin.getBroadLocationName());
-        }
+        String locationText = FormatUtils.formattedPinLocation(pin.getBroadLocationName(),
+                pin.getNearbyLocationName());
         if (locationText != null) {
             location.setText(locationText);
         } else {

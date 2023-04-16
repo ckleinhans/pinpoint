@@ -19,6 +19,15 @@ export type Pin = {
   cost: number;
 };
 
+export type PinMetadata = {
+  pinId: String;
+  cost?: number;
+  reward?: number;
+  timestamp: Date;
+  broadLocationName: String;
+  nearbyLocationName: String;
+}
+
 export enum ActivityType {
   DROP = "DROP",
   FIND = "FIND",

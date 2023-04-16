@@ -184,6 +184,7 @@ public class FirebaseDriver {
         return batch.commit().addOnFailureListener(e -> Log.w(TAG, "Error creating new user:", e));
     }
 
+    // TODO: update to match updated DB structure
     public Task<OrderedPinMetadata> fetchFoundPins() {
         OrderedPinMetadata foundPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
@@ -195,8 +196,10 @@ public class FirebaseDriver {
             List<Task<Pin>> fetchTasks = new ArrayList<>();
             for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
                 String pinId = documentSnapshot.getId();
-                foundPinMetadata.add(
-                        new PinMetadata(pinId, documentSnapshot.get("timestamp", Date.class)));
+                PinMetadata metadata = documentSnapshot.toObject(PinMetadata.class);
+                //noinspection ConstantConditions
+                metadata.setPinId(pinId);
+                foundPinMetadata.add(metadata);
                 if (getCachedPin(pinId) == null) {
                     fetchTasks.add(fetchPin(pinId).continueWith(t -> {
                         // If pin no longer exists don't add to cache
@@ -228,8 +231,10 @@ public class FirebaseDriver {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
                         String pinId = documentSnapshot.getId();
-                        droppedPinMetadata.add(new PinMetadata(pinId,
-                                documentSnapshot.get("timestamp", Date.class)));
+                        PinMetadata metadata = documentSnapshot.toObject(PinMetadata.class);
+                        //noinspection ConstantConditions
+                        metadata.setPinId(pinId);
+                        droppedPinMetadata.add(metadata);
                         if (getCachedPin(pinId) == null) {
                             fetchTasks.add(fetchPin(pinId).continueWith(t -> {
                                 // If pin no longer exists don't add to cache
@@ -266,8 +271,10 @@ public class FirebaseDriver {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
                         String pinId = documentSnapshot.getId();
-                        newUserPinMetadata.add(new PinMetadata(pinId,
-                                documentSnapshot.get("timestamp", Date.class)));
+                        PinMetadata metadata = documentSnapshot.toObject(PinMetadata.class);
+                        //noinspection ConstantConditions
+                        metadata.setPinId(pinId);
+                        newUserPinMetadata.add(metadata);
                         // Only fetch pins that the user has found
                         if (getCachedPin(pinId) == null && foundPinMetadata.contains(pinId)) {
                             fetchTasks.add(fetchPin(pinId));
@@ -338,7 +345,8 @@ public class FirebaseDriver {
         return functions.getHttpsCallable("dropPin").call(newPin.serialize()).continueWith(task -> {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
-            droppedPinMetadata.add(new PinMetadata(pid, new Date()));
+            droppedPinMetadata.add(new PinMetadata(pid, new Date(), newPin.getBroadLocationName(),
+                    newPin.getNearbyLocationName()));
             activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.DROP));
             pinnies -= cost;
             return pid;
@@ -358,8 +366,12 @@ public class FirebaseDriver {
 
         return functions.getHttpsCallable("findPin").call(data).addOnSuccessListener(task -> {
             // TODO: make cloud function return reward & update cached pinnie count with it
+            //noinspection unchecked
+            Map<String, String> result = (Map<String, String>) task.getData();
             activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND));
-            foundPinMetadata.add(new PinMetadata(pid, new Date()));
+            //noinspection ConstantConditions
+            foundPinMetadata.add(new PinMetadata(pid, new Date(), result.get("broadLocationName"),
+                    result.get("nearbyLocationName")));
         }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin.", e));
     }
 
@@ -400,6 +412,12 @@ public class FirebaseDriver {
         batch.delete(
                 db.collection("users").document(auth.getUid()).collection("dropped").document(pid));
         return batch.commit().addOnSuccessListener(t -> {
+            Pin pin = pins.get(pid);
+            if (pin != null && pin.getType() == Pin.PinType.IMAGE) {
+                storage.getReference("pins").child(pid).delete()
+                        .addOnFailureListener(e -> Log.w(TAG, "Error deleting pin image.", e))
+                        .addOnSuccessListener(t2 -> Log.d(TAG, "Successfully deleted pin image."));
+            }
             pins.remove(pid);
             droppedPinMetadata.remove(pid);
         }).addOnFailureListener(e -> Log.w(TAG, "Error deleting pin.", e));

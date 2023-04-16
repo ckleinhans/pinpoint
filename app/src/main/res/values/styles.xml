@@ -6,6 +6,11 @@
         <item name="cornerSize">50%</item>
     </style>
 
+    <style name="TextAppearance.Pinpoint.ImageOverlay" parent="TextAppearance.Pinpoint.SmallThickText">
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
     <style name="TextAppearance.Pinpoint.Numbers" parent="TextAppearance.Pinpoint.ThickText">
         <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">0</item>

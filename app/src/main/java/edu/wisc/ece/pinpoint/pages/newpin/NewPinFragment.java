@@ -41,6 +41,9 @@ import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
 public class NewPinFragment extends Fragment {
     private static final String TAG = NewPinFragment.class.getName();
+
+    private static final int LOADING_LOCATIONS = -2;
+    private static final int NO_LOCATIONS_FOUND = -1;
     private FirebaseDriver firebase;
     private LocationDriver locationDriver;
     private NestedScrollView scrollView;
@@ -69,7 +72,7 @@ public class NewPinFragment extends Fragment {
         super.onCreate(savedInstanceState);
         firebase = FirebaseDriver.getInstance();
         locationDriver = LocationDriver.getInstance(requireContext());
-        selectedLocationIndex = -1;
+        selectedLocationIndex = LOADING_LOCATIONS;
     }
 
     @Override
@@ -183,10 +186,11 @@ public class NewPinFragment extends Fragment {
         }).addOnSuccessListener(places -> {
             if (places.size() > 0) {
                 locationNameAdapter.addAll(places);
+                selectedLocationIndex = 0;
             } else {
                 locationNameInput.setText(R.string.no_nearby_locations_text);
+                selectedLocationIndex = NO_LOCATIONS_FOUND;
             }
-            selectedLocationIndex = 0;
         });
     }
 
@@ -265,7 +269,7 @@ public class NewPinFragment extends Fragment {
     private void createNewPin() {
         dropButton.setEnabled(false);
         PinType type = viewPager.getCurrentItem() == 0 ? PinType.TEXT : PinType.IMAGE;
-        String caption = captionInput.getText().toString();
+        String caption = captionInput.getText().toString().trim();
 
         if (type == PinType.TEXT) {
             textContentInput = requireView().findViewById(R.id.newpin_text_content_input);
@@ -298,7 +302,8 @@ public class NewPinFragment extends Fragment {
                     .show();
             dropButton.setEnabled(true);
             return;
-        } else if (selectedLocationIndex < 0 || ValidationUtils.isEmpty(locationNameInput)) {
+        } else if (selectedLocationIndex == LOADING_LOCATIONS || ValidationUtils.isEmpty(
+                locationNameInput)) {
             Toast.makeText(requireContext(), R.string.nearby_location_name_missing_message,
                     Toast.LENGTH_LONG).show();
             dropButton.setEnabled(true);
