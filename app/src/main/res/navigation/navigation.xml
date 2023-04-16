@@ -8,7 +8,7 @@
         android:id="@+id/navbar_map"
         android:name="edu.wisc.ece.pinpoint.pages.map.MapContainerFragment"
         android:label="fragment_map"
-        tools:layout="@layout/fragment_map_container" >
+        tools:layout="@layout/fragment_map_container">
         <action
             android:id="@+id/newPin"
             app:destination="@id/new_pin_fragment" />
