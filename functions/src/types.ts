@@ -16,3 +16,17 @@ export type Pin = {
   finds: number;
   cost: number;
 };
+
+export enum ActivityType {
+  DROP = "DROP",
+  FIND = "FIND",
+  COMMENT = "COMMENT",
+  FOLLOW = "FOLLOW",
+}
+
+export type Activity = {
+  type: ActivityType;
+  id: string;
+  author: string;
+  timestamp: Date;
+};

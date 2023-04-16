@@ -13,12 +13,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.UserInfo;
 
 import java.util.Arrays;
 
-import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class AuthActivity extends AppCompatActivity {
@@ -46,6 +43,8 @@ public class AuthActivity extends AppCompatActivity {
                 (result) -> {
                     if (result.getResultCode() == RESULT_OK) {
                         if (firebase.isNewUser()) {
+                            // TODO: currently don't handle if this call fails, which would make
+                            //  user's app crash on launch & be unusable
                             firebase.handleNewUser();
                         }
                         if (!firebase.isVerified()) {

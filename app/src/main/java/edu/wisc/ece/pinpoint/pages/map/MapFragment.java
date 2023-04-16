@@ -239,7 +239,6 @@ public class MapFragment extends Fragment {
     }
 
     private void setPinnieCount() {
-
         if (firebase.getCachedPinnies() != null) {
             pinnieCount = firebase.getCachedPinnies();
             setPinniesUI();

@@ -28,7 +28,7 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
 
     @SuppressLint("InflateParams")
     public InfoAdapter(Context context) {
-        this.view = LayoutInflater.from(context).inflate(R.layout.info_window_layout, null);
+        this.view = LayoutInflater.from(context).inflate(R.layout.view_info_window_layout, null);
         title = view.findViewById(R.id.infoTitle);
         message = view.findViewById(R.id.infoMessage);
         image = view.findViewById(R.id.infoImage);
