@@ -20,7 +20,6 @@ export type Pin = {
 };
 
 export type PinMetadata = {
-  pinId: String;
   cost?: number;
   reward?: number;
   timestamp: Date;

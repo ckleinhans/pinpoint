@@ -70,7 +70,6 @@ export const dropPinHandler = async (
     if (type === PinType.TEXT) pin.textContent = textContent;
 
     const metadata: PinMetadata = {
-      pinId: pinRef.id,
       cost: pin.cost,
       timestamp,
       broadLocationName,
@@ -185,7 +184,6 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
     const reward = calculateReward(pinData);
 
     const metadata: PinMetadata = {
-      pinId: pid,
       reward,
       timestamp,
       nearbyLocationName: pinData.nearbyLocationName,
