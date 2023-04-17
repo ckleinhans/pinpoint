@@ -156,7 +156,9 @@ public class FirebaseDriver {
 
         // Create user object
         FirebaseUser user = getCurrentUser();
-        User userData = new User(user.getDisplayName());
+        String username = user.getDisplayName() == null ? null :
+                user.getDisplayName().trim().substring(0, 20);
+        User userData = new User(username);
         UserInfo providerData = user.getProviderData().get(1);
         if (providerData.getPhotoUrl() != null) {
             userData.setProfilePicUrl(providerData.getPhotoUrl().toString());
