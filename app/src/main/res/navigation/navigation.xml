@@ -73,6 +73,11 @@
         android:id="@+id/pinView"
         app:destination="@id/pin_view" />
     <fragment
+        android:id="@+id/navbar_leaderboard"
+        android:name="edu.wisc.ece.pinpoint.pages.leaderboard.LeaderboardFragment"
+        android:label="fragment_leaderboard"
+        tools:layout="@layout/fragment_leaderboard" />
+    <fragment
         android:id="@+id/navbar_feed"
         android:name="edu.wisc.ece.pinpoint.pages.feed.FeedFragment"
         android:label="fragment_feed"

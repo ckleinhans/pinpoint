@@ -99,6 +99,11 @@ public class AuthActivity extends AppCompatActivity {
 
     public void logout(View view) {
         showView(R.id.loading_view);
+        if (reloadAuthHandler != null) {
+            reloadAuthHandler.removeCallbacksAndMessages(null);
+            reloadAuthHandler = null;
+            Log.d(TAG, "Auth reload stopped.");
+        }
         firebase.logout(this).addOnCompleteListener(task -> launchAuth());
     }
 

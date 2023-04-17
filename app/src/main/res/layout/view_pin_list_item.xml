@@ -17,15 +17,39 @@
         android:contentDescription="@string/pin_thumbnail_text"
         android:src="@drawable/ic_camera" />
 
-    <TextView
-        android:id="@+id/pinlist_image_text"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:background="@drawable/image_overlay_gradient"
-        android:paddingHorizontal="5dp"
+        android:paddingHorizontal="4dp"
         android:paddingTop="10dp"
-        android:textColor="@color/white"
-        android:textFontWeight="500" />
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:id="@+id/pinlist_image_nearby_location"
+            style="@style/TextAppearance.Pinpoint.ImageOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lines="1"
+            app:layout_constraintBottom_toTopOf="@+id/pinlist_image_broad_location" />
+
+        <TextView
+            android:id="@+id/pinlist_image_broad_location"
+            style="@style/TextAppearance.Pinpoint.ImageOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:lines="1"
+            app:layout_constraintBottom_toTopOf="@+id/pinlist_image_timestamp" />
+
+        <TextView
+            android:id="@+id/pinlist_image_timestamp"
+            style="@style/TextAppearance.Pinpoint.ImageOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView>
