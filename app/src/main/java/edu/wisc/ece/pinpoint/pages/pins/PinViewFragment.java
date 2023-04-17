@@ -281,7 +281,7 @@ public class PinViewFragment extends Fragment {
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());
         commentRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 1));
-        commentRecyclerView.setAdapter(new PinCommentAdapter(comments, navController));
+        commentRecyclerView.setAdapter(new PinCommentAdapter(comments, navController, this));
         commentRecyclerView.setItemAnimator(new DefaultItemAnimator());
         commentRecyclerView.setNestedScrollingEnabled(false);
     }

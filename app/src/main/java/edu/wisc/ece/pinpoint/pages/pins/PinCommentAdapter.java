@@ -7,10 +7,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.card.MaterialCardView;
 import java.util.ArrayList;
+
+import edu.wisc.ece.pinpoint.NavigationDirections;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.User;
@@ -22,11 +25,13 @@ public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.Pi
     private final NavController navController;
     private final ArrayList<Comment> comments;
     private Context parentContext;
+    private final Fragment fragment;
 
-    public PinCommentAdapter(ArrayList<Comment> comments, NavController navController) {
+    public PinCommentAdapter(ArrayList<Comment> comments, NavController navController, Fragment fragment) {
         firebase = FirebaseDriver.getInstance();
         this.navController = navController;
         this.comments = comments;
+        this.fragment = fragment;
     }
 
     @NonNull
@@ -44,6 +49,11 @@ public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.Pi
         FirebaseDriver instance = FirebaseDriver.getInstance();
         holder.content.setText(comment.getContent());
         holder.timestamp.setText(comment.getTimestamp().toString());
+        holder.image.setOnClickListener(
+                view -> navController
+                        .navigate(NavigationDirections.profile()
+                                .setUid(comment.getAuthorUID()))
+        );
 
         User user = instance.getCachedUser(comment.getAuthorUID());
         if (user == null) {
@@ -51,9 +61,11 @@ public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.Pi
                     .addOnCompleteListener(t -> {
                         User res = t.getResult();
                         holder.username.setText(res.getUsername());
+                        res.loadProfilePic(holder.image, fragment);
                     });
         } else {
             holder.username.setText(user.getUsername());
+            user.loadProfilePic(holder.image, fragment);
         }
     }
 
