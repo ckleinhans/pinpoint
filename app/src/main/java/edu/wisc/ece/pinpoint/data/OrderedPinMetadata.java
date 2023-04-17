@@ -54,7 +54,7 @@ public class OrderedPinMetadata {
      * @return true if the item was removed, false if it wasn't present
      */
     public boolean remove(String pinId) {
-        Integer listIndex = hashMap.remove(new PinMetadata(pinId, null));
+        Integer listIndex = hashMap.remove(new PinMetadata(pinId, null, null));
         if (listIndex == null) {
             return false;
         }
@@ -89,7 +89,7 @@ public class OrderedPinMetadata {
      * @return true if present, false if not
      */
     public boolean contains(String pinId) {
-        return hashMap.containsKey(new PinMetadata(pinId, null));
+        return hashMap.containsKey(new PinMetadata(pinId, null, null));
     }
 
     /**
