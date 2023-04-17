@@ -11,7 +11,7 @@ public class Comment {
 
     private String content;
     private String authorUID;
-    @ServerTimestamp Date timestamp;
+    private Date timestamp;
 
     public Comment() {}
 
@@ -21,6 +21,7 @@ public class Comment {
         this.authorUID = instance
                 .getCurrentUser()
                 .getUid();
+        this.timestamp = new Date();
     }
 
     public Date getTimestamp() { return timestamp; }
