@@ -142,12 +142,42 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/pin_location_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/pin_caption">
+
+            <ImageView
+                android:id="@+id/pin_location_icon"
+                android:layout_width="17dp"
+                android:layout_height="17dp"
+                android:layout_marginStart="-4dp"
+                android:contentDescription="@string/pin_location_icon_text"
+                android:src="@drawable/ic_map"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/pin_location"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:lines="1"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/pin_location_icon"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
         <TextView
             android:id="@+id/pin_found_count"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/pin_caption" />
+            app:layout_constraintTop_toBottomOf="@+id/pin_location_layout" />
 
         <TextView
             android:id="@+id/pin_comment_count"
@@ -155,6 +185,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             app:layout_constraintStart_toEndOf="@+id/pin_found_count"
-            app:layout_constraintTop_toBottomOf="@+id/pin_caption" />
+            app:layout_constraintTop_toBottomOf="@+id/pin_location_layout" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

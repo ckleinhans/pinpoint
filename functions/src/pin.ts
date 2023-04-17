@@ -4,13 +4,21 @@ import * as functions from "firebase-functions";
 import { distanceBetween, geohashForLocation } from "geofire-common";
 
 import { calculateCost, calculateReward } from "./cost";
-import { Activity, ActivityType, Pin, PinType } from "./types";
+import { Activity, ActivityType, Pin, PinMetadata, PinType } from "./types";
 
 const PIN_FIND_RADIUS_KILOMETERS = 0.02; // 20 meters
 
 // TODO: add anti-spoof check before dropping pin
 export const dropPinHandler = async (
-  { textContent, caption, type, latitude, longitude },
+  {
+    textContent,
+    caption,
+    type,
+    latitude,
+    longitude,
+    nearbyLocationName,
+    broadLocationName,
+  },
   context
 ) => {
   // Validate auth status and args
@@ -24,6 +32,8 @@ export const dropPinHandler = async (
     !type ||
     !latitude ||
     !longitude ||
+    // TODO: uncomment once merged
+    // !broadLocationName ||
     (type === PinType.TEXT && !textContent)
   ) {
     throw new functions.https.HttpsError(
@@ -49,6 +59,8 @@ export const dropPinHandler = async (
       caption,
       type,
       location: new GeoPoint(latitude, longitude),
+      nearbyLocationName,
+      broadLocationName,
       geohash: geohashForLocation([latitude, longitude]),
       authorUID: context.auth.uid,
       timestamp,
@@ -56,6 +68,13 @@ export const dropPinHandler = async (
       cost: await calculateCost([latitude, longitude], t),
     };
     if (type === PinType.TEXT) pin.textContent = textContent;
+
+    const metadata: PinMetadata = {
+      cost: pin.cost,
+      timestamp,
+      broadLocationName,
+      nearbyLocationName,
+    };
 
     // Check user has sufficient currency
     const privateData = (await t.get(privateDataRef)).data();
@@ -76,12 +95,14 @@ export const dropPinHandler = async (
       id: pinRef.id,
       author: context.auth.uid,
       timestamp,
+      broadLocationName,
+      nearbyLocationName,
     };
 
     // Deduct currency & create pin
     t.update(privateDataRef, { currency: privateData.currency - pin.cost });
     t.create(pinRef, pin);
-    t.create(droppedRef, { cost: pin.cost, timestamp });
+    t.create(droppedRef, metadata);
     t.update(userRef, { numPinsDropped: FieldValue.increment(1) });
     t.set(
       activityRef,
@@ -162,24 +183,37 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
       );
     }
 
+    const reward = calculateReward(pinData);
+
+    const metadata: PinMetadata = {
+      reward,
+      timestamp,
+      nearbyLocationName: pinData.nearbyLocationName,
+      broadLocationName: pinData.broadLocationName,
+    };
+
     // Create activity to push
     const activity: Activity = {
       type: ActivityType.FIND,
       id: pinRef.id,
       author: context.auth.uid,
       timestamp,
+      nearbyLocationName: pinData.nearbyLocationName,
+      broadLocationName: pinData.broadLocationName,
     };
 
-    const reward = calculateReward(pinData);
     t.update(privateDataRef, { currency: FieldValue.increment(reward) });
     t.update(pinRef, { finds: FieldValue.increment(1) });
     t.update(userRef, { numPinsFound: FieldValue.increment(1) });
-    t.create(foundRef, { reward, timestamp });
+    t.create(foundRef, metadata);
     t.set(
       activityRef,
       { activity: FieldValue.arrayUnion(activity) },
       { merge: true }
     );
-    return pinData;
+    return {
+      nearbyLocationName: pinData.nearbyLocationName,
+      broadLocationName: pinData.broadLocationName,
+    };
   });
 };
