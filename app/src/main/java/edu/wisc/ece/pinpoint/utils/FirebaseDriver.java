@@ -202,8 +202,13 @@ public class FirebaseDriver {
                 foundPinMetadata.add(metadata);
                 if (getCachedPin(pinId) == null) {
                     fetchTasks.add(fetchPin(pinId).continueWith(t -> {
-                        // If pin no longer exists don't add to cache
+                        // If pin no longer exists don't add to cache & remove from db
                         if (t.isSuccessful() && t.getResult() == null) {
+                            db.collection("users").document(auth.getUid()).collection("found")
+                                    .document(pinId).delete().addOnFailureListener(e -> Log.w(TAG,
+                                            "Error deleting found record for " + "deleted pin.", e))
+                                    .addOnSuccessListener(t2 -> Log.d(TAG,
+                                            "Successfully deleted found record for deleted pin."));
                             foundPinMetadata.remove(pinId);
                         }
                         return t.getResult();
@@ -237,8 +242,15 @@ public class FirebaseDriver {
                         droppedPinMetadata.add(metadata);
                         if (getCachedPin(pinId) == null) {
                             fetchTasks.add(fetchPin(pinId).continueWith(t -> {
-                                // If pin no longer exists don't add to cache
+                                // If pin no longer exists don't add to cache & remove from db
                                 if (t.isSuccessful() && t.getResult() == null) {
+                                    db.collection("users").document(auth.getUid())
+                                            .collection("dropped").document(pinId).delete()
+                                            .addOnFailureListener(e -> Log.w(TAG,
+                                                    "Error deleting dropped record for deleted " + "pin.",
+                                                    e)).addOnSuccessListener(t2 -> Log.d(TAG,
+                                                    "Successfully deleted dropped record for " +
+                                                            "deleted pin."));
                                     droppedPinMetadata.remove(pinId);
                                 }
                                 return t.getResult();
@@ -299,18 +311,23 @@ public class FirebaseDriver {
         return db.collection("pins").document(pid).get().continueWith(task -> {
             Pin pin = task.getResult().toObject(Pin.class);
             if (pin == null) {
-                // Pin was deleted, delete from cache & db found/dropped collections
+                // Pin was deleted, delete from cache & found/dropped pins if they exist
                 pins.remove(pid);
                 if (foundPinMetadata != null) {
-                    if (foundPinMetadata.remove(pid)) {
+                    if (foundPinMetadata.remove(pid))
                         db.collection("users").document(auth.getUid()).collection("found")
-                                .document(pid).delete();
-                    }
+                                .document(pid).delete().addOnFailureListener(
+                                        e -> Log.w(TAG, "Error deleting found record for deleted "
+                                                        + "pin.",
+                                                e)).addOnSuccessListener(t -> Log.d(TAG,
+                                        "Successfully deleted found record for deleted pin."));
                 } else if (droppedPinMetadata != null) {
-                    if (droppedPinMetadata.remove(pid)) {
+                    if (droppedPinMetadata.remove(pid))
                         db.collection("users").document(auth.getUid()).collection("dropped")
-                                .document(pid).delete();
-                    }
+                                .document(pid).delete().addOnFailureListener(e -> Log.w(TAG,
+                                        "Error deleting dropped record for " + "deleted pin.", e))
+                                .addOnSuccessListener(t -> Log.d(TAG,
+                                        "Successfully deleted dropped record for deleted pin."));
                 }
             } else {
                 pins.put(pid, pin);
