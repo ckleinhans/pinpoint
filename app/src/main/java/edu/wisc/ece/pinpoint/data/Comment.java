@@ -1,5 +1,7 @@
 package edu.wisc.ece.pinpoint.data;
 
+import com.google.firebase.firestore.ServerTimestamp;
+
 import java.util.Date;
 import java.util.HashMap;
 
@@ -9,16 +11,16 @@ public class Comment {
 
     private String content;
     private String authorUID;
-    private Date timestamp;
+    @ServerTimestamp Date timestamp;
 
     public Comment() {}
 
     public Comment(String content) {
+        FirebaseDriver instance = FirebaseDriver.getInstance();
         this.content = content;
-        this.authorUID = FirebaseDriver.getInstance()
+        this.authorUID = instance
                 .getCurrentUser()
                 .getUid();
-        this.timestamp = new Date();
     }
 
     public Date getTimestamp() { return timestamp; }

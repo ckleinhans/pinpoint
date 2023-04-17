@@ -554,11 +554,8 @@ public class FirebaseDriver {
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
         return functions.getHttpsCallable("calcPinCost").call(data)
-<<<<<<< HEAD
                 .continueWith(task -> (Integer) task.getResult().getData())
                 .addOnFailureListener(e -> Log.w(TAG, "Error calculating pin cost.", e));
-=======
-                .continueWith(task -> (Integer) task.getResult().getData());
     }
 
     public void postComment(Comment comment, String pid) {
@@ -584,6 +581,5 @@ public class FirebaseDriver {
                         return null;
                     }
                 });
->>>>>>> 858eab2 (Add Commenting backend logic)
     }
 }
