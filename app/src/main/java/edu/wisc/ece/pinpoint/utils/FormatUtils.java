@@ -4,6 +4,8 @@ import java.text.DateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import javax.annotation.Nullable;
+
 public class FormatUtils {
     public static String humanReadablePinnies(Long pinniesCount) {
         String suffix;
@@ -23,6 +25,14 @@ public class FormatUtils {
         }
 
         return String.format(Locale.US, "%.2f%s", value, suffix);
+    }
+
+    @Nullable
+    public static String formattedPinLocation(@Nullable String broadLocationName,
+                                              @Nullable String nearbyLocationName) {
+        return nearbyLocationName != null ?
+                String.format("near %s in %s", nearbyLocationName, broadLocationName) :
+                String.format("in %s", broadLocationName);
     }
 
     public static String formattedDateTime(Date timestamp) {
