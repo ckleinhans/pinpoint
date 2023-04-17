@@ -196,9 +196,6 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="20dp"
             app:layout_constraintStart_toEndOf="@+id/pin_found_count"
-<<<<<<< HEAD
-            app:layout_constraintTop_toBottomOf="@+id/pin_location_layout" />
-=======
             app:layout_constraintTop_toBottomOf="@+id/pin_caption" />
 
         <ImageView
@@ -217,7 +214,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
->>>>>>> 2f26601 (Add button to display and hide comment input layout)
     </androidx.constraintlayout.widget.ConstraintLayout>
 
             <ImageView
@@ -245,6 +241,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:layout_constraintTop_toBottomOf="@+id/pin_info_layout"
+                app:layout_constraintEnd_toStartOf="@+id/send_comment_button"
                 android:layout_marginHorizontal="5dp"
                 android:paddingRight="80dp"
                 android:visibility="gone">
@@ -254,7 +251,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:importantForAutofill="no"
-                    android:hint="@string/add_a_comment" />
+                    android:hint="@string/add_a_comment"
+                    android:maxLength="256" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <androidx.recyclerview.widget.RecyclerView
