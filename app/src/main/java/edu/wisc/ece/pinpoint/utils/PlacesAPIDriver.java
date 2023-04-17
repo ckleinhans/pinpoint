@@ -3,6 +3,7 @@ package edu.wisc.ece.pinpoint.utils;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.util.Log;
 
 import androidx.annotation.RequiresPermission;
 
@@ -79,6 +80,13 @@ public class PlacesAPIDriver {
                 if (likelihood.getPlace().getTypes() != null)
                     for (Type type : likelihood.getPlace().getTypes()) {
                         if (NEARBY_PLACE_TYPE_FILTER.contains(type)) {
+                            // if type is natural feature filter out continents
+                            if (type == Type.NATURAL_FEATURE) {
+                                if (likelihood.getPlace().getTypes().contains(Type.CONTINENT))
+                                    break;
+                            }
+                            Log.d("TEST", String.valueOf(likelihood.getPlace().getName()));
+                            Log.d("TEST", String.valueOf(likelihood.getPlace().getTypes()));
                             places.add(likelihood.getPlace().getName());
                             break;
                         }
