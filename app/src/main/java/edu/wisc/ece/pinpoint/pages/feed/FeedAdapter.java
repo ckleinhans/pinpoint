@@ -24,13 +24,16 @@ import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder> {
     private final ActivityList activity;
+    private final FeedSource source;
     private final NavController navController;
     private final FirebaseDriver firebase;
     private final Fragment fragment;
     private Context parentContext;
 
-    public FeedAdapter(ActivityList activity, NavController navController, Fragment fragment) {
+    public FeedAdapter(ActivityList activity, NavController navController, Fragment fragment,
+                       FeedSource source) {
         this.activity = activity;
+        this.source = source;
         this.navController = navController;
         this.fragment = fragment;
         firebase = FirebaseDriver.getInstance();
@@ -52,7 +55,6 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
         User cachedAuthor = firebase.getCachedUser(author);
         if (cachedAuthor != null) {
-            // put author data in feed item
             setContents(cachedAuthor, action, holder);
         } else {
             // Since only using author for profile pic & username, only fetch if not cached
@@ -103,15 +105,19 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 break;
             case FOLLOW:
                 holder.icon.setImageResource(R.drawable.ic_follow);
-                User cachedPinAuthor = firebase.getCachedUser(id);
-                if (cachedPinAuthor != null) {
-                    textContents = username + " followed " + cachedPinAuthor.getUsername();
+                if (firebase.getCurrentUser().getUid().equals(id)) {
+                    textContents = username + " followed you";
                 } else {
-                    firebase.fetchUser(id).addOnCompleteListener(task -> {
-                        String finalTextContents =
-                                username + " followed " + task.getResult().getUsername();
-                        holder.text.setText(finalTextContents);
-                    });
+                    User cachedPinAuthor = firebase.getCachedUser(id);
+                    if (cachedPinAuthor != null) {
+                        textContents = username + " followed " + cachedPinAuthor.getUsername();
+                    } else {
+                        firebase.fetchUser(id).addOnCompleteListener(task -> {
+                            String finalTextContents =
+                                    username + " followed " + task.getResult().getUsername();
+                            holder.text.setText(finalTextContents);
+                        });
+                    }
                 }
                 break;
         }
@@ -134,6 +140,10 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 navController.navigate(NavigationDirections.profile().setUid(id));
             }
         });
+    }
+
+    public enum FeedSource {
+        FEED, PROFILE
     }
 
     // View Holder Class to handle Recycler View.
