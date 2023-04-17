@@ -95,6 +95,8 @@ export const dropPinHandler = async (
       id: pinRef.id,
       author: context.auth.uid,
       timestamp,
+      broadLocationName,
+      nearbyLocationName,
     };
 
     // Deduct currency & create pin
@@ -196,6 +198,8 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
       id: pinRef.id,
       author: context.auth.uid,
       timestamp,
+      nearbyLocationName: pinData.nearbyLocationName,
+      broadLocationName: pinData.broadLocationName,
     };
 
     t.update(privateDataRef, { currency: FieldValue.increment(reward) });

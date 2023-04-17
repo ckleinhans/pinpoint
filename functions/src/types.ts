@@ -39,4 +39,6 @@ export type Activity = {
   id: string;
   author: string;
   timestamp: Date;
+  broadLocationName?: String;
+  nearbyLocationName?: String;
 };

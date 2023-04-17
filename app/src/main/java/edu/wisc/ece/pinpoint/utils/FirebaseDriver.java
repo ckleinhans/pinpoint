@@ -347,7 +347,8 @@ public class FirebaseDriver {
             pins.put(pid, newPin);
             droppedPinMetadata.add(new PinMetadata(pid, new Date(), newPin.getBroadLocationName(),
                     newPin.getNearbyLocationName()));
-            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.DROP));
+            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.DROP,
+                    newPin.getBroadLocationName(), newPin.getNearbyLocationName()));
             pinnies -= cost;
             return pid;
         }).addOnFailureListener(e -> Log.w(TAG, "Error dropping pin.", e));
@@ -368,10 +369,13 @@ public class FirebaseDriver {
             // TODO: make cloud function return reward & update cached pinnie count with it
             //noinspection unchecked
             Map<String, String> result = (Map<String, String>) task.getData();
-            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND));
             //noinspection ConstantConditions
-            foundPinMetadata.add(new PinMetadata(pid, new Date(), result.get("broadLocationName"),
-                    result.get("nearbyLocationName")));
+            String broadLocationName = result.get("broadLocationName");
+            String nearbyLocationName = result.get("nearbyLocationName");
+            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
+                    broadLocationName, nearbyLocationName));
+            foundPinMetadata.add(
+                    new PinMetadata(pid, new Date(), broadLocationName, nearbyLocationName));
         }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin.", e));
     }
 
@@ -454,7 +458,8 @@ public class FirebaseDriver {
         ActivityItem item;
         if (activity.size() == 0 || !Objects.equals(activity.get(0).getId(), uid)) {
             // Don't create activity if last activity was follow of same person
-            item = new ActivityItem(auth.getUid(), uid, ActivityItem.ActivityType.FOLLOW);
+            item = new ActivityItem(auth.getUid(), uid, ActivityItem.ActivityType.FOLLOW, null,
+                    null);
             batch.update(db.collection("activity").document(auth.getUid()), "activity",
                     FieldValue.arrayUnion(item));
         } else item = null;

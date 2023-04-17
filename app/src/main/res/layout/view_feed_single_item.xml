@@ -9,9 +9,10 @@
     android:layout_marginVertical="3dp"
     app:cardCornerRadius="5dp"
     app:cardElevation="5dp">
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent">
 
         <ImageView
             android:id="@+id/feed_item_image"
@@ -27,26 +28,26 @@
         <TextView
             android:id="@+id/feed_item_text"
             style="@style/TextAppearance.Pinpoint.SmallThickText"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
             android:layout_marginTop="10dp"
-            android:layout_marginEnd="36dp"
-            android:layout_marginStart="74dp"
-            android:textColor="?attr/colorOnBackground"
-            app:layout_constraintStart_toEndOf="@+id/feed_item_image"
-            android:maxLines="1"
             android:ellipsize="end"
+            android:maxLines="2"
+            android:textColor="?attr/colorOnBackground"
+            app:layout_constraintEnd_toStartOf="@+id/feed_item_icon"
+            app:layout_constraintStart_toEndOf="@+id/feed_item_image"
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/feed_item_time"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
             android:layout_marginBottom="10dp"
-            android:layout_marginEnd="36dp"
-            android:layout_marginStart="74dp"
             android:textColor="?attr/colorOnBackground"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/feed_item_icon"
             app:layout_constraintStart_toEndOf="@+id/feed_item_image" />
 
         <ImageView
@@ -55,11 +56,11 @@
             android:layout_height="32dp"
             android:layout_margin="10dp"
             android:contentDescription="@string/pin_thumbnail_text"
-            app:tint="?attr/colorOnBackground"
             android:src="@drawable/ic_drop"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorOnBackground" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

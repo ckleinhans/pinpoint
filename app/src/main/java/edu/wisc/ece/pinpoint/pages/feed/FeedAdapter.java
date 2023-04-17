@@ -14,10 +14,6 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.firebase.auth.FirebaseAuth;
-
-import java.util.Date;
-
 import edu.wisc.ece.pinpoint.NavigationDirections;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.ActivityItem;
@@ -51,39 +47,17 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
     @Override
     public void onBindViewHolder(@NonNull FeedViewHolder holder, int position) {
-        // Single action in activity list, reverse order
         ActivityItem action = activity.get(position);
-        String id = action.getId();
         String author = action.getAuthor();
-        ActivityItem.ActivityType type = action.getType();
-        Date time = action.getTimestamp();
-        boolean isCurrentUser = author.equals(FirebaseAuth.getInstance().getUid());
-        // Set timestamp
-        holder.timestamp.setText(FormatUtils.formattedDateTime(time));
-        // Clicking on the picture of the action's author will navigate to their profile
-        holder.image.setOnClickListener(
-                view -> navController.navigate(NavigationDirections.profile().setUid(author)));
-        // Clicking on the card will navigate to the action's relevant page
-        holder.item.setOnClickListener(view -> {
-            if (type == ActivityItem.ActivityType.DROP || type == ActivityItem.ActivityType.FIND || type == ActivityItem.ActivityType.COMMENT) {
-                if (firebase.getCachedFoundPinMetadata()
-                        .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
-                    navController.navigate(NavigationDirections.pinView(id));
-                else Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
-                        Toast.LENGTH_SHORT).show();
 
-            } else if (type == ActivityItem.ActivityType.FOLLOW) {
-                navController.navigate(NavigationDirections.profile().setUid(id));
-            }
-        });
         User cachedAuthor = firebase.getCachedUser(author);
         if (cachedAuthor != null) {
             // put author data in feed item
-            setContents(cachedAuthor, type, id, holder, isCurrentUser);
+            setContents(cachedAuthor, action, holder);
         } else {
             // Since only using author for profile pic & username, only fetch if not cached
-            firebase.fetchUser(author).addOnCompleteListener(
-                    task -> setContents(task.getResult(), type, id, holder, isCurrentUser));
+            firebase.fetchUser(author)
+                    .addOnCompleteListener(task -> setContents(task.getResult(), action, holder));
         }
     }
 
@@ -92,25 +66,39 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         return activity.size();
     }
 
-    private void setContents(User author, ActivityItem.ActivityType type, String id,
-                             @NonNull FeedViewHolder holder, boolean isCurrentUser) {
+    private void setContents(User author, ActivityItem action, @NonNull FeedViewHolder holder) {
+        String id = action.getId();
+        ActivityItem.ActivityType type = action.getType();
+
+        holder.timestamp.setText(FormatUtils.formattedDateTime(action.getTimestamp()));
+
         author.loadProfilePic(holder.image, fragment);
+
         // Detect if the activity belongs to current user, and trim if username is too long
-        String username = isCurrentUser ? "You" :
-                author.getUsername().length() > 12 ? author.getUsername().substring(0, 9) + "..." :
-                        author.getUsername();
+        String username = action.getAuthor().equals(firebase.getCurrentUser().getUid()) ? "You" :
+                author.getUsername();
+        String location;
         String textContents = "";
         switch (type) {
             case DROP:
-                textContents = username + " dropped a pin";
+                location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
+                        action.getNearbyLocationName());
+                textContents = location == null ? username + " dropped a pin." :
+                        username + " dropped a pin near " + location;
                 holder.icon.setImageResource(R.drawable.ic_drop);
                 break;
             case FIND:
-                textContents = username + " found a pin";
+                location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
+                        action.getNearbyLocationName());
+                textContents = location == null ? username + " found a pin." :
+                        username + " found a pin near " + location;
                 holder.icon.setImageResource(R.drawable.ic_search);
                 break;
             case COMMENT:
-                textContents = username + " commented on a pin";
+                location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
+                        action.getNearbyLocationName());
+                textContents = location == null ? username + " commented on a pin." :
+                        username + " commented on a pin near " + location;
                 holder.icon.setImageResource(R.drawable.ic_comment);
                 break;
             case FOLLOW:
@@ -129,6 +117,23 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         }
         if (!textContents.isEmpty()) holder.text.setText(textContents);
 
+        // Clicking on the picture of the action's author will navigate to their profile
+        holder.image.setOnClickListener(view -> navController.navigate(
+                NavigationDirections.profile().setUid(action.getAuthor())));
+
+        // Clicking on the card will navigate to the action's relevant page
+        holder.item.setOnClickListener(view -> {
+            if (type == ActivityItem.ActivityType.DROP || type == ActivityItem.ActivityType.FIND || type == ActivityItem.ActivityType.COMMENT) {
+                if (firebase.getCachedFoundPinMetadata()
+                        .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
+                    navController.navigate(NavigationDirections.pinView(id));
+                else Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
+                        Toast.LENGTH_SHORT).show();
+
+            } else if (type == ActivityItem.ActivityType.FOLLOW) {
+                navController.navigate(NavigationDirections.profile().setUid(id));
+            }
+        });
     }
 
     // View Holder Class to handle Recycler View.
