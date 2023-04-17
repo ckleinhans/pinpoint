@@ -51,7 +51,6 @@ public class LeaderboardListFragment extends Fragment {
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        // TODO: update adapter to ListAdapter
         recyclerView.setAdapter(
                 new LeaderboardListAdapter(new ArrayList<>(), navController, this, listType));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -62,7 +61,7 @@ public class LeaderboardListFragment extends Fragment {
         String uid = firebase.getCurrentUser().getUid();
         userIds.add(uid);
         List<Task<Void>> fetchTasks = new ArrayList<>();
-        for (String userId : firebase.getCachedSocials(uid).getFollowing()) {
+        for (String userId : firebase.getCachedFollowing(uid)) {
             if (firebase.getCachedUser(userId) == null) {
                 fetchTasks.add(firebase.fetchUser(userId).continueWith(task -> {
                     if (!task.isSuccessful()) {

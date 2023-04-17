@@ -1,18 +1,25 @@
 package edu.wisc.ece.pinpoint.data;
 
 import java.util.Date;
+import java.util.Map;
 
 public class PinMetadata {
 
-    private String pinId;
     // Time at which a user dropped/found a pin
-    private Date timestamp;
-    private String broadLocationName;
-    private String nearbyLocationName;
-    private int reward;
-    private int cost;
+    private final Date timestamp;
+    private final String broadLocationName;
+    private final String nearbyLocationName;
+    private final Integer reward;
+    private final Integer cost;
+    private final String pinId;
 
-    public PinMetadata() {
+    public PinMetadata(String pinId, Map<String, Object> data) {
+        this.pinId = pinId;
+        this.timestamp = (Date) data.get("timestamp");
+        this.broadLocationName = (String) data.get("broadLocationName");
+        this.nearbyLocationName = (String) data.get("nearbyLocationName");
+        this.reward = (Integer) data.get("reward");
+        this.cost = (Integer) data.get("cost");
     }
 
     public PinMetadata(String pinId, String broadLocationName, String nearbyLocationName) {
@@ -20,16 +27,12 @@ public class PinMetadata {
         this.timestamp = new Date();
         this.broadLocationName = broadLocationName;
         this.nearbyLocationName = nearbyLocationName;
-        this.reward = 0;
-        this.cost = 0;
+        this.reward = null;
+        this.cost = null;
     }
 
     public String getPinId() {
         return pinId;
-    }
-
-    public void setPinId(String pinId) {
-        this.pinId = pinId;
     }
 
     public Date getTimestamp() {

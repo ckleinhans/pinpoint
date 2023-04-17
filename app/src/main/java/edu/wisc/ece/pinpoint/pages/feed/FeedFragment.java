@@ -71,23 +71,22 @@ public class FeedFragment extends Fragment {
 
             // List of tasks to wait for before displaying activity
             List<Task<ActivityList>> fetchTasks = new ArrayList<>();
-            // TODO: replace adapter with ListAdapter to improve UX & efficiency
+
             // Two master lists with activity from all followed users, one is for all cached data
             // to be displayed immediately, the other is for fetching & displaying up to date data
             ActivityList cachedMasterList = new ActivityList(new ArrayList<>());
             ActivityList fetchedMasterList = new ActivityList(new ArrayList<>());
             // For each followed user, check if their activity is cached, then add it to master list
-            firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing()
-                    .forEach((k) -> {
-                        ActivityList cachedActivity = firebase.getCachedActivity(k);
-                        if (cachedActivity != null) {
-                            cachedMasterList.addAll(cachedActivity);
-                        }
-                        fetchTasks.add(firebase.fetchActivity(k)
-                                .addOnSuccessListener(fetchedMasterList::addAll)
-                                .addOnFailureListener(e -> Toast.makeText(requireContext(),
-                                        R.string.activity_fetch_error, Toast.LENGTH_SHORT).show()));
-                    });
+            for (String userId : firebase.getCachedFollowing(firebase.getCurrentUser().getUid())) {
+                ActivityList cachedActivity = firebase.getCachedActivity(userId);
+                if (cachedActivity != null) {
+                    cachedMasterList.addAll(cachedActivity);
+                }
+                fetchTasks.add(firebase.fetchActivity(userId)
+                        .addOnSuccessListener(fetchedMasterList::addAll).addOnFailureListener(
+                                e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
+                                        Toast.LENGTH_SHORT).show()));
+            }
             // Setup immediate cached master list
             cachedMasterList.sort();
             recyclerView.setAdapter(new FeedAdapter(cachedMasterList, navController, this,
@@ -118,6 +117,5 @@ public class FeedFragment extends Fragment {
                         e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
                                 Toast.LENGTH_SHORT).show());
         }
-
     }
 }

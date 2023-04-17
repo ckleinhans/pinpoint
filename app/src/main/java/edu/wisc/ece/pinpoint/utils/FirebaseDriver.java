@@ -16,8 +16,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.auth.UserInfo;
-import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
@@ -29,6 +27,8 @@ import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,7 +42,6 @@ import edu.wisc.ece.pinpoint.data.GlideApp;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
-import edu.wisc.ece.pinpoint.data.SocialData;
 import edu.wisc.ece.pinpoint.data.User;
 
 public class FirebaseDriver {
@@ -56,7 +55,8 @@ public class FirebaseDriver {
     private final Map<String, Pin> pins;
     private final Map<String, OrderedPinMetadata> userPinMetadata;
     private final HashMap<String, ActivityList> activityMap;
-    private final HashMap<String, SocialData> userSocialData;
+    private final HashMap<String, HashSet<String>> userFollowerIds;
+    private final HashMap<String, HashSet<String>> userFollowingIds;
     private OrderedPinMetadata foundPinMetadata;
     private OrderedPinMetadata droppedPinMetadata;
     private Long pinnies;
@@ -74,7 +74,8 @@ public class FirebaseDriver {
         pins = new HashMap<>();
         userPinMetadata = new HashMap<>();
         activityMap = new HashMap<>();
-        userSocialData = new HashMap<>();
+        userFollowerIds = new HashMap<>();
+        userFollowingIds = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -169,58 +170,65 @@ public class FirebaseDriver {
         final long initialBalance = 2000;
         HashMap<String, Object> wallet = new HashMap<>();
         wallet.put("currency", initialBalance);
-        batch.set(db.collection("private").document(uid), wallet);
+        batch.set(db.collection("users").document(uid).collection("metadata").document("private"),
+                wallet);
 
         // Create follower and following maps for new user
-        HashMap<String, Object> socials = new HashMap<>();
-        socials.put("followers", new ArrayList<>());
-        socials.put("following", new ArrayList<>());
-        batch.set(db.collection("social").document(uid), socials);
+        HashMap<String, Object> followers = new HashMap<>();
+        HashMap<String, Object> following = new HashMap<>();
+        followers.put("followers", new ArrayList<>());
+        following.put("following", new ArrayList<>());
+        batch.set(db.collection("users").document(uid).collection("social").document("followers"),
+                followers);
+        batch.set(db.collection("users").document(uid).collection("social").document("following"),
+                following);
 
         // Create empty activity list
         HashMap<String, Object> activity = new HashMap<>();
         activity.put("activity", new ArrayList<>());
-        batch.set(db.collection("activity").document(uid), activity);
+        batch.set(db.collection("users").document(uid).collection("metadata").document("activity"),
+                activity);
 
         return batch.commit().addOnFailureListener(e -> Log.w(TAG, "Error creating new user:", e));
     }
 
-    // TODO: update to match updated DB structure
     public Task<OrderedPinMetadata> fetchFoundPins() {
-        OrderedPinMetadata foundPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
-        CollectionReference foundRef =
-                db.collection("users").document(auth.getUid()).collection("found");
-        return foundRef.orderBy("timestamp").get().continueWithTask(task -> {
-            List<Task<Pin>> fetchTasks = new ArrayList<>();
-            for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
-                String pinId = documentSnapshot.getId();
-                PinMetadata metadata = documentSnapshot.toObject(PinMetadata.class);
-                //noinspection ConstantConditions
-                metadata.setPinId(pinId);
-                foundPinMetadata.add(metadata);
-                if (getCachedPin(pinId) == null) {
-                    fetchTasks.add(fetchPin(pinId).continueWith(t -> {
-                        // If pin no longer exists don't add to cache & remove from db
-                        if (t.isSuccessful() && t.getResult() == null) {
-                            db.collection("users").document(auth.getUid()).collection("found")
-                                    .document(pinId).delete().addOnFailureListener(e -> Log.w(TAG,
-                                            "Error deleting found record for " + "deleted pin.", e))
-                                    .addOnSuccessListener(t2 -> Log.d(TAG,
-                                            "Successfully deleted found record for deleted pin."));
-                            foundPinMetadata.remove(pinId);
+        return db.collection("users").document(auth.getUid()).collection("pins").document("found")
+                .get().continueWithTask(task -> {
+                    List<Task<Pin>> fetchTasks = new ArrayList<>();
+                    Map<String, Object> data = task.getResult().getData();
+                    OrderedPinMetadata foundPinMetadata = new OrderedPinMetadata(data);
+
+                    for (Iterator<PinMetadata> it = foundPinMetadata.getIterator();
+                         it.hasNext(); ) {
+                        String pinId = it.next().getPinId();
+                        if (getCachedPin(pinId) == null) {
+                            fetchTasks.add(fetchPin(pinId).addOnSuccessListener(pin -> {
+                                // If pin no longer exists don't add to cache & remove from db
+                                if (pin == null) {
+                                    db.collection("users").document(auth.getUid())
+                                            .collection("pins").document("found")
+                                            .update(pinId, FieldValue.delete())
+                                            .addOnSuccessListener(t -> Log.d(TAG,
+                                                    "Successfully deleted found record for " +
+                                                            "deleted pin."))
+                                            .addOnFailureListener(e -> Log.w(TAG,
+                                                    "Error deleting found record for deleted" +
+                                                            " pin.",
+                                                    e));
+                                    foundPinMetadata.remove(pinId);
+                                }
+                            }));
                         }
-                        return t.getResult();
-                    }));
-                }
-            }
-            return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
-                this.foundPinMetadata = foundPinMetadata;
-                return foundPinMetadata;
-            });
-        }).addOnFailureListener(e -> Log.w(TAG, "Error fetching found pins.", e));
+                    }
+                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
+                        this.foundPinMetadata = foundPinMetadata;
+                        return foundPinMetadata;
+                    });
+                }).addOnFailureListener(e -> Log.w(TAG, "Error fetching found pins.", e));
     }
 
     public OrderedPinMetadata getCachedFoundPinMetadata() {
@@ -228,33 +236,33 @@ public class FirebaseDriver {
     }
 
     public Task<OrderedPinMetadata> fetchDroppedPins() {
-        OrderedPinMetadata droppedPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
-        return db.collection("users").document(auth.getUid()).collection("dropped")
-                .orderBy("timestamp").get().continueWithTask(task -> {
+        return db.collection("users").document(auth.getUid()).collection("pins").document("dropped")
+                .get().continueWithTask(task -> {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
-                    for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
-                        String pinId = documentSnapshot.getId();
-                        PinMetadata metadata = documentSnapshot.toObject(PinMetadata.class);
-                        //noinspection ConstantConditions
-                        metadata.setPinId(pinId);
-                        droppedPinMetadata.add(metadata);
+                    Map<String, Object> data = task.getResult().getData();
+                    OrderedPinMetadata droppedPinMetadata = new OrderedPinMetadata(data);
+
+                    for (Iterator<PinMetadata> it = droppedPinMetadata.getIterator();
+                         it.hasNext(); ) {
+                        String pinId = it.next().getPinId();
                         if (getCachedPin(pinId) == null) {
-                            fetchTasks.add(fetchPin(pinId).continueWith(t -> {
+                            fetchTasks.add(fetchPin(pinId).addOnSuccessListener(pin -> {
                                 // If pin no longer exists don't add to cache & remove from db
-                                if (t.isSuccessful() && t.getResult() == null) {
+                                if (pin == null) {
                                     db.collection("users").document(auth.getUid())
-                                            .collection("dropped").document(pinId).delete()
-                                            .addOnFailureListener(e -> Log.w(TAG,
-                                                    "Error deleting dropped record for deleted " + "pin.",
-                                                    e)).addOnSuccessListener(t2 -> Log.d(TAG,
+                                            .collection("pins").document("dropped")
+                                            .update(pinId, FieldValue.delete())
+                                            .addOnSuccessListener(t -> Log.d(TAG,
                                                     "Successfully deleted dropped record for " +
-                                                            "deleted pin."));
+                                                            "deleted pin."))
+                                            .addOnFailureListener(e -> Log.w(TAG,
+                                                    "Error deleting dropped record for deleted" + " pin.",
+                                                    e));
                                     droppedPinMetadata.remove(pinId);
                                 }
-                                return t.getResult();
                             }));
                         }
                     }
@@ -272,23 +280,21 @@ public class FirebaseDriver {
     }
 
     public Task<OrderedPinMetadata> fetchUserPins(@NonNull String uid) {
-        OrderedPinMetadata newUserPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
         if (foundPinMetadata == null) {
             throw new IllegalStateException("Must have already fetched found pins.");
         }
-        return db.collection("users").document(uid).collection("dropped").orderBy("timestamp").get()
+        return db.collection("users").document(uid).collection("pins").document("dropped").get()
                 .continueWithTask(task -> {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
-                    for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
-                        String pinId = documentSnapshot.getId();
-                        PinMetadata metadata = documentSnapshot.toObject(PinMetadata.class);
-                        //noinspection ConstantConditions
-                        metadata.setPinId(pinId);
-                        newUserPinMetadata.add(metadata);
-                        // Only fetch pins that the user has found
+                    Map<String, Object> data = task.getResult().getData();
+                    OrderedPinMetadata newUserPinMetadata = new OrderedPinMetadata(data);
+
+                    for (Iterator<PinMetadata> it = newUserPinMetadata.getIterator();
+                         it.hasNext(); ) {
+                        String pinId = it.next().getPinId();
                         if (getCachedPin(pinId) == null && foundPinMetadata.contains(pinId)) {
                             fetchTasks.add(fetchPin(pinId));
                         }
@@ -316,16 +322,17 @@ public class FirebaseDriver {
                 pins.remove(pid);
                 if (foundPinMetadata != null) {
                     if (foundPinMetadata.remove(pid))
-                        db.collection("users").document(auth.getUid()).collection("found")
-                                .document(pid).delete().addOnFailureListener(
-                                        e -> Log.w(TAG, "Error deleting found record for deleted "
-                                                        + "pin.",
-                                                e)).addOnSuccessListener(t -> Log.d(TAG,
+                        db.collection("users").document(auth.getUid()).collection("pins")
+                                .document("found").update(pid, FieldValue.delete())
+                                .addOnFailureListener(e -> Log.w(TAG,
+                                        "Error deleting found record for deleted pin.", e))
+                                .addOnSuccessListener(t -> Log.d(TAG,
                                         "Successfully deleted found record for deleted pin."));
                 } else if (droppedPinMetadata != null) {
                     if (droppedPinMetadata.remove(pid))
-                        db.collection("users").document(auth.getUid()).collection("dropped")
-                                .document(pid).delete().addOnFailureListener(e -> Log.w(TAG,
+                        db.collection("users").document(auth.getUid()).collection("pins")
+                                .document("dropped").update(pid, FieldValue.delete())
+                                .addOnFailureListener(e -> Log.w(TAG,
                                         "Error deleting dropped record for " + "deleted pin.", e))
                                 .addOnSuccessListener(t -> Log.d(TAG,
                                         "Successfully deleted dropped record for deleted pin."));
@@ -407,21 +414,44 @@ public class FirebaseDriver {
                 .addOnFailureListener(e -> Log.w(TAG, "Error fetching nearby pins.", e));
     }
 
-    public Task<SocialData> fetchSocials(String uid) {
+    public Task<HashSet<String>> fetchFollowers(String uid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch followers");
         }
-
-        return db.collection("social").document(uid).get().continueWith(task -> {
-            SocialData socialData = new SocialData(task.getResult());
-            userSocialData.put(uid, socialData);
-            return socialData;
-        }).addOnFailureListener(
-                e -> Log.w(TAG, String.format("Error fetching socials for user %s", uid), e));
+        return db.collection("users").document(uid).collection("social").document("followers").get()
+                .continueWith(task -> {
+                    //noinspection unchecked,ConstantConditions
+                    HashSet<String> followerIds =
+                            new HashSet<>((List<String>) task.getResult().get("followers"));
+                    userFollowerIds.put(uid, followerIds);
+                    return followerIds;
+                }).addOnFailureListener(
+                        e -> Log.w(TAG, String.format("Error fetching followers for user %s", uid),
+                                e));
     }
 
-    public SocialData getCachedSocials(String uid) {
-        return userSocialData.get(uid);
+    public Task<HashSet<String>> fetchFollowing(String uid) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch following");
+        }
+        return db.collection("users").document(uid).collection("social").document("following").get()
+                .continueWith(task -> {
+                    //noinspection unchecked,ConstantConditions
+                    HashSet<String> followingIds =
+                            new HashSet<>((List<String>) task.getResult().get("following"));
+                    userFollowingIds.put(uid, followingIds);
+                    return followingIds;
+                }).addOnFailureListener(
+                        e -> Log.w(TAG, String.format("Error fetching following for user %s", uid),
+                                e));
+    }
+
+    public HashSet<String> getCachedFollowers(String uid) {
+        return userFollowerIds.get(uid);
+    }
+
+    public HashSet<String> getCachedFollowing(String uid) {
+        return userFollowingIds.get(uid);
     }
 
     public Task<Void> deletePin(String pid) {
@@ -430,8 +460,8 @@ public class FirebaseDriver {
         }
         WriteBatch batch = db.batch();
         batch.delete(db.collection("pins").document(pid));
-        batch.delete(
-                db.collection("users").document(auth.getUid()).collection("dropped").document(pid));
+        batch.update(db.collection("users").document(auth.getUid()).collection("pins")
+                .document("dropped"), pid, FieldValue.delete());
         return batch.commit().addOnSuccessListener(t -> {
             Pin pin = pins.get(pid);
             if (pin != null && pin.getType() == Pin.PinType.IMAGE) {
@@ -448,10 +478,10 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to follow an account");
         }
-        SocialData socialData = userSocialData.get(auth.getUid());
-        if (socialData == null) {
+        HashSet<String> following = userFollowingIds.get(auth.getUid());
+        if (following == null) {
             throw new IllegalStateException(
-                    "User must have fetched their own social data before following a user");
+                    "User must have fetched their own following data before following a user");
         }
         ActivityList activity = activityMap.get(auth.getUid());
         if (activity == null) {
@@ -461,28 +491,29 @@ public class FirebaseDriver {
         WriteBatch batch = db.batch();
 
         // Add other user to own following & increment own numFollowing
-        batch.update(db.collection("social").document(auth.getUid()), "following",
-                FieldValue.arrayUnion(uid));
+        batch.update(db.collection("users").document(auth.getUid()).collection("social")
+                .document("following"), "following", FieldValue.arrayUnion(uid));
         batch.update(db.collection("users").document(auth.getUid()), "numFollowing",
                 FieldValue.increment(1));
 
         // Add self to other user's followers & increment their numFollowers
-        batch.update(db.collection("social").document(uid), "followers",
-                FieldValue.arrayUnion(auth.getUid()));
+        batch.update(
+                db.collection("users").document(uid).collection("social").document("followers"),
+                "followers", FieldValue.arrayUnion(auth.getUid()));
         batch.update(db.collection("users").document(uid), "numFollowers", FieldValue.increment(1));
 
         // Create new activity item for follow event
         ActivityItem item;
+        // Don't create activity if last activity was follow of same person
         if (activity.size() == 0 || !Objects.equals(activity.get(0).getId(), uid)) {
-            // Don't create activity if last activity was follow of same person
             item = new ActivityItem(auth.getUid(), uid, ActivityItem.ActivityType.FOLLOW, null,
                     null);
             batch.update(db.collection("activity").document(auth.getUid()), "activity",
-                    FieldValue.arrayUnion(item));
+                    FieldValue.arrayUnion(item.serialize()));
         } else item = null;
 
         return batch.commit().addOnSuccessListener(t -> {
-            socialData.addFollowing(uid);
+            following.add(uid);
             if (item != null) activity.add(item);
         }).addOnFailureListener(e -> Log.w(TAG, String.format("Error following user %s.", uid), e));
     }
@@ -491,41 +522,42 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to follow an account");
         }
-        if (userSocialData.get(auth.getUid()) == null) {
+        HashSet<String> following = userFollowingIds.get(auth.getUid());
+        if (following == null) {
             throw new IllegalStateException(
-                    "User must have fetched their own social data before unfollowing a user");
+                    "User must have fetched their own following data before unfollowing a user");
         }
         WriteBatch batch = db.batch();
 
         // Remove other user to own following & decrement own numFollowing
-        batch.update(db.collection("social").document(auth.getUid()), "following",
-                FieldValue.arrayRemove(uid));
+        batch.update(db.collection("users").document(auth.getUid()).collection("social")
+                .document("following"), "following", FieldValue.arrayRemove(uid));
         batch.update(db.collection("users").document(auth.getUid()), "numFollowing",
                 FieldValue.increment(-1));
 
         // Remove self to other user's followers & decrement their numFollowers
-        batch.update(db.collection("social").document(uid), "followers",
-                FieldValue.arrayRemove(auth.getUid()));
+        batch.update(
+                db.collection("users").document(uid).collection("social").document("followers"),
+                "followers", FieldValue.arrayRemove(auth.getUid()));
         batch.update(db.collection("users").document(uid), "numFollowers",
                 FieldValue.increment(-1));
 
-        //noinspection ConstantConditions
-        return batch.commit()
-                .addOnSuccessListener(t -> userSocialData.get(auth.getUid()).removeFollowing(uid))
-                .addOnFailureListener(
-                        e -> Log.w(TAG, String.format("Error unfollowing user %s.", uid), e));
+        return batch.commit().addOnSuccessListener(t -> following.remove(uid)).addOnFailureListener(
+                e -> Log.w(TAG, String.format("Error unfollowing user %s.", uid), e));
     }
 
     public Task<ActivityList> fetchActivity(String uid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch activity");
         }
-        return db.collection("activity").document(uid).get().continueWith(task -> {
-            ActivityList activity = task.getResult().toObject(ActivityList.class);
-            activityMap.put(uid, activity);
-            return activity;
-        }).addOnFailureListener(
-                e -> Log.w(TAG, String.format("Error fetching activity for user %s.", uid), e));
+        return db.collection("users").document(uid).collection("metadata").document("activity")
+                .get().continueWith(task -> {
+                    ActivityList activity = task.getResult().toObject(ActivityList.class);
+                    activityMap.put(uid, activity);
+                    return activity;
+                }).addOnFailureListener(
+                        e -> Log.w(TAG, String.format("Error fetching activity for user %s.", uid),
+                                e));
     }
 
     public ActivityList getCachedActivity(String uid) {
@@ -536,11 +568,12 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pinnies");
         }
-        return db.collection("private").document(auth.getUid()).get().continueWith(task -> {
-            Long pinniesResult = (Long) task.getResult().get("currency");
-            pinnies = pinniesResult;
-            return pinniesResult;
-        }).addOnFailureListener(e -> Log.w(TAG, "Error fetching pinnies.", e));
+        return db.collection("users").document(auth.getUid()).collection("metadata")
+                .document("private").get().continueWith(task -> {
+                    Long pinniesResult = (Long) task.getResult().get("currency");
+                    pinnies = pinniesResult;
+                    return pinniesResult;
+                }).addOnFailureListener(e -> Log.w(TAG, "Error fetching pinnies.", e));
     }
 
     public Long getCachedPinnies() {

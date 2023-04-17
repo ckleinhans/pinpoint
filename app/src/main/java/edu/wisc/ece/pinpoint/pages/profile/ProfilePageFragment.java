@@ -160,8 +160,7 @@ public class ProfilePageFragment extends Fragment {
         // Viewing someone else's profile, button is for following
         final String uid = user;
         // if the user is already following this profile, show unfollow button
-        if (firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing()
-                .contains(uid)) {
+        if (firebase.getCachedFollowing(firebase.getCurrentUser().getUid()).contains(uid)) {
             button.setText(R.string.unfollow_text);
             button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.soft_red));
             button.setOnClickListener((buttonView) -> {
@@ -175,8 +174,8 @@ public class ProfilePageFragment extends Fragment {
             });
         } else {
             // if this profile follows the user but the user does not, show follow back button
-            if (firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowers()
-                    .contains(uid)) button.setText(R.string.follow_back_text);
+            if (firebase.getCachedFollowers(firebase.getCurrentUser().getUid()).contains(uid))
+                button.setText(R.string.follow_back_text);
             else button.setText(R.string.follow_text);
             button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.blue));
             button.setOnClickListener((buttonView) -> {

@@ -1,6 +1,10 @@
 package edu.wisc.ece.pinpoint.data;
 
+import com.google.firebase.firestore.FieldValue;
+
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ActivityItem {
     private String author;
@@ -45,6 +49,16 @@ public class ActivityItem {
 
     public String getBroadLocationName() {
         return broadLocationName;
+    }
+
+    public Map<String, Object> serialize() {
+        HashMap<String, Object> data = new HashMap<>();
+        data.put("author", author);
+        data.put("id", id);
+        data.put("timestamp", FieldValue.serverTimestamp());
+        data.put("broadLocationName", broadLocationName);
+        data.put("nearbyLocationName", nearbyLocationName);
+        return data;
     }
 
     public enum ActivityType {

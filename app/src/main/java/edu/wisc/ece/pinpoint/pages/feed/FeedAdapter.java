@@ -30,6 +30,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     private final Fragment fragment;
     private Context parentContext;
 
+    // TODO: make this adapter a ListAdapter to improve UX & performance
     public FeedAdapter(ActivityList activity, NavController navController, Fragment fragment,
                        FeedSource source) {
         this.activity = activity;

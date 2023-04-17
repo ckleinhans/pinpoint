@@ -46,11 +46,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Fetch logged in user profile, followers/following, & activity on app load
+        // Fetch logged in user profile, following/followers, & activity on app load
         FirebaseDriver firebase = FirebaseDriver.getInstance();
         String uid = firebase.getCurrentUser().getUid();
         firebase.fetchUser(uid);
-        firebase.fetchSocials(uid);
+        firebase.fetchFollowing(uid);
+        firebase.fetchFollowers(uid);
         firebase.fetchActivity(uid);
     }
 
