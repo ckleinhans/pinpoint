@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
         firebase.fetchUser(uid);
         firebase.fetchSocials(uid);
         firebase.fetchActivity(uid);
-        //hcghgcgh
     }
 
     public void onMapButtonClick(View view) {
