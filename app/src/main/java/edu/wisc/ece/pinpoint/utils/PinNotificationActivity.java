@@ -50,7 +50,7 @@ public class PinNotificationActivity extends Worker {
                        x = String.valueOf(i);
                        NotificationDriver notificationDriver;
                        notificationDriver = NotificationDriver.getInstance(context);
-                       notificationDriver.sendOneShot("Pins", x + " pins found nearby");
+                       notificationDriver.updatePersistent("Pins", x + " pins found nearby");
                    });
                    }
 
