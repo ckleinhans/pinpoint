@@ -31,8 +31,8 @@ public class FormatUtils {
     public static String formattedPinLocation(@Nullable String broadLocationName,
                                               @Nullable String nearbyLocationName) {
         return nearbyLocationName != null ?
-                String.format("%s in %s", nearbyLocationName, broadLocationName) :
-                broadLocationName;
+                String.format("near %s in %s", nearbyLocationName, broadLocationName) :
+                String.format("in %s", broadLocationName);
     }
 
     public static String formattedDateTime(Date timestamp) {

@@ -86,21 +86,21 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
                         action.getNearbyLocationName());
                 textContents = location == null ? username + " dropped a pin." :
-                        username + " dropped a pin near " + location;
+                        username + " dropped a pin " + location;
                 holder.icon.setImageResource(R.drawable.ic_drop);
                 break;
             case FIND:
                 location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
                         action.getNearbyLocationName());
                 textContents = location == null ? username + " found a pin." :
-                        username + " found a pin near " + location;
+                        username + " found a pin " + location;
                 holder.icon.setImageResource(R.drawable.ic_search);
                 break;
             case COMMENT:
                 location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
                         action.getNearbyLocationName());
                 textContents = location == null ? username + " commented on a pin." :
-                        username + " commented on a pin near " + location;
+                        username + " commented on a pin " + location;
                 holder.icon.setImageResource(R.drawable.ic_comment);
                 break;
             case FOLLOW:
