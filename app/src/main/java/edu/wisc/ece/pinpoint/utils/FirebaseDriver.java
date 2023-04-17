@@ -28,7 +28,6 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -364,7 +363,7 @@ public class FirebaseDriver {
         return functions.getHttpsCallable("dropPin").call(newPin.serialize()).continueWith(task -> {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
-            droppedPinMetadata.add(new PinMetadata(pid, new Date(), newPin.getBroadLocationName(),
+            droppedPinMetadata.add(new PinMetadata(pid, newPin.getBroadLocationName(),
                     newPin.getNearbyLocationName()));
             activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.DROP,
                     newPin.getBroadLocationName(), newPin.getNearbyLocationName()));
@@ -393,8 +392,7 @@ public class FirebaseDriver {
             String nearbyLocationName = result.get("nearbyLocationName");
             activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
                     broadLocationName, nearbyLocationName));
-            foundPinMetadata.add(
-                    new PinMetadata(pid, new Date(), broadLocationName, nearbyLocationName));
+            foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName));
         }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin.", e));
     }
 

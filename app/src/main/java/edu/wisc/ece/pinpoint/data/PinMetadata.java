@@ -15,10 +15,9 @@ public class PinMetadata {
     public PinMetadata() {
     }
 
-    public PinMetadata(String pinId, Date timestamp, String broadLocationName,
-                       String nearbyLocationName) {
+    public PinMetadata(String pinId, String broadLocationName, String nearbyLocationName) {
         this.pinId = pinId;
-        this.timestamp = timestamp;
+        this.timestamp = new Date();
         this.broadLocationName = broadLocationName;
         this.nearbyLocationName = nearbyLocationName;
         this.reward = 0;

@@ -20,7 +20,7 @@
             android:layout_height="54dp"
             android:layout_margin="10dp"
             android:contentDescription="@string/pin_thumbnail_text"
-            android:src="@drawable/ic_camera"
+            android:src="@drawable/ic_profile"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

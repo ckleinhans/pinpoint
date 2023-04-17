@@ -123,9 +123,10 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         }
         if (!textContents.isEmpty()) holder.text.setText(textContents);
 
-        // Clicking on the picture of the action's author will navigate to their profile
-        holder.image.setOnClickListener(view -> navController.navigate(
-                NavigationDirections.profile().setUid(action.getAuthor())));
+        // Clicking author's picture will navigate to their profile unless already there
+        if (source != FeedSource.PROFILE) holder.image.setOnClickListener(
+                view -> navController.navigate(
+                        NavigationDirections.profile().setUid(action.getAuthor())));
 
         // Clicking on the card will navigate to the action's relevant page
         holder.item.setOnClickListener(view -> {
@@ -133,8 +134,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 if (firebase.getCachedFoundPinMetadata()
                         .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
                     navController.navigate(NavigationDirections.pinView(id));
-                else Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
-                        Toast.LENGTH_SHORT).show();
+                else Toast.makeText(parentContext, R.string.pin_not_discovered, Toast.LENGTH_SHORT)
+                        .show();
 
             } else if (type == ActivityItem.ActivityType.FOLLOW) {
                 navController.navigate(NavigationDirections.profile().setUid(id));
