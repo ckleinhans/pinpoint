@@ -26,14 +26,18 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.lang.reflect.Field;
+
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
+import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
 public class PinViewFragment extends Fragment {
     private static final String TAG = PinViewFragment.class.getName();
@@ -101,34 +105,18 @@ public class PinViewFragment extends Fragment {
 
         addCommentButton.setOnClickListener((v) -> {
             if(addCommentInputLayout.getVisibility() == View.GONE){
-                addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_cancel_comment));
+                addCommentButton.setForeground(ContextCompat.getDrawable(requireContext(), R.drawable.ic_cancel_comment));
                 addCommentInputLayout.setVisibility(View.VISIBLE);
                 sendCommentButton.setVisibility(View.VISIBLE);
             }
             else{
-                addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_add_comment));
+                addCommentButton.setForeground(ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_comment));
                 addCommentInputLayout.setVisibility(View.GONE);
                 sendCommentButton.setVisibility(View.GONE);
             }
         });
 
-        sendCommentButton.setOnClickListener((v) -> {
-            if (addCommentEditText.getText() != null) {
-                Comment comment = new Comment(addCommentEditText.getText().toString());
-                firebase.postComment(comment, pid);
-
-                // clear comment text and hide posting components
-                addCommentEditText.setText("");
-                addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_add_comment));
-                addCommentInputLayout.setVisibility(View.GONE);
-                sendCommentButton.setVisibility(View.GONE);
-
-                // refetch and display comments
-                comments.add(0, comment);
-                commentCount.setText(String.format("comments: %d", comments.size()));
-                setupCommentRecyclerView(getView(), comments);
-            }
-        });
+        sendCommentButton.setOnClickListener(this::sendCommentHandler);
 
         addCommentEditText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus && Resources.getSystem().getDisplayMetrics().heightPixels == getView().getHeight()) {
@@ -154,12 +142,47 @@ public class PinViewFragment extends Fragment {
         fetchAndDisplayComments();
     }
 
+    private void sendCommentHandler(View v) {
+        if (!ValidationUtils.isEmpty(addCommentEditText)) {
+            Comment comment = new Comment(addCommentEditText.getText().toString());
+            firebase.postComment(comment, pid)
+                    .addOnSuccessListener(t -> {
+                        // clear comment text and hide posting components
+                        addCommentEditText.setText("");
+                        if (getContext() != null) {
+                            addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_add_comment));
+                        }
+                        addCommentInputLayout.setVisibility(View.GONE);
+                        sendCommentButton.setVisibility(View.GONE);
+
+                        // add new comment locally, refresh display
+                        comments.add(0, comment);
+                        updateCommentList();
+                    })
+                    .addOnFailureListener(t -> {
+                        if (getContext() != null) {
+                            Toast.makeText(getContext(), "Failed to post comment", Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+        }
+    }
+
     private void fetchAndDisplayComments() {
         firebase.fetchComments(pid).addOnCompleteListener(t -> {
-            comments = (ArrayList<Comment>) t.getResult();
-            commentCount.setText(String.format("comments: %d", comments.size()));
-            setupCommentRecyclerView(getView(), comments);
+            comments = new ArrayList<Comment>(t.getResult());
+            updateCommentList();
         });
+    }
+
+    private void updateCommentList() {
+        commentCount.setText(comments.size() == 1
+                ? "1 comment"
+                : String.format("%d comments", comments.size()));
+
+        if (getView() != null) {
+            setupCommentRecyclerView(getView(), comments);
+        }
     }
 
     private void setPinData(Pin pin) {

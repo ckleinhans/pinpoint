@@ -17,6 +17,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -558,13 +559,11 @@ public class FirebaseDriver {
                 .addOnFailureListener(e -> Log.w(TAG, "Error calculating pin cost.", e));
     }
 
-    public void postComment(Comment comment, String pid) {
-        db.collection("pins")
+    public Task<DocumentReference> postComment(Comment comment, String pid) {
+        return db.collection("pins")
                 .document(pid)
                 .collection("comments")
-                .add(comment.serialize())
-                .addOnSuccessListener(t -> Log.d(TAG, String.format("Comment on pin %s successfully posted.", pid)))
-                .addOnFailureListener(e -> Log.w(TAG, "Error posting comment", e));
+                .add(comment.serialize());
     }
 
     public Task<List<Comment>> fetchComments(String pid) {
