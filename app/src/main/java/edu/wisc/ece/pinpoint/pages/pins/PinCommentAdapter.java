@@ -42,6 +42,7 @@ public class PinCommentAdapter extends RecyclerView.Adapter<PinCommentAdapter.Pi
     public void onBindViewHolder(@NonNull PinCommentAdapter.PinCommentViewHolder holder, int position) {
         Comment comment = comments.get(position);
         User user = FirebaseDriver.getInstance().getCachedUser(comment.getAuthorUID());
+        System.out.println(comment.getAuthorUID());
         holder.content.setText(comment.getContent());
         holder.timestamp.setText(comment.getTimestamp().toString());
         holder.username.setText(user.getUsername());

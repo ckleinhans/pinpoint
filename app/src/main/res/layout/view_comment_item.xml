@@ -5,12 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:backgroundTint="?attr/colorBackgroundFloating"
     android:layout_margin="5dp"
     app:cardCornerRadius="5dp"
-    app:cardElevation="5dp"
-    app:strokeColor="?attr/colorOnBackground"
-    app:strokeWidth="1dp">
+    app:cardElevation="3dp"
+    app:contentPadding="10dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -21,7 +19,7 @@
         android:id="@+id/comment_profile_image"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_margin="10dp"
+        android:layout_marginRight="10dp"
         android:src="@drawable/ic_profile"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -32,8 +30,7 @@
             android:textStyle="bold"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="Placeholder Name"
+            android:layout_marginHorizontal="10dp"
             app:layout_constraintStart_toEndOf="@+id/comment_profile_image"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -41,8 +38,7 @@
             android:id="@+id/comment_timestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:text="Rock O'clock"
+            android:layout_marginLeft="10dp"
             app:layout_constraintStart_toEndOf="@+id/comment_username_text"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -51,8 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:paddingBottom="10dp"
-            android:paddingLeft="70dp"
+            android:paddingLeft="60dp"
             android:paddingRight="10dp"
             app:layout_constraintStart_toStartOf="@+id/comment_username_text"
             app:layout_constraintTop_toBottomOf="@+id/comment_username_text" />
