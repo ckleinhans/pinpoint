@@ -1,6 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.pins;
-
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,22 +12,32 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.core.content.ContextCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.lang.reflect.Field;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
+import edu.wisc.ece.pinpoint.utils.ValidationUtils;
 
 public class PinViewFragment extends Fragment {
     private static final String TAG = PinViewFragment.class.getName();
@@ -49,6 +59,16 @@ public class PinViewFragment extends Fragment {
     private ConstraintLayout metadataBar;
     private String pid;
     private String authorUID;
+    private RecyclerView commentRecyclerView;
+    private ImageView addCommentButton;
+    private TextInputLayout addCommentInputLayout;
+    private TextInputEditText addCommentEditText;
+    private ImageButton backButton;
+    private ImageView sendCommentButton;
+    private NestedScrollView scrollView;
+
+    private final int COMMENT_FOCUS_SCROLL = 1000;
+    private ArrayList<Comment> comments;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -72,11 +92,37 @@ public class PinViewFragment extends Fragment {
         textContent = requireView().findViewById(R.id.pin_text_content);
         imageContent = requireView().findViewById(R.id.pin_image_content);
         metadataBar = requireView().findViewById(R.id.pin_view_metadata);
-        ImageButton backButton = requireView().findViewById(R.id.pin_view_back_button);
-        ImageButton optionsButton = requireView().findViewById(R.id.pin_view_options_button);
+        backButton = requireView().findViewById(R.id.pin_view_back_button);
+        addCommentButton = requireView().findViewById(R.id.add_comment_button);
+        sendCommentButton = requireView().findViewById(R.id.send_comment_button);
+        addCommentEditText = requireView().findViewById(R.id.comment_edittext_layout);
+        addCommentInputLayout = requireView().findViewById(R.id.comment_input_layout);
+        scrollView = requireView().findViewById(R.id.viewpin_scrollview);
 
         backButton.setOnClickListener((v) -> navController.popBackStack());
-        optionsButton.setOnClickListener(this::showOptionsMenu);
+
+
+
+        addCommentButton.setOnClickListener((v) -> {
+            if(addCommentInputLayout.getVisibility() == View.GONE){
+                addCommentButton.setForeground(ContextCompat.getDrawable(requireContext(), R.drawable.ic_cancel_comment));
+                addCommentInputLayout.setVisibility(View.VISIBLE);
+                sendCommentButton.setVisibility(View.VISIBLE);
+            }
+            else{
+                addCommentButton.setForeground(ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_comment));
+                addCommentInputLayout.setVisibility(View.GONE);
+                sendCommentButton.setVisibility(View.GONE);
+            }
+        });
+
+        sendCommentButton.setOnClickListener(this::sendCommentHandler);
+
+        addCommentEditText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus && Resources.getSystem().getDisplayMetrics().heightPixels == getView().getHeight()) {
+                scrollView.postDelayed(() -> scrollView.scrollTo(0, COMMENT_FOCUS_SCROLL), 150);
+            }
+        });
 
         // Fetch pin data & load using argument
         Bundle args = getArguments();
@@ -91,6 +137,51 @@ public class PinViewFragment extends Fragment {
         } else {
             // Since pin data shouldn't change, only fetch if not cached
             firebase.fetchPin(pid).addOnCompleteListener(task -> setPinData(task.getResult()));
+        }
+
+        fetchAndDisplayComments();
+    }
+
+    private void sendCommentHandler(View v) {
+        if (!ValidationUtils.isEmpty(addCommentEditText)) {
+            Comment comment = new Comment(addCommentEditText.getText().toString());
+            firebase.postComment(comment, pid)
+                    .addOnSuccessListener(t -> {
+                        // clear comment text and hide posting components
+                        addCommentEditText.setText("");
+                        if (getContext() != null) {
+                            addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_add_comment));
+                        }
+                        addCommentInputLayout.setVisibility(View.GONE);
+                        sendCommentButton.setVisibility(View.GONE);
+
+                        // add new comment locally, refresh display
+                        comments.add(0, comment);
+                        updateCommentList();
+                    })
+                    .addOnFailureListener(t -> {
+                        if (getContext() != null) {
+                            Toast.makeText(getContext(), "Failed to post comment", Toast.LENGTH_LONG).show();
+                        }
+                    });
+
+        }
+    }
+
+    private void fetchAndDisplayComments() {
+        firebase.fetchComments(pid).addOnCompleteListener(t -> {
+            comments = new ArrayList<Comment>(t.getResult());
+            updateCommentList();
+        });
+    }
+
+    private void updateCommentList() {
+        commentCount.setText(comments.size() == 1
+                ? "1 comment"
+                : String.format("%d comments", comments.size()));
+
+        if (getView() != null) {
+            setupCommentRecyclerView(getView(), comments);
         }
     }
 
@@ -122,9 +213,6 @@ public class PinViewFragment extends Fragment {
 
         foundCount.setText(pin.getFinds() == 1 ? getString(R.string.pin_finds_singular) :
                 String.format(getString(R.string.pin_finds_plural), pin.getFinds()));
-
-        // TODO dynamically set comments
-        commentCount.setText("20 Comments");
 
         if (pin.getType() == Pin.PinType.IMAGE) {
             firebase.loadPinImage(imageContent, requireContext(), pid);
@@ -205,5 +293,15 @@ public class PinViewFragment extends Fragment {
                     .show();
             navController.popBackStack();
         });
+    }
+
+    private void setupCommentRecyclerView(View view, ArrayList<Comment> comments) {
+        commentRecyclerView = view.findViewById(R.id.comment_recycler_view);
+        NavController navController =
+                Navigation.findNavController(requireParentFragment().requireView());
+        commentRecyclerView.setLayoutManager(new GridLayoutManager(getContext(), 1));
+        commentRecyclerView.setAdapter(new PinCommentAdapter(comments, navController, this));
+        commentRecyclerView.setItemAnimator(new DefaultItemAnimator());
+        commentRecyclerView.setNestedScrollingEnabled(false);
     }
 }

@@ -17,10 +17,12 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.functions.HttpsCallableResult;
 import com.google.firebase.storage.FirebaseStorage;
@@ -38,6 +40,7 @@ import javax.annotation.Nullable;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.ActivityItem;
 import edu.wisc.ece.pinpoint.data.ActivityList;
+import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.GlideApp;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
@@ -554,5 +557,28 @@ public class FirebaseDriver {
         return functions.getHttpsCallable("calcPinCost").call(data)
                 .continueWith(task -> (Integer) task.getResult().getData())
                 .addOnFailureListener(e -> Log.w(TAG, "Error calculating pin cost.", e));
+    }
+
+    public Task<DocumentReference> postComment(Comment comment, String pid) {
+        return db.collection("pins")
+                .document(pid)
+                .collection("comments")
+                .add(comment.serialize());
+    }
+
+    public Task<List<Comment>> fetchComments(String pid) {
+        return db.collection("pins")
+                .document(pid)
+                .collection("comments")
+                .orderBy("timestamp", Query.Direction.DESCENDING)
+                .get()
+                .continueWith(task -> {
+                    if (task.isSuccessful()) {
+                        return task.getResult().toObjects(Comment.class);
+                    } else {
+                        Log.e(TAG, "Error fetching comments", task.getException());
+                        return null;
+                    }
+                });
     }
 }

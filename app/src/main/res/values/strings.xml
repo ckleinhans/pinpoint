@@ -81,4 +81,5 @@
     <string name="feed_bar_text">Feed</string>
     <string name="pin_location_icon_text">Pin Location Icon</string>
     <string name="user_rank_text">User Rank</string>
+    <string name="add_a_comment">Add A Comment</string>
 </resources>
