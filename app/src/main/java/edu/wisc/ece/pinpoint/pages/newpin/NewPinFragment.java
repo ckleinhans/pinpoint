@@ -154,7 +154,7 @@ public class NewPinFragment extends Fragment {
         });
 
         captionInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
+            if (hasFocus && Resources.getSystem().getDisplayMetrics().heightPixels == getView().getHeight()) {
                 scrollView.postDelayed(() -> scrollView.scrollTo(0,
                         Resources.getSystem().getDisplayMetrics().heightPixels), 100);
             } else {

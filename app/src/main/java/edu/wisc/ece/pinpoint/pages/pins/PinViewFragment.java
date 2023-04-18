@@ -1,7 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.pins;
-
 import android.content.DialogInterface;
-
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,7 +12,6 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
@@ -26,14 +24,10 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
-
 import java.util.ArrayList;
-
 import java.lang.reflect.Field;
-
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
@@ -103,6 +97,8 @@ public class PinViewFragment extends Fragment {
 
         backButton.setOnClickListener((v) -> navController.popBackStack());
 
+
+
         addCommentButton.setOnClickListener((v) -> {
             if(addCommentInputLayout.getVisibility() == View.GONE){
                 addCommentButton.setForeground(ContextCompat.getDrawable(getContext(), R.drawable.ic_cancel_comment));
@@ -135,8 +131,8 @@ public class PinViewFragment extends Fragment {
         });
 
         addCommentEditText.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
-                scrollView.postDelayed(() -> scrollView.scrollTo(0, COMMENT_FOCUS_SCROLL), 100);
+            if (hasFocus && Resources.getSystem().getDisplayMetrics().heightPixels == getView().getHeight()) {
+                scrollView.postDelayed(() -> scrollView.scrollTo(0, COMMENT_FOCUS_SCROLL), 150);
             }
         });
 
