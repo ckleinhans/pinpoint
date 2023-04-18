@@ -32,8 +32,7 @@ export const dropPinHandler = async (
     !type ||
     !latitude ||
     !longitude ||
-    // TODO: uncomment once merged
-    // !broadLocationName ||
+    !broadLocationName ||
     (type === PinType.TEXT && !textContent)
   ) {
     throw new functions.https.HttpsError(
@@ -123,6 +122,8 @@ export const findPinHandler = async ({ pid, latitude, longitude, pinSource }, co
       "dropPin must be called while authenticated."
     );
   }
+  // TODO: add !pinSource once merged & remove below line
+  if (pinSource == undefined) pinSource = PinSource.GENERAL;
   if (!pid || !latitude || !longitude) {
     throw new functions.https.HttpsError(
       "invalid-argument",
@@ -191,7 +192,7 @@ export const findPinHandler = async ({ pid, latitude, longitude, pinSource }, co
       timestamp,
       nearbyLocationName: pinData.nearbyLocationName,
       broadLocationName: pinData.broadLocationName,
-      pinSource: pinSource,
+      pinSource,
     };
 
     // Create activity to push
