@@ -78,8 +78,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         author.loadProfilePic(holder.image, fragment);
 
         // Detect if the activity belongs to current user, and trim if username is too long
-        String username = action.getAuthor().equals(firebase.getCurrentUser().getUid()) ? "You" :
-                author.getUsername();
+        String username =
+                action.getAuthor().equals(firebase.getUid()) ? "You" : author.getUsername();
         String location = FormatUtils.formattedActivityLocation(action.getBroadLocationName(),
                 action.getNearbyLocationName());
         String textContents = "";
@@ -103,7 +103,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 break;
             case FOLLOW:
                 holder.icon.setImageResource(R.drawable.ic_follow);
-                if (firebase.getCurrentUser().getUid().equals(id)) {
+                if (firebase.getUid().equals(id)) {
                     textContents = username + " followed you";
                 } else {
                     User cachedPinAuthor = firebase.getCachedUser(id);

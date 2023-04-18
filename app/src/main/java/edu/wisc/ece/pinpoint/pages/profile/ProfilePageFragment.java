@@ -70,7 +70,7 @@ public class ProfilePageFragment extends Fragment {
 
         // If UID null, navigated from navbar, show settings button & set default UID
         if (uid == null) {
-            uid = firebase.getCurrentUser().getUid();
+            uid = firebase.getUid();
             ImageButton settingsButton = requireView().findViewById(R.id.profile_settings);
             settingsButton.setVisibility(View.VISIBLE);
             settingsButton.setOnClickListener(clickedView -> navController.navigate(
@@ -81,7 +81,7 @@ public class ProfilePageFragment extends Fragment {
             backButton.setVisibility(View.VISIBLE);
             backButton.setOnClickListener(v -> navController.popBackStack());
         }
-        if (uid.equals(firebase.getCurrentUser().getUid())) {
+        if (uid.equals(firebase.getUid())) {
             // Viewing own profile, button is for editing profile
             button.setText(R.string.edit_profile_text);
             button.setOnClickListener((buttonView) -> navController.navigate(
@@ -160,7 +160,7 @@ public class ProfilePageFragment extends Fragment {
         // Viewing someone else's profile, button is for following
         final String uid = user;
         // if the user is already following this profile, show unfollow button
-        if (firebase.getCachedFollowing(firebase.getCurrentUser().getUid()).contains(uid)) {
+        if (firebase.getCachedFollowing(firebase.getUid()).contains(uid)) {
             button.setText(R.string.unfollow_text);
             button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.soft_red));
             button.setOnClickListener((buttonView) -> {
@@ -174,7 +174,7 @@ public class ProfilePageFragment extends Fragment {
             });
         } else {
             // if this profile follows the user but the user does not, show follow back button
-            if (firebase.getCachedFollowers(firebase.getCurrentUser().getUid()).contains(uid))
+            if (firebase.getCachedFollowers(firebase.getUid()).contains(uid))
                 button.setText(R.string.follow_back_text);
             else button.setText(R.string.follow_text);
             button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.blue));

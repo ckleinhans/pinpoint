@@ -71,13 +71,13 @@ public class FeedFragment extends Fragment {
 
             // List of tasks to wait for before displaying activity
             List<Task<ActivityList>> fetchTasks = new ArrayList<>();
-
+            // TODO: replace adapter with ListAdapter to improve UX & efficiency
             // Two master lists with activity from all followed users, one is for all cached data
             // to be displayed immediately, the other is for fetching & displaying up to date data
             ActivityList cachedMasterList = new ActivityList(new ArrayList<>());
             ActivityList fetchedMasterList = new ActivityList(new ArrayList<>());
             // For each followed user, check if their activity is cached, then add it to master list
-            for (String userId : firebase.getCachedFollowing(firebase.getCurrentUser().getUid())) {
+            for (String userId : firebase.getCachedFollowers(firebase.getUid())) {
                 ActivityList cachedActivity = firebase.getCachedActivity(userId);
                 if (cachedActivity != null) {
                     cachedMasterList.addAll(cachedActivity);
@@ -109,7 +109,7 @@ public class FeedFragment extends Fragment {
                     new FeedAdapter(cachedActivity, navController, this,
                             FeedAdapter.FeedSource.PROFILE));
             // If user is not self, fetch activity regardless to maintain up to date data
-            if (!firebase.getCurrentUser().getUid().equals(uid) || cachedActivity == null)
+            if (!firebase.getUid().equals(uid) || cachedActivity == null)
                 firebase.fetchActivity(uid).addOnSuccessListener(
                         activityList -> recyclerView.setAdapter(
                                 new FeedAdapter(activityList, navController, this,
@@ -117,5 +117,6 @@ public class FeedFragment extends Fragment {
                         e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
                                 Toast.LENGTH_SHORT).show());
         }
+
     }
 }

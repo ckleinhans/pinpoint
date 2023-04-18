@@ -58,7 +58,7 @@ public class LeaderboardListFragment extends Fragment {
         // Get list type from arguments
         listType = LeaderboardListType.valueOf(requireArguments().getString(LIST_TYPE_ARG_KEY));
         List<String> userIds = new ArrayList<>();
-        String uid = firebase.getCurrentUser().getUid();
+        String uid = firebase.getUid();
         userIds.add(uid);
         List<Task<Void>> fetchTasks = new ArrayList<>();
         for (String userId : firebase.getCachedFollowing(uid)) {

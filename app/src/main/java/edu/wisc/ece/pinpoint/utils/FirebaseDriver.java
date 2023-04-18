@@ -124,8 +124,8 @@ public class FirebaseDriver {
         return AuthUI.getInstance().signOut(context);
     }
 
-    public FirebaseUser getCurrentUser() {
-        return auth.getCurrentUser();
+    public String getUid() {
+        return auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
     }
 
     public boolean isNewUser() {
@@ -155,7 +155,10 @@ public class FirebaseDriver {
         WriteBatch batch = db.batch();
 
         // Create user object
-        FirebaseUser user = getCurrentUser();
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            throw new IllegalStateException("User must be logged in to initialize user data");
+        }
         String username = user.getDisplayName() == null ? null : user.getDisplayName().trim()
                 .substring(0, Math.min(user.getDisplayName().length(), 20));
         User userData = new User(username);

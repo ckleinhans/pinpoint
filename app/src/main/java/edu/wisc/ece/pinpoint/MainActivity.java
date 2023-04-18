@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Fetch logged in user profile, following/followers, & activity on app load
         FirebaseDriver firebase = FirebaseDriver.getInstance();
-        String uid = firebase.getCurrentUser().getUid();
+        String uid = firebase.getUid();
         firebase.fetchUser(uid);
         firebase.fetchFollowing(uid);
         firebase.fetchFollowers(uid);
@@ -62,20 +62,15 @@ public class MainActivity extends AppCompatActivity {
 
 
         Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        handler.postDelayed(() -> {
+            PeriodicWorkRequest saveRequest =
+                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 16,
+                            TimeUnit.MINUTES)
+                            // Constraints
+                            .build();
 
-                PeriodicWorkRequest saveRequest =
-                        new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 16, TimeUnit.MINUTES)
-                                // Constraints
-                                .build();
-
-                WorkManager work = WorkManager.getInstance(getApplicationContext());
-                work.enqueue(saveRequest);
-            }
-
-
+            WorkManager work = WorkManager.getInstance(getApplicationContext());
+            work.enqueue(saveRequest);
         }, 1);
     }
 

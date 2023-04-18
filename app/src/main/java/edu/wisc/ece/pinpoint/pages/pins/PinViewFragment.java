@@ -146,7 +146,7 @@ public class PinViewFragment extends Fragment {
         PopupMenu popup = new PopupMenu(requireContext(), v);
         Menu menu = popup.getMenu();
         menu.add(Menu.NONE, SHARE, Menu.NONE, "Share").setIcon(R.drawable.ic_nfc_share);
-        if (authorUID.equals(firebase.getCurrentUser().getUid())) {
+        if (authorUID.equals(firebase.getUid())) {
             menu.add(Menu.NONE, DELETE, Menu.NONE, "Delete").setIcon(R.drawable.ic_delete);
         } else {
             menu.add(Menu.NONE, REPORT, Menu.NONE, "Report").setIcon(R.drawable.ic_flag);
