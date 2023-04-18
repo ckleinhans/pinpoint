@@ -16,7 +16,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.auth.UserInfo;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -199,42 +201,38 @@ public class FirebaseDriver {
     }
 
     public Task<OrderedPinMetadata> fetchFoundPins() {
+        OrderedPinMetadata foundPinMetadata = new OrderedPinMetadata();
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
-        return db.collection("users").document(auth.getUid()).collection("pins").document("found")
-                .get().continueWithTask(task -> {
-                    List<Task<Pin>> fetchTasks = new ArrayList<>();
-                    Map<String, Object> data = task.getResult().getData();
-                    OrderedPinMetadata foundPinMetadata = new OrderedPinMetadata(data);
-
-                    for (Iterator<PinMetadata> it = foundPinMetadata.getIterator();
-                         it.hasNext(); ) {
-                        String pinId = it.next().getPinId();
-                        if (getCachedPin(pinId) == null) {
-                            fetchTasks.add(fetchPin(pinId).addOnSuccessListener(pin -> {
-                                // If pin no longer exists don't add to cache & remove from db
-                                if (pin == null) {
-                                    db.collection("users").document(auth.getUid())
-                                            .collection("pins").document("found")
-                                            .update(pinId, FieldValue.delete())
-                                            .addOnSuccessListener(t -> Log.d(TAG,
-                                                    "Successfully deleted found record for " +
-                                                            "deleted pin."))
-                                            .addOnFailureListener(e -> Log.w(TAG,
-                                                    "Error deleting found record for deleted" +
-                                                            " pin.",
-                                                    e));
-                                    foundPinMetadata.remove(pinId);
-                                }
-                            }));
+        CollectionReference foundRef =
+                db.collection("users").document(auth.getUid()).collection("found");
+        return foundRef.orderBy("timestamp").get().continueWithTask(task -> {
+            List<Task<Pin>> fetchTasks = new ArrayList<>();
+            for (DocumentSnapshot documentSnapshot : task.getResult().getDocuments()) {
+                String pinId = documentSnapshot.getId();
+                //noinspection ConstantConditions
+                PinMetadata metadata = new PinMetadata(pinId, documentSnapshot.getData());
+                foundPinMetadata.add(metadata);
+                if (getCachedPin(pinId) == null) {
+                    fetchTasks.add(fetchPin(pinId).addOnSuccessListener(pin -> {
+                        // If pin no longer exists don't add to cache & remove from db
+                        if (pin == null) {
+                            db.collection("users").document(auth.getUid()).collection("found")
+                                    .document(pinId).delete().addOnFailureListener(e -> Log.w(TAG,
+                                            "Error deleting found record for " + "deleted pin.", e))
+                                    .addOnSuccessListener(t2 -> Log.d(TAG,
+                                            "Successfully deleted found record for deleted pin."));
+                            foundPinMetadata.remove(pinId);
                         }
-                    }
-                    return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
-                        this.foundPinMetadata = foundPinMetadata;
-                        return foundPinMetadata;
-                    });
-                }).addOnFailureListener(e -> Log.w(TAG, "Error fetching found pins.", e));
+                    }));
+                }
+            }
+            return Tasks.whenAllComplete(fetchTasks).continueWith(task1 -> {
+                this.foundPinMetadata = foundPinMetadata;
+                return foundPinMetadata;
+            });
+        }).addOnFailureListener(e -> Log.w(TAG, "Error fetching found pins.", e));
     }
 
     public OrderedPinMetadata getCachedFoundPinMetadata() {
@@ -328,11 +326,11 @@ public class FirebaseDriver {
                 pins.remove(pid);
                 if (foundPinMetadata != null) {
                     if (foundPinMetadata.remove(pid))
-                        db.collection("users").document(auth.getUid()).collection("pins")
-                                .document("found").update(pid, FieldValue.delete())
-                                .addOnFailureListener(e -> Log.w(TAG,
-                                        "Error deleting found record for deleted pin.", e))
-                                .addOnSuccessListener(t -> Log.d(TAG,
+                        db.collection("users").document(auth.getUid()).collection("found")
+                                .document(pid).delete().addOnFailureListener(
+                                        e -> Log.w(TAG, "Error deleting found record for " +
+                                                        "deleted pin.",
+                                                e)).addOnSuccessListener(t2 -> Log.d(TAG,
                                         "Successfully deleted found record for deleted pin."));
                 } else if (droppedPinMetadata != null) {
                     if (droppedPinMetadata.remove(pid))
