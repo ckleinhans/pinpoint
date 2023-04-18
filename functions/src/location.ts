@@ -69,5 +69,8 @@ export const getNearbyPinsHandler = async (
     [latitude, longitude],
     NEARBY_PIN_RADIUS_METERS
   );
-  return Object.fromEntries(pins.map((pin) => [pin.id, pin.data().location]));
+  
+  return Object.fromEntries(pins.map((pin) => {
+    const pinLoc: GeoPoint = pin.get("location");
+    return [pin.id, {latitude: pinLoc.latitude, longitude: pinLoc.longitude, authorUID: pin.data().authorUID}]}));
 };

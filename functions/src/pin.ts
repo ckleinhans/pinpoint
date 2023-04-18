@@ -4,7 +4,7 @@ import * as functions from "firebase-functions";
 import { distanceBetween, geohashForLocation } from "geofire-common";
 
 import { calculateCost, calculateReward } from "./cost";
-import { Activity, ActivityType, Pin, PinMetadata, PinType } from "./types";
+import { Activity, ActivityType, Pin, PinMetadata, PinSource, PinType } from "./types";
 
 const PIN_FIND_RADIUS_KILOMETERS = 0.02; // 20 meters
 
@@ -74,6 +74,7 @@ export const dropPinHandler = async (
       timestamp,
       broadLocationName,
       nearbyLocationName,
+      pinSource: PinSource.SELF,
     };
 
     // Check user has sufficient currency
@@ -114,7 +115,7 @@ export const dropPinHandler = async (
 };
 
 // TODO: add anti-spoof check before finding pin
-export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
+export const findPinHandler = async ({ pid, latitude, longitude, pinSource }, context) => {
   // Validate auth status and args
   if (!context || !context.auth || !context.auth.uid) {
     throw new functions.https.HttpsError(
@@ -190,6 +191,7 @@ export const findPinHandler = async ({ pid, latitude, longitude }, context) => {
       timestamp,
       nearbyLocationName: pinData.nearbyLocationName,
       broadLocationName: pinData.broadLocationName,
+      pinSource: pinSource,
     };
 
     // Create activity to push

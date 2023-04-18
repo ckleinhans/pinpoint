@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         firebase.fetchUser(uid);
         firebase.fetchSocials(uid);
         firebase.fetchActivity(uid);
+        // wait until all tasks complete before showing view
     }
 
     public void onMapButtonClick(View view) {

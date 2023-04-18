@@ -25,6 +25,14 @@ export type PinMetadata = {
   timestamp: Date;
   broadLocationName: String;
   nearbyLocationName: String;
+  pinSource: PinSource;
+}
+
+export enum PinSource {
+  GENERAL = "GENERAL",
+  DEV = "DEV",
+  NFC = "NFC",
+  SELF = "SELF",
 }
 
 export enum ActivityType {

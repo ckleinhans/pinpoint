@@ -34,11 +34,13 @@ import com.google.firebase.firestore.GeoPoint;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
+import edu.wisc.ece.pinpoint.data.PinMetadata.PinSource;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
 import edu.wisc.ece.pinpoint.utils.LocationDriver;
@@ -140,27 +142,38 @@ public class MapFragment extends Fragment {
                 firebase.getCachedDroppedPinMetadata().getIterator();
         while (droppedIterator.hasNext()) {
             String pinId = droppedIterator.next().getPinId();
-            createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation());
+            createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation(), PinSource.SELF);
         }
         // Get found pins
         Iterator<PinMetadata> foundIterator = firebase.getCachedFoundPinMetadata().getIterator();
         while (foundIterator.hasNext()) {
-            String pinId = foundIterator.next().getPinId();
-            createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation());
+            PinMetadata pin = droppedIterator.next();
+            String pinId = pin.getPinId();
+            PinSource pinSource = pin.getPinSource();
+            createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation(), pinSource);
         }
     }
 
-    private void createUndiscoveredPin(Object key, Object val) {
-        String valString = val.toString();
-        LatLng pinLocation = new LatLng(Double.parseDouble(
-                valString.substring(valString.lastIndexOf("=") + 1, valString.indexOf("}"))),
-                Double.parseDouble(
-                        valString.substring(valString.indexOf("=") + 1, valString.indexOf(","))));
-        // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
+    private void createUndiscoveredPin(String key, Map<String, Object> val) {
+        String authorUID = val.get("authorUID").toString();
+        LatLng pinLocation = new LatLng((double) val.get("latitude"), (double) val.get("longitude"));
+        float color = BitmapDescriptorFactory.HUE_RED;
+        // Data field to persist in pin marker to know the pin source when the user finds the pin
+        PinSource source = PinSource.GENERAL;
+        // TODO: change color for nfc pin (cyan)
+        if(authorUID == "pinpoint"){
+            color = BitmapDescriptorFactory.HUE_YELLOW;
+            source = PinSource.DEV;
+        }
+        // Change color to green if user follows author. Following is subject to change, so do not store this as the pin source
+        else if(firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing().contains(authorUID)) {
+            color = BitmapDescriptorFactory.HUE_GREEN;
+        }
         Marker pinMarker = map.addMarker(new MarkerOptions().icon(
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).alpha(.5f)
+                        BitmapDescriptorFactory.defaultMarker(color)).alpha(.3f)
                 .position(pinLocation));
         pinMarker.setTag(key);
+        pinMarker.setSnippet(source.name());
     }
 
     private void handleUndiscoveredPinClick(Marker marker) {
@@ -180,8 +193,20 @@ public class MapFragment extends Fragment {
             if (LocationDriver.isCloseEnoughToFindPin(
                     new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
                     marker.getPosition())) {
+                PinSource pinSource;
+                switch (marker.getSnippet()){
+                    case "DEV":
+                        pinSource = PinSource.DEV;
+                        break;
+                    case "NFC":
+                        pinSource = PinSource.NFC;
+                        break;
+                    default:
+                        pinSource = PinSource.GENERAL;
+                        break;
+                }
                 //noinspection ConstantConditions
-                firebase.findPin((String) marker.getTag(), userLoc).addOnSuccessListener(
+                firebase.findPin((String) marker.getTag(), userLoc, pinSource).addOnSuccessListener(
                                 pin -> navController.navigate(
                                         MapContainerFragmentDirections.pinView(marker.getTag().toString())))
                         .addOnFailureListener(e -> Toast.makeText(requireContext(), e.getMessage(),
@@ -193,11 +218,21 @@ public class MapFragment extends Fragment {
         });
     }
 
-    private void createDiscoveredPin(String id, GeoPoint geoPoint) {
+    private void createDiscoveredPin(String id, GeoPoint geoPoint, PinSource pinSource) {
         LatLng pinLocation = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
-        // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
+        float color;
+        switch (pinSource){
+            case DEV: color = BitmapDescriptorFactory.HUE_YELLOW; break;
+            case SELF: color = BitmapDescriptorFactory.HUE_AZURE; break;
+            case NFC: color = BitmapDescriptorFactory.HUE_CYAN; break;
+            default:
+                if(firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing().contains(firebase.getCachedPin(id).getAuthorUID()))
+                    color = BitmapDescriptorFactory.HUE_GREEN;
+                else color = BitmapDescriptorFactory.HUE_RED;
+                break;
+        }
         Marker pinMarker = map.addMarker(new MarkerOptions().icon(
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).alpha(1f)
+                        BitmapDescriptorFactory.defaultMarker(color)).alpha(1f)
                 .position(pinLocation));
         pinMarker.setTag(id);
     }
