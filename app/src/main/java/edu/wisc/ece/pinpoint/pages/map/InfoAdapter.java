@@ -52,33 +52,37 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     private void setContents(@NonNull Marker marker) {
         // Undiscovered pins are transparent and do not need their data fetched
         if (marker.getAlpha() != 1f) {
-            setUndiscoveredPinContents(marker);
+            setUndiscoveredPinContents();
         } else {
             //noinspection ConstantConditions
             Pin pin = FirebaseDriver.getInstance().getCachedPin(marker.getTag().toString());
             if (pin.getType() == Pin.PinType.IMAGE) {
                 setPicturePinContents(marker, pin);
             } else if (pin.getType() == Pin.PinType.TEXT) {
-                setTextPinContents(marker, pin);
+                setTextPinContents(pin);
             }
             if (title.getText().toString().isEmpty()) title.setVisibility(View.GONE);
             else title.setVisibility(View.VISIBLE);
         }
+        String color = "#FF0000";
+        switch (marker.getSnippet()){
+            case "SELF": color = "#0000FF"; break;
+            case "DEV": color = "#FFFF00"; break;
+            case "NFC": color = "#00FFFF"; break;
+        }
+        boxAccent.setBackgroundColor(Color.parseColor(color));
+        title.setTextColor(Color.parseColor(color));
     }
 
-    private void setUndiscoveredPinContents(@NonNull Marker marker) {
-        boxAccent.setBackgroundColor(Color.parseColor("gray"));
-        title.setTextColor(Color.parseColor("gray"));
+    private void setUndiscoveredPinContents() {
+
         title.setText(R.string.undiscovered_pin_title);
         message.setText(R.string.undiscovered_pin_message);
         image.setVisibility(View.GONE);
         message.setVisibility(View.VISIBLE);
     }
 
-    private void setTextPinContents(@NonNull Marker marker, Pin pin) {
-        // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
-        boxAccent.setBackgroundColor(Color.parseColor("red"));
-        title.setTextColor(Color.parseColor("red"));
+    private void setTextPinContents(Pin pin) {
         title.setText(pin.getCaption());
         message.setText(pin.getTextContent());
         image.setVisibility(View.GONE);
@@ -86,9 +90,6 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
     }
 
     private void setPicturePinContents(@NonNull Marker marker, Pin pin) {
-        // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
-        boxAccent.setBackgroundColor(Color.parseColor("green"));
-        title.setTextColor(Color.parseColor("green"));
         title.setText(pin.getCaption());
         //noinspection ConstantConditions
         FirebaseDriver.getInstance()

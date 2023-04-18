@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
@@ -63,8 +62,8 @@ public class MainActivity extends AppCompatActivity {
         fetchTasks.add(firebase.fetchUser(uid).continueWith(t -> null));
         fetchTasks.add(firebase.fetchSocials(uid).continueWith(t -> null));
         fetchTasks.add(firebase.fetchActivity(uid).continueWith(t -> null));
+        // Wait until all tasks complete before showing view
         Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(fetchingComplete -> showView(R.id.content_view));
-        // wait until all tasks complete before showing view
     }
 
     public void onMapButtonClick(View view) {

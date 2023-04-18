@@ -33,62 +33,67 @@
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent"
         android:background="?attr/colorSecondary"
-        android:paddingRight="6dp">
+        android:paddingRight="8dp">
 
         <CheckBox
             android:id="@+id/checkbox_general"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Unfollowed Users"
+            android:text="Stranger Pins"
             android:drawableLeft="@drawable/ic_pin"
             android:drawableTint="#FF0000"
             android:drawablePadding="6dp"
             style="@style/TextAppearance.Pinpoint.SmallThickText"
-            android:textColor="?attr/colorOnSecondary"/>
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
 
         <CheckBox
             android:id="@+id/checkbox_following"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Followed Users"
+            android:text="Friend Pins"
             android:drawableLeft="@drawable/ic_pin"
             android:drawableTint="#00FF00"
             android:drawablePadding="6dp"
             style="@style/TextAppearance.Pinpoint.SmallThickText"
-            android:textColor="?attr/colorOnSecondary"/>
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
 
         <CheckBox
             android:id="@+id/checkbox_nfc"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="NFC"
+            android:text="NFC Pins"
             android:drawableLeft="@drawable/ic_pin"
             android:drawableTint="#00FFFF"
             android:drawablePadding="6dp"
             style="@style/TextAppearance.Pinpoint.SmallThickText"
-            android:textColor="?attr/colorOnSecondary"/>
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
 
         <CheckBox
             android:id="@+id/checkbox_dropped"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Dropped"
+            android:text="My Pins"
             android:drawableLeft="@drawable/ic_pin"
             android:drawableTint="#0000FF"
             android:drawablePadding="6dp"
             style="@style/TextAppearance.Pinpoint.SmallThickText"
-            android:textColor="?attr/colorOnSecondary"/>
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
 
         <CheckBox
             android:id="@+id/checkbox_pinpoint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="PinPoint Team"
+            android:text="PinPoint Pins"
             android:drawableLeft="@drawable/ic_pin"
             android:drawableTint="#FFFF00"
             android:drawablePadding="6dp"
             style="@style/TextAppearance.Pinpoint.SmallThickText"
-            android:textColor="?attr/colorOnSecondary"/>
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
 
     </LinearLayout>
 
