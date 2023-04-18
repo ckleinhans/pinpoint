@@ -147,7 +147,7 @@ public class MapFragment extends Fragment {
         // Get found pins
         Iterator<PinMetadata> foundIterator = firebase.getCachedFoundPinMetadata().getIterator();
         while (foundIterator.hasNext()) {
-            PinMetadata pin = droppedIterator.next();
+            PinMetadata pin = foundIterator.next();
             String pinId = pin.getPinId();
             PinSource pinSource = pin.getPinSource();
             createDiscoveredPin(pinId, firebase.getCachedPin(pinId).getLocation(), pinSource);
