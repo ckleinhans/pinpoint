@@ -31,6 +31,7 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -153,7 +154,7 @@ public class NewPinFragment extends Fragment {
         });
 
         captionInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus) {
+            if (hasFocus && Resources.getSystem().getDisplayMetrics().heightPixels == getView().getHeight()) {
                 scrollView.postDelayed(() -> scrollView.scrollTo(0,
                         Resources.getSystem().getDisplayMetrics().heightPixels), 100);
             } else {
@@ -338,9 +339,11 @@ public class NewPinFragment extends Fragment {
                                 dropButton.setEnabled(true);
                                 return;
                             }
+
                             if (getContext() != null)
                                 Toast.makeText(getContext(), R.string.drop_pin_text,
                                         Toast.LENGTH_LONG).show();
+
                             navController.popBackStack();
                             navController.navigate(NewPinFragmentDirections.pinView(pid));
 
