@@ -28,7 +28,6 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class FeedFragment extends Fragment {
     public static final String UID_ARG_KEY = "uid";
-    private static final String TAG = FeedFragment.class.getName();
     private FirebaseDriver firebase;
 
     @Override
@@ -77,7 +76,7 @@ public class FeedFragment extends Fragment {
             ActivityList cachedMasterList = new ActivityList(new ArrayList<>());
             ActivityList fetchedMasterList = new ActivityList(new ArrayList<>());
             // For each followed user, check if their activity is cached, then add it to master list
-            for (String userId : firebase.getCachedFollowers(firebase.getUid())) {
+            for (String userId : firebase.getCachedFollowing(firebase.getUid())) {
                 ActivityList cachedActivity = firebase.getCachedActivity(userId);
                 if (cachedActivity != null) {
                     cachedMasterList.addAll(cachedActivity);
