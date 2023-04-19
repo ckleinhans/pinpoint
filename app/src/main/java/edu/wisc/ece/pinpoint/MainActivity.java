@@ -47,10 +47,15 @@ public class MainActivity extends AppCompatActivity {
             if (hiddenNavbarFragments.contains(navDestination.getId())) {
                 navBarContainer.setVisibility(View.GONE);
                 mapButton.setVisibility(View.GONE);
+
             } else {
                 navBarContainer.setVisibility(View.VISIBLE);
                 mapButton.setVisibility(View.VISIBLE);
             }
+        });
+
+        navBar.setOnItemReselectedListener(item -> {
+            navController.navigate(item.getItemId());
         });
 
         // Fetch logged in user profile, following/followers, & activity on app load
