@@ -120,7 +120,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:contentDescription="@string/pin_image_text"
-                    android:src="@drawable/oldnote"
+                    android:src="@drawable/pin_background_img"
                     app:layout_constraintStart_toStartOf="@+id/pin_view_content"
                     app:layout_constraintTop_toTopOf="@+id/pin_view_content" />
 
