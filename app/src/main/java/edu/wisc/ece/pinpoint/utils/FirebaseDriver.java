@@ -17,7 +17,6 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
 import com.google.firebase.auth.UserInfo;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -595,8 +594,40 @@ public class FirebaseDriver {
                 .addOnFailureListener(e -> Log.w(TAG, "Error calculating pin cost.", e));
     }
 
-    public Task<DocumentReference> postComment(Comment comment, String pid) {
-        return db.collection("pins").document(pid).collection("comments").add(comment.serialize());
+    public Task<Void> postComment(Comment comment, String pid) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to post a comment");
+        }
+        Pin pin = getCachedPin(pid);
+        if (pin == null) {
+            throw new IllegalStateException("User must have fetched pin before posting a comment");
+        }
+        ActivityList activity = activityMap.get(auth.getUid());
+        if (activity == null) {
+            throw new IllegalStateException(
+                    "User must have fetched their own activity before posting a comment");
+        }
+        WriteBatch batch = db.batch();
+
+        // Create new comment document
+        batch.set(db.collection("pins").document(pid).collection("comments").document(),
+                comment.serialize());
+
+        // Create new activity item for comment event
+        ActivityItem item;
+        // Don't create activity if last activity was comment of same pin
+        if (activity.size() == 0 || !Objects.equals(activity.get(0).getId(), pid) || activity.get(0)
+                .getType() != ActivityItem.ActivityType.COMMENT) {
+            item = new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.COMMENT,
+                    pin.getBroadLocationName(), pin.getNearbyLocationName());
+            batch.update(db.collection("users").document(auth.getUid()).collection("metadata")
+                    .document("activity"), "activity", FieldValue.arrayUnion(item.serialize()));
+        } else item = null;
+
+        return batch.commit().addOnSuccessListener(t -> {
+            if (item != null) activity.add(item);
+        }).addOnFailureListener(
+                e -> Log.w(TAG, String.format("Error commenting on pin %s.", pid), e));
     }
 
     public Task<List<Comment>> fetchComments(String pid) {
