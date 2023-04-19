@@ -95,8 +95,6 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 holder.icon.setImageResource(R.drawable.ic_search);
                 break;
             case COMMENT:
-                location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
-                        action.getNearbyLocationName());
                 textContents = location == null ? username + " commented on a pin" :
                         username + " commented on a pin " + location;
                 holder.icon.setImageResource(R.drawable.ic_comment);

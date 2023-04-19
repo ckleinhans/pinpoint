@@ -53,6 +53,7 @@ public class ActivityItem {
         HashMap<String, Object> data = new HashMap<>();
         data.put("author", author);
         data.put("id", id);
+        data.put("type", type);
         data.put("timestamp", timestamp);
         data.put("broadLocationName", broadLocationName);
         data.put("nearbyLocationName", nearbyLocationName);
