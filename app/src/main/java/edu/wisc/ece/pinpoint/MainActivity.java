@@ -27,7 +27,7 @@ import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
 public class MainActivity extends AppCompatActivity {
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
-                    R.id.new_pin_fragment);
+                    R.id.new_pin_fragment, R.id.pin_view);
     private NavController navController;
 
     @Override

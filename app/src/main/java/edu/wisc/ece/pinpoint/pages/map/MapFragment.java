@@ -34,6 +34,7 @@ import com.google.firebase.firestore.GeoPoint;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
@@ -150,12 +151,10 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void createUndiscoveredPin(Object key, Object val) {
-        String valString = val.toString();
-        LatLng pinLocation = new LatLng(Double.parseDouble(
-                valString.substring(valString.lastIndexOf("=") + 1, valString.indexOf("}"))),
-                Double.parseDouble(
-                        valString.substring(valString.indexOf("=") + 1, valString.indexOf(","))));
+    private void createUndiscoveredPin(String key, Map<String, Object> val) {
+        //noinspection ConstantConditions
+        LatLng pinLocation =
+                new LatLng((double) val.get("latitude"), (double) val.get("longitude"));
         // TODO: change color based on source of pin (general->red, friend->green, NFC->cyan)
         Marker pinMarker = map.addMarker(new MarkerOptions().icon(
                         BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).alpha(.5f)

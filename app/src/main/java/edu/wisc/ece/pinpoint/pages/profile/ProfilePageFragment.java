@@ -8,6 +8,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -165,12 +166,14 @@ public class ProfilePageFragment extends Fragment {
             button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.soft_red));
             button.setOnClickListener((buttonView) -> {
                 buttonView.setEnabled(false);
-                firebase.unfollowUser(uid).addOnCompleteListener(t -> {
+                firebase.unfollowUser(uid).addOnSuccessListener(t -> {
                     followerCount.setText(String.valueOf(
                             Integer.parseInt(followerCount.getText().toString()) - 1));
                     setButton(user);
                     buttonView.setEnabled(true);
-                });
+                }).addOnFailureListener(
+                        e -> Toast.makeText(requireContext(), R.string.unfollow_error_message,
+                                Toast.LENGTH_SHORT).show());
             });
         } else {
             // if this profile follows the user but the user does not, show follow back button
@@ -180,12 +183,14 @@ public class ProfilePageFragment extends Fragment {
             button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.blue));
             button.setOnClickListener((buttonView) -> {
                 buttonView.setEnabled(false);
-                firebase.followUser(uid).addOnCompleteListener(t -> {
+                firebase.followUser(uid).addOnSuccessListener(t -> {
                     followerCount.setText(String.valueOf(
                             Integer.parseInt(followerCount.getText().toString()) + 1));
                     setButton(user);
                     buttonView.setEnabled(true);
-                });
+                }).addOnFailureListener(
+                        e -> Toast.makeText(requireContext(), R.string.follow_error_message,
+                                Toast.LENGTH_SHORT).show());
             });
         }
     }

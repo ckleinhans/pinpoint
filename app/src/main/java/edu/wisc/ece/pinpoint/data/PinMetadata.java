@@ -1,5 +1,7 @@
 package edu.wisc.ece.pinpoint.data;
 
+import com.google.firebase.Timestamp;
+
 import java.util.Date;
 import java.util.Map;
 
@@ -9,17 +11,18 @@ public class PinMetadata {
     private final Date timestamp;
     private final String broadLocationName;
     private final String nearbyLocationName;
-    private final Integer reward;
-    private final Integer cost;
+    private final Long reward;
+    private final Long cost;
     private final String pinId;
 
     public PinMetadata(String pinId, Map<String, Object> data) {
         this.pinId = pinId;
-        this.timestamp = (Date) data.get("timestamp");
+        //noinspection ConstantConditions
+        this.timestamp = ((Timestamp) data.get("timestamp")).toDate();
         this.broadLocationName = (String) data.get("broadLocationName");
         this.nearbyLocationName = (String) data.get("nearbyLocationName");
-        this.reward = (Integer) data.get("reward");
-        this.cost = (Integer) data.get("cost");
+        this.reward = (Long) data.get("reward");
+        this.cost = (Long) data.get("cost");
     }
 
     public PinMetadata(String pinId, String broadLocationName, String nearbyLocationName) {
@@ -47,11 +50,11 @@ public class PinMetadata {
         return nearbyLocationName;
     }
 
-    public int getReward() {
+    public long getReward() {
         return reward;
     }
 
-    public int getCost() {
+    public long getCost() {
         return cost;
     }
 

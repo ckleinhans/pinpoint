@@ -11,7 +11,7 @@ import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import edu.wisc.ece.pinpoint.NavigationDirections;
 import edu.wisc.ece.pinpoint.R;
@@ -20,15 +20,16 @@ import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
+// TODO: make this a ListAdapter
 public class PinCommentAdapter
         extends RecyclerView.Adapter<PinCommentAdapter.PinCommentViewHolder> {
 
     private final FirebaseDriver firebase;
     private final NavController navController;
-    private final ArrayList<Comment> comments;
+    private final List<Comment> comments;
     private final Fragment fragment;
 
-    public PinCommentAdapter(ArrayList<Comment> comments, NavController navController,
+    public PinCommentAdapter(List<Comment> comments, NavController navController,
                              Fragment fragment) {
         firebase = FirebaseDriver.getInstance();
         this.navController = navController;

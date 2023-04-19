@@ -243,8 +243,8 @@ public class FirebaseDriver {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch pins");
         }
-        return db.collection("users").document(auth.getUid()).collection("pins").document("dropped")
-                .get().continueWithTask(task -> {
+        return db.collection("users").document(auth.getUid()).collection("dropped")
+                .document("dropped").get().continueWithTask(task -> {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     Map<String, Object> data = task.getResult().getData();
                     OrderedPinMetadata droppedPinMetadata = new OrderedPinMetadata(data);
@@ -257,7 +257,7 @@ public class FirebaseDriver {
                                 // If pin no longer exists don't add to cache & remove from db
                                 if (pin == null) {
                                     db.collection("users").document(auth.getUid())
-                                            .collection("pins").document("dropped")
+                                            .collection("dropped").document("dropped")
                                             .update(pinId, FieldValue.delete())
                                             .addOnSuccessListener(t -> Log.d(TAG,
                                                     "Successfully deleted dropped record for " +
@@ -290,7 +290,7 @@ public class FirebaseDriver {
         if (foundPinMetadata == null) {
             throw new IllegalStateException("Must have already fetched found pins.");
         }
-        return db.collection("users").document(uid).collection("pins").document("dropped").get()
+        return db.collection("users").document(uid).collection("dropped").document("dropped").get()
                 .continueWithTask(task -> {
                     List<Task<Pin>> fetchTasks = new ArrayList<>();
                     Map<String, Object> data = task.getResult().getData();
@@ -407,14 +407,14 @@ public class FirebaseDriver {
         }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin.", e));
     }
 
-    public Task<Map<String, Object>> fetchNearbyPins(@NonNull Location location) {
+    public Task<Map<String, Map<String, Object>>> fetchNearbyPins(@NonNull Location location) {
         Map<String, Object> data = new HashMap<>();
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
 
         //noinspection unchecked
         return functions.getHttpsCallable("getNearbyPins").call(data)
-                .continueWith(task -> (Map<String, Object>) task.getResult().getData())
+                .continueWith(task -> (Map<String, Map<String, Object>>) task.getResult().getData())
                 .addOnFailureListener(e -> Log.w(TAG, "Error fetching nearby pins.", e));
     }
 
@@ -464,8 +464,10 @@ public class FirebaseDriver {
         }
         WriteBatch batch = db.batch();
         batch.delete(db.collection("pins").document(pid));
-        batch.update(db.collection("users").document(auth.getUid()).collection("pins")
+        batch.update(db.collection("users").document(auth.getUid()).collection("dropped")
                 .document("dropped"), pid, FieldValue.delete());
+        batch.update(db.collection("users").document(auth.getUid()), "numPinsDropped",
+                FieldValue.increment(-1));
         return batch.commit().addOnSuccessListener(t -> {
             Pin pin = pins.get(pid);
             if (pin != null && pin.getType() == Pin.PinType.IMAGE) {
@@ -512,8 +514,8 @@ public class FirebaseDriver {
         if (activity.size() == 0 || !Objects.equals(activity.get(0).getId(), uid)) {
             item = new ActivityItem(auth.getUid(), uid, ActivityItem.ActivityType.FOLLOW, null,
                     null);
-            batch.update(db.collection("activity").document(auth.getUid()), "activity",
-                    FieldValue.arrayUnion(item.serialize()));
+            batch.update(db.collection("users").document(auth.getUid()).collection("metadata")
+                    .document("activity"), "activity", FieldValue.arrayUnion(item.serialize()));
         } else item = null;
 
         return batch.commit().addOnSuccessListener(t -> {
