@@ -4,6 +4,9 @@
         app:key="logout"
         app:title="@string/logout_text"
         app:icon="@drawable/ic_logout" />
-    <!--TODO: add more settings-->
+    <Preference
+        app:key="deleteAccount"
+        app:title="@string/delete_account"
+        app:icon="@drawable/ic_logout" />
 
 </androidx.preference.PreferenceScreen>

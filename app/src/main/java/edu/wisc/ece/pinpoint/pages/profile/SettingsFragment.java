@@ -15,14 +15,29 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.settings, rootKey);
         Preference logOut = getPreferenceManager().findPreference("logout");
-        logOut.setOnPreferenceClickListener(preference -> {
-            FirebaseDriver.getInstance().logout(requireContext()).addOnCompleteListener(task -> {
-                Intent intent = new Intent(requireContext(), AuthActivity.class);
-                startActivity(intent);
-                requireActivity().finish();
+        if (logOut != null) {
+            logOut.setOnPreferenceClickListener(preference -> {
+                FirebaseDriver.getInstance().logout(requireContext())
+                        .addOnCompleteListener(task -> {
+                            Intent intent = new Intent(requireContext(), AuthActivity.class);
+                            startActivity(intent);
+                            requireActivity().finish();
+                        });
+                return true;
             });
-            return true;
-        });
+        }
+        Preference deleteAccount = getPreferenceManager().findPreference("deleteAccount");
+        if (deleteAccount != null) {
+            deleteAccount.setOnPreferenceClickListener(preference -> {
+                FirebaseDriver.getInstance().logout(requireContext())
+                        .addOnCompleteListener(task -> {
+                            Intent intent = new Intent(requireContext(), AuthActivity.class);
+                            startActivity(intent);
+                            requireActivity().finish();
+                        });
+                return true;
+            });
+        }
     }
 
 
