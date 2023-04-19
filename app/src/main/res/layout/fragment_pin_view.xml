@@ -118,19 +118,21 @@
                 <ImageView
                     android:id="@+id/pin_image_content"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="400dp"
                     android:contentDescription="@string/pin_image_text"
-                    android:src="@drawable/oldnote"
+                    android:src="@drawable/pin_background_img"
                     app:layout_constraintStart_toStartOf="@+id/pin_view_content"
-                    app:layout_constraintTop_toTopOf="@+id/pin_view_content" />
+                    app:layout_constraintTop_toTopOf="parent" />
 
                 <TextView
                     android:id="@+id/pin_text_content"
                     style="@style/TextAppearance.Pinpoint.ThickText"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_width="378dp"
+                    android:layout_height="327dp"
                     android:layout_marginHorizontal="100dp"
-                    android:layout_marginVertical="65dp"
+                    android:layout_marginVertical="80dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="90dp"
                     android:textAlignment="center"
                     android:textColor="@color/black"
                     app:layout_constraintStart_toStartOf="@+id/pin_view_content"

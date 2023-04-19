@@ -54,7 +54,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
             if (pin.getType() == Pin.PinType.IMAGE) {
                 firebase.loadPinImage(holder.image, parentContext, pid);
             } else {
-                holder.image.setImageResource(R.drawable.oldnote);
+                holder.image.setImageResource(R.drawable.pin_background_img);
             }
             holder.item.setOnClickListener(view -> navController.navigate(
                     edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
