@@ -125,7 +125,17 @@ public class FirebaseDriver {
     public Task<Void> logout(@NonNull Context context) {
         foundPinMetadata = null;
         droppedPinMetadata = null;
-        return AuthUI.getInstance().signOut(context);
+        return AuthUI.getInstance().signOut(context)
+                .addOnFailureListener(e -> Log.w(TAG, "Error logging out", e));
+    }
+
+    public Task<Void> deleteAccount(@NonNull Context context) {
+        foundPinMetadata = null;
+        droppedPinMetadata = null;
+        WriteBatch batch = db.batch();
+
+        return AuthUI.getInstance().signOut(context)
+                .addOnFailureListener(e -> Log.w(TAG, "Error logging out", e));
     }
 
     public String getUid() {
