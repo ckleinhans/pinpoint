@@ -145,7 +145,7 @@ public class EditProfileFragment extends Fragment {
         saveButton.setOnClickListener(this::save);
         profilePicUpload.setOnClickListener(view1 -> showSelectDialog());
 
-        User cachedUser = firebase.getCachedUser(firebase.getCurrentUser().getUid());
+        User cachedUser = firebase.getCachedUser(firebase.getUid());
         if (cachedUser != null) {
             usernameInput.setText(cachedUser.getUsername());
             locationInput.setText(cachedUser.getLocation());
@@ -163,7 +163,7 @@ public class EditProfileFragment extends Fragment {
         }
 
         buttonView.setEnabled(false);
-        String uid = firebase.getCurrentUser().getUid();
+        String uid = firebase.getUid();
         User cachedUser = firebase.getCachedUser(uid);
 
         String oldUsername = cachedUser.getUsername();

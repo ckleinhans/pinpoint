@@ -32,7 +32,6 @@ export const dropPinHandler = async (
     !type ||
     !latitude ||
     !longitude ||
-    !broadLocationName ||
     (type === PinType.TEXT && !textContent)
   ) {
     throw new functions.https.HttpsError(
@@ -42,13 +41,11 @@ export const dropPinHandler = async (
   }
 
   // Get document references for reading/writing
-  const privateDataRef = firestore()
-    .collection("private")
-    .doc(context.auth.uid);
   const pinRef = firestore().collection("pins").doc();
   const userRef = firestore().collection("users").doc(context.auth.uid);
-  const droppedRef = userRef.collection("dropped").doc(pinRef.id);
-  const activityRef = firestore().collection("activity").doc(context.auth.uid);
+  const activityRef = userRef.collection("metadata").doc("activity");
+  const privateDataRef = userRef.collection("metadata").doc("private");
+  const droppedRef = userRef.collection("dropped").doc("dropped");
 
   // Perform validation & updates in transaction to enforce all or none
   await firestore().runTransaction(async (t) => {
@@ -102,7 +99,7 @@ export const dropPinHandler = async (
     // Deduct currency & create pin
     t.update(privateDataRef, { currency: privateData.currency - pin.cost });
     t.create(pinRef, pin);
-    t.create(droppedRef, metadata);
+    t.set(droppedRef, { [pinRef.id]: metadata }, { merge: true });
     t.update(userRef, { numPinsDropped: FieldValue.increment(1) });
     t.set(
       activityRef,
@@ -132,13 +129,11 @@ export const findPinHandler = async ({ pid, latitude, longitude, pinSource }, co
   }
 
   // Get document references for reading/writing
-  const privateDataRef = firestore()
-    .collection("private")
-    .doc(context.auth.uid);
   const pinRef = firestore().collection("pins").doc(pid);
   const userRef = firestore().collection("users").doc(context.auth.uid);
   const foundRef = userRef.collection("found").doc(pid);
-  const activityRef = firestore().collection("activity").doc(context.auth.uid);
+  const activityRef = userRef.collection("metadata").doc("activity");
+  const privateDataRef = userRef.collection("metadata").doc("private");
 
   // Check user has not found pin yet
   const foundData = (await foundRef.get()).data();

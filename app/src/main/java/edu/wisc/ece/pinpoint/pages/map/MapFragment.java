@@ -155,7 +155,7 @@ public class MapFragment extends Fragment {
     }
 
     private void createUndiscoveredPin(String key, Map<String, Object> val) {
-        String authorUID = val.get("authorUID").toString();
+        String authorUID = (String) val.get("authorUID");
         LatLng pinLocation = new LatLng((double) val.get("latitude"), (double) val.get("longitude"));
         float color = BitmapDescriptorFactory.HUE_RED;
         // Data field to persist in pin marker to know the pin source when the user finds the pin
@@ -165,8 +165,9 @@ public class MapFragment extends Fragment {
             color = BitmapDescriptorFactory.HUE_YELLOW;
             source = PinSource.DEV;
         }
-        // Change color to green if user follows author. Following is subject to change, so do not store this as the pin source
-        else if(firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing().contains(authorUID)) {
+        // Change color to green if user follows author.
+        // Following is subject to change, so do not store this as the pin source
+        else if(firebase.getCachedFollowing(firebase.getUid()).contains(authorUID)) {
             color = BitmapDescriptorFactory.HUE_GREEN;
         }
         Marker pinMarker = map.addMarker(new MarkerOptions().icon(
@@ -226,7 +227,7 @@ public class MapFragment extends Fragment {
             case SELF: color = BitmapDescriptorFactory.HUE_AZURE; break;
             case NFC: color = BitmapDescriptorFactory.HUE_CYAN; break;
             default:
-                if(firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing().contains(firebase.getCachedPin(id).getAuthorUID()))
+                if(firebase.getCachedFollowing(firebase.getUid()).contains(firebase.getCachedPin(id).getAuthorUID()))
                     color = BitmapDescriptorFactory.HUE_GREEN;
                 else color = BitmapDescriptorFactory.HUE_RED;
                 break;

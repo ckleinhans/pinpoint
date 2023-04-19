@@ -35,13 +35,6 @@ public class ActivityList {
     }
 
     public void sort() {
-        activity.sort(new SortByTimestamp());
-    }
-
-    private static class SortByTimestamp implements Comparator<ActivityItem> {
-        @Override
-        public int compare(ActivityItem itemA, ActivityItem itemB) {
-            return itemA.getTimestamp().compareTo(itemB.getTimestamp());
-        }
+        activity.sort(Comparator.comparing(ActivityItem::getTimestamp));
     }
 }
