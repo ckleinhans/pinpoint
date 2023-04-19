@@ -1,8 +1,12 @@
 package edu.wisc.ece.pinpoint.data;
 
+import androidx.annotation.Nullable;
+
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Class that allows for O(1) searching, adding, and removing (like HashSet), but also supports an
@@ -15,6 +19,30 @@ public class OrderedPinMetadata {
     public OrderedPinMetadata() {
         hashMap = new HashMap<>();
         list = new ArrayList<>();
+    }
+
+    public OrderedPinMetadata(@Nullable Map<String, Object> pinData) {
+        hashMap = new HashMap<>();
+        list = new ArrayList<>();
+        if (pinData == null) {
+            return;
+        }
+        // Cast to PinMetadata objects & sort based on timestamp
+        ArrayList<PinMetadata> tempList = new ArrayList<>();
+        for (String pinId : pinData.keySet()) {
+            //noinspection unchecked,ConstantConditions
+            tempList.add(new PinMetadata(pinId, (Map<String, Object>) pinData.get(pinId)));
+        }
+        tempList.sort(Comparator.comparing(PinMetadata::getTimestamp));
+
+        // Insert all items into hashmap & list
+        for (PinMetadata metadata : tempList) {
+            if (hashMap.containsKey(metadata)) {
+                throw new IllegalArgumentException("pinData cannot contain duplicate pin IDs");
+            }
+            hashMap.put(metadata, list.size());
+            list.add(metadata);
+        }
     }
 
     /**

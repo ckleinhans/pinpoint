@@ -1,6 +1,6 @@
 package edu.wisc.ece.pinpoint.data;
 
-import com.google.firebase.firestore.ServerTimestamp;
+import com.google.firebase.firestore.FieldValue;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -13,29 +13,33 @@ public class Comment {
     private String authorUID;
     private Date timestamp;
 
-    public Comment() {}
+    public Comment() {
+    }
 
     public Comment(String content) {
         FirebaseDriver instance = FirebaseDriver.getInstance();
         this.content = content;
-        this.authorUID = instance
-                .getCurrentUser()
-                .getUid();
+        this.authorUID = instance.getUid();
         this.timestamp = new Date();
     }
 
-    public Date getTimestamp() { return timestamp; }
-    public String getAuthorUID() { return authorUID; }
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
-    public void setAuthorUID(String authorUID) { this.authorUID = authorUID; }
-    public void setTimestamp(Date timestamp) { this.timestamp = timestamp; }
+    public Date getTimestamp() {
+        return timestamp;
+    }
+
+    public String getAuthorUID() {
+        return authorUID;
+    }
+
+    public String getContent() {
+        return content;
+    }
 
     public HashMap<String, Object> serialize() {
         HashMap<String, Object> data = new HashMap<>();
         data.put("content", this.content);
         data.put("authorUID", this.authorUID);
-        data.put("timestamp", this.timestamp);
+        data.put("timestamp", FieldValue.serverTimestamp());
         return data;
     }
 }

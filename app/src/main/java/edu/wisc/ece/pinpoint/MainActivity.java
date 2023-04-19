@@ -27,7 +27,7 @@ import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
 public class MainActivity extends AppCompatActivity {
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
-                    R.id.new_pin_fragment);
+                    R.id.new_pin_fragment, R.id.pin_view);
     private NavController navController;
 
     @Override
@@ -52,29 +52,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Fetch logged in user profile, followers/following, & activity on app load
+        // Fetch logged in user profile, following/followers, & activity on app load
         FirebaseDriver firebase = FirebaseDriver.getInstance();
-        String uid = firebase.getCurrentUser().getUid();
+        String uid = firebase.getUid();
         firebase.fetchUser(uid);
-        firebase.fetchSocials(uid);
+        firebase.fetchFollowing(uid);
+        firebase.fetchFollowers(uid);
         firebase.fetchActivity(uid);
 
 
         Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
+        handler.postDelayed(() -> {
+            PeriodicWorkRequest saveRequest =
+                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 16,
+                            TimeUnit.MINUTES)
+                            // Constraints
+                            .build();
 
-                PeriodicWorkRequest saveRequest =
-                        new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 16, TimeUnit.MINUTES)
-                                // Constraints
-                                .build();
-
-                WorkManager work = WorkManager.getInstance(getApplicationContext());
-                work.enqueue(saveRequest);
-            }
-
-
+            WorkManager work = WorkManager.getInstance(getApplicationContext());
+            work.enqueue(saveRequest);
         }, 1);
     }
 

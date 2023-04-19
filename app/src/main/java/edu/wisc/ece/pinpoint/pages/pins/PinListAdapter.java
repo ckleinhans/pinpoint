@@ -26,6 +26,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     private final FirebaseDriver firebase;
     private Context parentContext;
 
+    // TODO: make this adapter a ListAdapter to improve UX & performance
     public PinListAdapter(OrderedPinMetadata pinMetadata, NavController navController) {
         this.pinMetadata = pinMetadata;
         this.navController = navController;

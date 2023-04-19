@@ -30,6 +30,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     private final Fragment fragment;
     private Context parentContext;
 
+    // TODO: make this adapter a ListAdapter to improve UX & performance
     public FeedAdapter(ActivityList activity, NavController navController, Fragment fragment,
                        FeedSource source) {
         this.activity = activity;
@@ -77,35 +78,32 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         author.loadProfilePic(holder.image, fragment);
 
         // Detect if the activity belongs to current user, and trim if username is too long
-        String username = action.getAuthor().equals(firebase.getCurrentUser().getUid()) ? "You" :
-                author.getUsername();
-        String location;
+        String username =
+                action.getAuthor().equals(firebase.getUid()) ? "You" : author.getUsername();
+        String location = FormatUtils.formattedActivityLocation(action.getBroadLocationName(),
+                action.getNearbyLocationName());
         String textContents = "";
         switch (type) {
             case DROP:
-                location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
-                        action.getNearbyLocationName());
-                textContents = location == null ? username + " dropped a pin." :
+                textContents = location == null ? username + " dropped a pin" :
                         username + " dropped a pin " + location;
                 holder.icon.setImageResource(R.drawable.ic_drop);
                 break;
             case FIND:
-                location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
-                        action.getNearbyLocationName());
-                textContents = location == null ? username + " found a pin." :
+                textContents = location == null ? username + " found a pin" :
                         username + " found a pin " + location;
                 holder.icon.setImageResource(R.drawable.ic_search);
                 break;
             case COMMENT:
                 location = FormatUtils.formattedPinLocation(action.getBroadLocationName(),
                         action.getNearbyLocationName());
-                textContents = location == null ? username + " commented on a pin." :
+                textContents = location == null ? username + " commented on a pin" :
                         username + " commented on a pin " + location;
                 holder.icon.setImageResource(R.drawable.ic_comment);
                 break;
             case FOLLOW:
                 holder.icon.setImageResource(R.drawable.ic_follow);
-                if (firebase.getCurrentUser().getUid().equals(id)) {
+                if (firebase.getUid().equals(id)) {
                     textContents = username + " followed you";
                 } else {
                     User cachedPinAuthor = firebase.getCachedUser(id);

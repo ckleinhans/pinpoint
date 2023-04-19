@@ -77,17 +77,16 @@ public class FeedFragment extends Fragment {
             ActivityList cachedMasterList = new ActivityList(new ArrayList<>());
             ActivityList fetchedMasterList = new ActivityList(new ArrayList<>());
             // For each followed user, check if their activity is cached, then add it to master list
-            firebase.getCachedSocials(firebase.getCurrentUser().getUid()).getFollowing()
-                    .forEach((k) -> {
-                        ActivityList cachedActivity = firebase.getCachedActivity(k);
-                        if (cachedActivity != null) {
-                            cachedMasterList.addAll(cachedActivity);
-                        }
-                        fetchTasks.add(firebase.fetchActivity(k)
-                                .addOnSuccessListener(fetchedMasterList::addAll)
-                                .addOnFailureListener(e -> Toast.makeText(requireContext(),
-                                        R.string.activity_fetch_error, Toast.LENGTH_SHORT).show()));
-                    });
+            for (String userId : firebase.getCachedFollowers(firebase.getUid())) {
+                ActivityList cachedActivity = firebase.getCachedActivity(userId);
+                if (cachedActivity != null) {
+                    cachedMasterList.addAll(cachedActivity);
+                }
+                fetchTasks.add(firebase.fetchActivity(userId)
+                        .addOnSuccessListener(fetchedMasterList::addAll).addOnFailureListener(
+                                e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
+                                        Toast.LENGTH_SHORT).show()));
+            }
             // Setup immediate cached master list
             cachedMasterList.sort();
             recyclerView.setAdapter(new FeedAdapter(cachedMasterList, navController, this,
@@ -110,7 +109,7 @@ public class FeedFragment extends Fragment {
                     new FeedAdapter(cachedActivity, navController, this,
                             FeedAdapter.FeedSource.PROFILE));
             // If user is not self, fetch activity regardless to maintain up to date data
-            if (!firebase.getCurrentUser().getUid().equals(uid) || cachedActivity == null)
+            if (!firebase.getUid().equals(uid) || cachedActivity == null)
                 firebase.fetchActivity(uid).addOnSuccessListener(
                         activityList -> recyclerView.setAdapter(
                                 new FeedAdapter(activityList, navController, this,

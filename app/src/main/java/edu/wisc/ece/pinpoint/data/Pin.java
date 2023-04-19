@@ -33,7 +33,7 @@ public class Pin {
     public Pin(String textContent, @NonNull PinType type, @NonNull Location location,
                String caption, String broadLocationName, String nearbyLocationName) {
         this.caption = caption;
-        this.authorUID = FirebaseDriver.getInstance().getCurrentUser().getUid();
+        this.authorUID = FirebaseDriver.getInstance().getUid();
         this.type = type;
         this.textContent = textContent;
         this.timestamp = new Date();
