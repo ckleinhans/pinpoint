@@ -11,6 +11,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,6 +65,7 @@ public class EditProfileFragment extends Fragment {
     private EditText locationInput;
     private EditText bioInput;
     private ImageView profilePicUpload;
+    private EditText edittext;
     private ActivityResultLauncher<Intent> photoPickerLauncher;
     private ActivityResultLauncher<Intent> locationAutocompleteLauncher;
     private Uri photo;
@@ -152,6 +155,21 @@ public class EditProfileFragment extends Fragment {
             bioInput.setText(cachedUser.getBio());
             cachedUser.loadProfilePic(profilePicUpload, this);
         }
+
+        edittext = requireView().findViewById(R.id.profile_edit_bio);
+        edittext.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (null != edittext.getLayout() && edittext.getLayout().getLineCount() > 3) {
+                    edittext.getText().delete(edittext.getText().length() - 1, edittext.getText().length());
+                }
+            }
+        });
     }
 
     private void save(View buttonView) {
