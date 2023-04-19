@@ -218,8 +218,8 @@ public class PinViewFragment extends Fragment {
         }
 
         // Set metadata bar above pin content to bring users to author profile page on click
-        metadataBar.setOnClickListener(v -> navController.navigate(
-                PinViewFragmentDirections.profile().setUid(pin.getAuthorUID())));
+        metadataBar.setOnClickListener(
+                v -> navController.navigate(PinViewFragmentDirections.profile(pin.getAuthorUID())));
     }
 
     private void setPinAuthorData(User author) {

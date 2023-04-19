@@ -63,7 +63,7 @@ public class LeaderboardListAdapter
 
         holder.rank.setText(String.valueOf(position + 1));
         holder.item.setOnClickListener(
-                view -> navController.navigate(NavigationDirections.profile().setUid(userId)));
+                view -> navController.navigate(NavigationDirections.profile(userId)));
 
         if (position < 3) {
             holder.rankBackground.setVisibility(View.VISIBLE);

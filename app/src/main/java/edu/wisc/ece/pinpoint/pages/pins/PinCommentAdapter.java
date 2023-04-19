@@ -53,7 +53,7 @@ public class PinCommentAdapter
         holder.content.setText(comment.getContent());
         holder.timestamp.setText(FormatUtils.formattedDate(comment.getTimestamp()));
         holder.image.setOnClickListener(view -> navController.navigate(
-                NavigationDirections.profile().setUid(comment.getAuthorUID())));
+                NavigationDirections.profile(comment.getAuthorUID())));
 
         User user = firebase.getCachedUser(comment.getAuthorUID());
         if (user == null) {

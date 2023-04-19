@@ -121,8 +121,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
         // Clicking author's picture will navigate to their profile unless already there
         if (source != FeedSource.PROFILE) holder.image.setOnClickListener(
-                view -> navController.navigate(
-                        NavigationDirections.profile().setUid(action.getAuthor())));
+                view -> navController.navigate(NavigationDirections.profile(action.getAuthor())));
 
         // Clicking on the card will navigate to the action's relevant page
         holder.item.setOnClickListener(view -> {
@@ -134,7 +133,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                         .show();
 
             } else if (type == ActivityItem.ActivityType.FOLLOW) {
-                navController.navigate(NavigationDirections.profile().setUid(id));
+                navController.navigate(NavigationDirections.profile(id));
             }
         });
     }

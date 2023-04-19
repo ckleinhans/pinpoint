@@ -8,11 +8,9 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -24,7 +22,7 @@ import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
-public class ProfilePageFragment extends Fragment {
+public class NavBarProfileFragment extends Fragment {
     private FirebaseDriver firebase;
     private NavController navController;
     private TabLayout tabLayout;
@@ -37,7 +35,6 @@ public class ProfilePageFragment extends Fragment {
     private TextView location;
     private TextView bio;
     private ImageView profilePic;
-    private Button button;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -64,33 +61,24 @@ public class ProfilePageFragment extends Fragment {
         location = requireView().findViewById(R.id.profile_location);
         bio = requireView().findViewById(R.id.profile_bio);
         profilePic = requireView().findViewById(R.id.profile_pic);
-        button = requireView().findViewById(R.id.profile_button);
+        Button button = requireView().findViewById(R.id.profile_button);
 
-        String uid = ProfilePageFragmentArgs.fromBundle(requireArguments()).getUid();
+        String uid = firebase.getUid();
+        ImageButton settingsButton = requireView().findViewById(R.id.profile_settings);
+        settingsButton.setVisibility(View.VISIBLE);
+        settingsButton.setOnClickListener(clickedView -> navController.navigate(
+                NavBarProfileFragmentDirections.settingsContainer()));
 
-        // Don't show settings and show back button instead
-        ImageButton backButton = requireView().findViewById(R.id.profile_back_button);
-        backButton.setVisibility(View.VISIBLE);
-        backButton.setOnClickListener(v -> navController.popBackStack());
-
-        if (firebase.getUid().equals(uid)) {
-            // Viewing own profile, button is for editing profile
-            button.setText(R.string.edit_profile_text);
-            button.setOnClickListener((buttonView) -> navController.navigate(
-                    ProfilePageFragmentDirections.editProfile()));
-        } else {
-            // Fetch updated pin metadata in case changed since last view
-            firebase.fetchUserPins(uid);
-            // Configure button based on follow status
-            setButton(uid);
-        }
+        // Viewing own profile, button is for editing profile
+        button.setText(R.string.edit_profile_text);
+        button.setOnClickListener((buttonView) -> navController.navigate(
+                NavBarProfileFragmentDirections.editProfile()));
 
         User cachedUser = firebase.getCachedUser(uid);
         if (cachedUser != null) {
-            setUserData(cachedUser);
+            setUserData(cachedUser, uid);
         }
-
-        firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult()));
+        firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult(), uid));
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
@@ -126,7 +114,7 @@ public class ProfilePageFragment extends Fragment {
         });
     }
 
-    public void setUserData(@NonNull User user) {
+    public void setUserData(@NonNull User user, String uid) {
         user.loadProfilePic(profilePic, this);
         username.setText(user.getUsername());
         followerCount.setText(String.valueOf(user.getNumFollowers()));
@@ -144,44 +132,6 @@ public class ProfilePageFragment extends Fragment {
             bio.setVisibility(View.GONE);
         } else {
             bio.setVisibility(View.VISIBLE);
-        }
-    }
-
-    public void setButton(String user) {
-        // Viewing someone else's profile, button is for following
-        final String uid = user;
-        // if the user is already following this profile, show unfollow button
-        if (firebase.getCachedFollowing(firebase.getUid()).contains(uid)) {
-            button.setText(R.string.unfollow_text);
-            button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.soft_red));
-            button.setOnClickListener((buttonView) -> {
-                buttonView.setEnabled(false);
-                firebase.unfollowUser(uid).addOnSuccessListener(t -> {
-                    followerCount.setText(String.valueOf(
-                            Integer.parseInt(followerCount.getText().toString()) - 1));
-                    setButton(user);
-                    buttonView.setEnabled(true);
-                }).addOnFailureListener(
-                        e -> Toast.makeText(requireContext(), R.string.unfollow_error_message,
-                                Toast.LENGTH_SHORT).show());
-            });
-        } else {
-            // if this profile follows the user but the user does not, show follow back button
-            if (firebase.getCachedFollowers(firebase.getUid()).contains(uid))
-                button.setText(R.string.follow_back_text);
-            else button.setText(R.string.follow_text);
-            button.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.blue));
-            button.setOnClickListener((buttonView) -> {
-                buttonView.setEnabled(false);
-                firebase.followUser(uid).addOnSuccessListener(t -> {
-                    followerCount.setText(String.valueOf(
-                            Integer.parseInt(followerCount.getText().toString()) + 1));
-                    setButton(user);
-                    buttonView.setEnabled(true);
-                }).addOnFailureListener(
-                        e -> Toast.makeText(requireContext(), R.string.follow_error_message,
-                                Toast.LENGTH_SHORT).show());
-            });
         }
     }
 }
