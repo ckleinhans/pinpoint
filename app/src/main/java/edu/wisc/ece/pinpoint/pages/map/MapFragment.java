@@ -39,6 +39,7 @@ import java.util.Map;
 import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
+import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.data.PinMetadata.PinSource;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -166,9 +167,10 @@ public class MapFragment extends Fragment {
             source = PinSource.DEV;
         }
         // Change color to green if user follows author.
-        // Following is subject to change, so do not store this as the pin source
+        // Following is subject to change at each reload
         else if(firebase.getCachedFollowing(firebase.getUid()).contains(authorUID)) {
             color = BitmapDescriptorFactory.HUE_GREEN;
+            source = PinSource.FRIEND;
         }
         Marker pinMarker = map.addMarker(new MarkerOptions().icon(
                         BitmapDescriptorFactory.defaultMarker(color)).alpha(.3f)
@@ -203,6 +205,8 @@ public class MapFragment extends Fragment {
                         pinSource = PinSource.NFC;
                         break;
                     default:
+                        // Do not store friend enum in cloud,
+                        // since friendship status is subject to change.
                         pinSource = PinSource.GENERAL;
                         break;
                 }
@@ -222,13 +226,22 @@ public class MapFragment extends Fragment {
     private void createDiscoveredPin(String id, GeoPoint geoPoint, PinSource pinSource) {
         LatLng pinLocation = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
         float color;
+        PinSource snippet = pinSource;
         switch (pinSource){
-            case DEV: color = BitmapDescriptorFactory.HUE_YELLOW; break;
-            case SELF: color = BitmapDescriptorFactory.HUE_AZURE; break;
-            case NFC: color = BitmapDescriptorFactory.HUE_CYAN; break;
+            case DEV:
+                color = BitmapDescriptorFactory.HUE_YELLOW;
+                break;
+            case SELF:
+                color = BitmapDescriptorFactory.HUE_AZURE;
+                break;
+            case NFC:
+                color = BitmapDescriptorFactory.HUE_CYAN;
+                break;
             default:
-                if(firebase.getCachedFollowing(firebase.getUid()).contains(firebase.getCachedPin(id).getAuthorUID()))
+                if(firebase.getCachedFollowing(firebase.getUid()).contains(firebase.getCachedPin(id).getAuthorUID())) {
                     color = BitmapDescriptorFactory.HUE_GREEN;
+                    snippet = PinSource.FRIEND;
+                }
                 else color = BitmapDescriptorFactory.HUE_RED;
                 break;
         }
@@ -236,6 +249,7 @@ public class MapFragment extends Fragment {
                         BitmapDescriptorFactory.defaultMarker(color)).alpha(1f)
                 .position(pinLocation));
         pinMarker.setTag(id);
+        pinMarker.setSnippet(snippet.name());
     }
 
     @SuppressLint("MissingPermission")

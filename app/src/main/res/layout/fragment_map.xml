@@ -6,6 +6,78 @@
     android:layout_height="match_parent"
     tools:context=".pages.map.MapFragment">
 
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?attr/colorSecondary"
+        android:paddingEnd="8dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:translationZ="45dp">
+
+        <CheckBox
+            android:id="@+id/checkbox_general"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stranger Pins"
+            android:drawableStart="@drawable/ic_pin"
+            android:drawableTint="#FF0000"
+            android:drawablePadding="6dp"
+            style="@style/TextAppearance.Pinpoint.SmallThickText"
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_following"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Friend Pins"
+            android:drawableStart="@drawable/ic_pin"
+            android:drawableTint="#00FF00"
+            android:drawablePadding="6dp"
+            style="@style/TextAppearance.Pinpoint.SmallThickText"
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_nfc"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="NFC Pins"
+            android:drawableStart="@drawable/ic_pin"
+            android:drawableTint="#00FFFF"
+            android:drawablePadding="6dp"
+            style="@style/TextAppearance.Pinpoint.SmallThickText"
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_dropped"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Pins"
+            android:drawableStart="@drawable/ic_pin"
+            android:drawableTint="#0000FF"
+            android:drawablePadding="6dp"
+            style="@style/TextAppearance.Pinpoint.SmallThickText"
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
+
+        <CheckBox
+            android:id="@+id/checkbox_pinpoint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PinPoint Pins"
+            android:drawableStart="@drawable/ic_pin"
+            android:drawableTint="#FFFF00"
+            android:drawablePadding="6dp"
+            style="@style/TextAppearance.Pinpoint.SmallThickText"
+            android:textColor="?attr/colorOnSecondary"
+            android:buttonTint="?attr/colorOnSecondary"/>
+
+    </LinearLayout>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
