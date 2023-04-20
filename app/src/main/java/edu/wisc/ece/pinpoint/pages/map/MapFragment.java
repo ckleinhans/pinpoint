@@ -84,6 +84,7 @@ public class MapFragment extends Fragment {
         //noinspection ConstantConditions
         supportMapFragment.getMapAsync(googleMap -> {
             this.map = googleMap;
+            map.clear();
             styleMap();
             getDeviceLocation();
             loadDiscoveredPins();

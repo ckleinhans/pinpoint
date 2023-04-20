@@ -10,6 +10,7 @@ import android.widget.ViewSwitcher;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
@@ -25,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import edu.wisc.ece.pinpoint.pages.map.MapFragment;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
@@ -35,13 +37,14 @@ public class MainActivity extends AppCompatActivity {
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
                     R.id.new_pin_fragment, R.id.pin_view);
     private NavController navController;
+    private NavHostFragment navHostFragment;
     private ViewSwitcher switcher;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        navController = Navigation.findNavController(this, R.id.activity_main_nav_host_fragment);
+
         switcher = findViewById(R.id.view_switcher);
         showView(R.id.loading_view);
         BottomNavigationView navBar = findViewById(R.id.navBar);
@@ -49,17 +52,7 @@ public class MainActivity extends AppCompatActivity {
         FloatingActionButton mapButton = findViewById(R.id.mapButton);
         NotificationDriver.getInstance(this);
         navBar.getMenu().getItem(2).setEnabled(false);
-        NavigationUI.setupWithNavController(navBar, navController);
-        // Set nav bar visibility
-        navController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
-            if (hiddenNavbarFragments.contains(navDestination.getId())) {
-                navBarContainer.setVisibility(View.GONE);
-                mapButton.setVisibility(View.GONE);
-            } else {
-                navBarContainer.setVisibility(View.VISIBLE);
-                mapButton.setVisibility(View.VISIBLE);
-            }
-        });
+
 
         // Fetch logged in user profile, following/followers, & activity on app load
         FirebaseDriver firebase = FirebaseDriver.getInstance();
@@ -78,7 +71,27 @@ public class MainActivity extends AppCompatActivity {
                 .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched found pins."))
                 .addOnFailureListener(e -> Log.w(TAG, e)).continueWith(t -> null));
         // Wait until all tasks complete before showing view
-        Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(fetchingComplete -> showView(R.id.content_view));
+        Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(fetchingComplete -> {
+            Log.d(TAG, "FETCH TASKS COMPLETE!.");
+            navHostFragment = NavHostFragment.create(R.navigation.navigation);
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.nav_host_placeholder, navHostFragment)
+                    .commitNow();
+            navController = navHostFragment.getNavController();
+            NavigationUI.setupWithNavController(navBar, navController);
+            // Set nav bar visibility
+            navController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
+                if (hiddenNavbarFragments.contains(navDestination.getId())) {
+                    navBarContainer.setVisibility(View.GONE);
+                    mapButton.setVisibility(View.GONE);
+                } else {
+                    navBarContainer.setVisibility(View.VISIBLE);
+                    mapButton.setVisibility(View.VISIBLE);
+                }
+            });
+            showView(R.id.content_view);
+        });
 
 
         Handler handler = new Handler(Looper.getMainLooper());
