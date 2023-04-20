@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -39,7 +41,6 @@ import java.util.Map;
 import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
-import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.data.PinMetadata.PinSource;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -57,6 +58,12 @@ public class MapFragment extends Fragment {
     private ProgressBar pinnieProgressBar;
     private ImageView pinnies_logo;
     private TextView pinniesText;
+    private ArrayList<Marker> droppedMarkers;
+    private ArrayList<Marker> friendMarkers;
+    private ArrayList<Marker> nfcMarkers;
+    private ArrayList<Marker> devMarkers;
+    private ArrayList<Marker> generalMarkers;
+    private boolean isFilterVisible = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,6 +79,11 @@ public class MapFragment extends Fragment {
             Tasks.whenAllComplete(pinTasks)
                     .addOnCompleteListener(pinFetchingComplete -> loadDiscoveredPins());
         }
+        droppedMarkers = new ArrayList<>();
+        friendMarkers = new ArrayList<>();
+        nfcMarkers = new ArrayList<>();
+        devMarkers = new ArrayList<>();
+        generalMarkers = new ArrayList<>();
     }
 
     @Override
@@ -113,6 +125,69 @@ public class MapFragment extends Fragment {
         pinnies_logo = requireView().findViewById(R.id.map_pinnies_logo);
 
         setPinnieCount();
+        handleFilters();
+    }
+
+    private void handleFilters(){
+        CheckBox generalBox = requireView().findViewById(R.id.checkbox_general);
+        CheckBox friendBox = requireView().findViewById(R.id.checkbox_following);
+        CheckBox nfcBox = requireView().findViewById(R.id.checkbox_nfc);
+        CheckBox droppedBox = requireView().findViewById(R.id.checkbox_dropped);
+        CheckBox pinpointBox = requireView().findViewById(R.id.checkbox_pinpoint);
+        ImageView filterTab = requireView().findViewById(R.id.checkbox_tab);
+        ConstraintLayout filterContainer = requireView().findViewById(R.id.filter_container);
+
+        // Scale factor for setting padding in dp
+        float scale = getResources().getDisplayMetrics().density;
+
+        filterTab.setOnClickListener(view -> {
+            if(isFilterVisible) {
+                filterContainer.animate().translationX(0);
+                isFilterVisible = false;
+                filterTab.setImageResource(R.drawable.ic_back_arrow);
+            }
+            else {
+                filterContainer.animate().translationX(-160 * scale + 0.5f);
+                isFilterVisible = true;
+                filterTab.setImageResource(R.drawable.ic_filter);
+            }
+        });
+
+        generalBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            for(Marker marker : generalMarkers){
+                if(isChecked)
+                    marker.setVisible(true);
+                else marker.setVisible(false);
+            }
+        });
+        friendBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            for(Marker marker : friendMarkers){
+                if(isChecked)
+                    marker.setVisible(true);
+                else marker.setVisible(false);
+            }
+        });
+        nfcBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            for(Marker marker : nfcMarkers){
+                if(isChecked)
+                    marker.setVisible(true);
+                else marker.setVisible(false);
+            }
+        });
+        droppedBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            for(Marker marker : droppedMarkers){
+                if(isChecked)
+                    marker.setVisible(true);
+                else marker.setVisible(false);
+            }
+        });
+        pinpointBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            for(Marker marker : devMarkers){
+                if(isChecked)
+                    marker.setVisible(true);
+                else marker.setVisible(false);
+            }
+        });
     }
 
     private void styleMap() {
@@ -161,22 +236,26 @@ public class MapFragment extends Fragment {
         float color = BitmapDescriptorFactory.HUE_RED;
         // Data field to persist in pin marker to know the pin source when the user finds the pin
         PinSource source = PinSource.GENERAL;
+        ArrayList<Marker> markerList = generalMarkers;
         // TODO: change color for nfc pin (cyan)
         if(authorUID == "pinpoint"){
             color = BitmapDescriptorFactory.HUE_YELLOW;
             source = PinSource.DEV;
+            markerList = devMarkers;
         }
         // Change color to green if user follows author.
         // Following is subject to change at each reload
         else if(firebase.getCachedFollowing(firebase.getUid()).contains(authorUID)) {
             color = BitmapDescriptorFactory.HUE_GREEN;
             source = PinSource.FRIEND;
+            markerList = friendMarkers;
         }
         Marker pinMarker = map.addMarker(new MarkerOptions().icon(
                         BitmapDescriptorFactory.defaultMarker(color)).alpha(.3f)
                 .position(pinLocation));
         pinMarker.setTag(key);
         pinMarker.setSnippet(source.name());
+        markerList.add(pinMarker);
     }
 
     private void handleUndiscoveredPinClick(Marker marker) {
@@ -227,20 +306,25 @@ public class MapFragment extends Fragment {
         LatLng pinLocation = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
         float color;
         PinSource snippet = pinSource;
+        ArrayList<Marker> markerList = generalMarkers;
         switch (pinSource){
             case DEV:
                 color = BitmapDescriptorFactory.HUE_YELLOW;
+                markerList = devMarkers;
                 break;
             case SELF:
                 color = BitmapDescriptorFactory.HUE_AZURE;
+                markerList = droppedMarkers;
                 break;
             case NFC:
                 color = BitmapDescriptorFactory.HUE_CYAN;
+                markerList = nfcMarkers;
                 break;
             default:
                 if(firebase.getCachedFollowing(firebase.getUid()).contains(firebase.getCachedPin(id).getAuthorUID())) {
                     color = BitmapDescriptorFactory.HUE_GREEN;
                     snippet = PinSource.FRIEND;
+                    markerList = friendMarkers;
                 }
                 else color = BitmapDescriptorFactory.HUE_RED;
                 break;
@@ -250,6 +334,7 @@ public class MapFragment extends Fragment {
                 .position(pinLocation));
         pinMarker.setTag(id);
         pinMarker.setSnippet(snippet.name());
+        markerList.add(pinMarker);
     }
 
     @SuppressLint("MissingPermission")

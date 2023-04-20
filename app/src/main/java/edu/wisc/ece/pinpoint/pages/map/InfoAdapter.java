@@ -64,18 +64,18 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
             if (title.getText().toString().isEmpty()) title.setVisibility(View.GONE);
             else title.setVisibility(View.VISIBLE);
         }
-        String color = "#FF0000";
+        String color = "#CC0000";
         switch (marker.getSnippet()){
-            case "SELF": color = "#0000FF"; break;
-            case "DEV": color = "#FFFF00"; break;
-            case "NFC": color = "#00FFFF"; break;
+            case "SELF": color = "#0080FF"; break;
+            case "DEV": color = "#CCCC00"; break;
+            case "NFC": color = "#00CCCC"; break;
+            case "FRIEND": color = "#00CC00"; break;
         }
         boxAccent.setBackgroundColor(Color.parseColor(color));
         title.setTextColor(Color.parseColor(color));
     }
 
     private void setUndiscoveredPinContents() {
-
         title.setText(R.string.undiscovered_pin_title);
         message.setText(R.string.undiscovered_pin_message);
         image.setVisibility(View.GONE);

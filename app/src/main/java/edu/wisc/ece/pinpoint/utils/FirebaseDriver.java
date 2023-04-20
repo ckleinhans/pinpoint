@@ -392,7 +392,7 @@ public class FirebaseDriver {
         data.put("pid", pid);
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
-        data.put("pinSource", pinSource);
+        data.put("pinSource", pinSource.name());
 
         return functions.getHttpsCallable("findPin").call(data).addOnSuccessListener(task -> {
             // TODO: make cloud function return reward & update cached pinnie count with it
