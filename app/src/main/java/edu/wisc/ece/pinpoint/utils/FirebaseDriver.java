@@ -137,6 +137,7 @@ public class FirebaseDriver {
         return functions.getHttpsCallable("deleteAccount").call().continueWithTask(t -> {
             if (!t.isSuccessful()) //noinspection ConstantConditions
                 throw t.getException();
+            users.remove(auth.getUid());
             return logout(context);
         }).addOnFailureListener(e -> Log.w(TAG, "Error deleting account", e));
     }
@@ -170,6 +171,11 @@ public class FirebaseDriver {
                             .document("following"), "following", FieldValue.arrayRemove(uid));
                     batch.update(db.collection("users").document(auth.getUid()), "numFollowing",
                             FieldValue.increment(-1));
+                    batch.commit().addOnFailureListener(
+                                    e -> Log.w(TAG, "Error removing deleted user from following",
+                                            e))
+                            .addOnSuccessListener(t -> Log.d(TAG,
+                                    "Successfully removed deleted user from following"));
                 }
                 if (getCachedFollowers(auth.getUid()).remove(uid)) {
                     // Remove other user from own followers & decrement own numFollowers
@@ -178,10 +184,14 @@ public class FirebaseDriver {
                             .document("followers"), "followers", FieldValue.arrayRemove(uid));
                     batch.update(db.collection("users").document(auth.getUid()), "numFollowers",
                             FieldValue.increment(-1));
+                    batch.commit().addOnFailureListener(
+                                    e -> Log.w(TAG, "Error removing deleted user from followers",
+                                            e))
+                            .addOnSuccessListener(t -> Log.d(TAG,
+                                    "Successfully removed deleted user from followers"));
                 }
-            } else {
-                users.put(uid, user);
             }
+            users.put(uid, user);
             return user;
         }).addOnFailureListener(e -> Log.w(TAG, String.format("Error fetching user %s", uid), e));
     }
@@ -261,7 +271,8 @@ public class FirebaseDriver {
                                     .document(pinId).delete().addOnFailureListener(e -> Log.w(TAG,
                                             "Error deleting found record for " + "deleted pin.", e))
                                     .addOnSuccessListener(t2 -> Log.d(TAG,
-                                            "Successfully deleted found record for deleted pin."));
+                                            "Successfully deleted found record for deleted " +
+                                                    "pin."));
                             foundPinMetadata.remove(pinId);
                         }
                     }));
@@ -302,7 +313,8 @@ public class FirebaseDriver {
                                                     "Successfully deleted dropped record for " +
                                                             "deleted pin."))
                                             .addOnFailureListener(e -> Log.w(TAG,
-                                                    "Error deleting dropped record for deleted" + " pin.",
+                                                    "Error deleting dropped record for " +
+                                                            "deleted" + " pin.",
                                                     e));
                                     droppedPinMetadata.remove(pinId);
                                 }
@@ -378,7 +390,8 @@ public class FirebaseDriver {
                                 .addOnFailureListener(e -> Log.w(TAG,
                                         "Error deleting dropped record for " + "deleted pin.", e))
                                 .addOnSuccessListener(t -> Log.d(TAG,
-                                        "Successfully deleted dropped record for deleted pin."));
+                                        "Successfully deleted dropped record for deleted pin" +
+                                                "."));
                 }
             } else {
                 pins.put(pid, pin);
@@ -567,7 +580,8 @@ public class FirebaseDriver {
         HashSet<String> following = userFollowingIds.get(auth.getUid());
         if (following == null) {
             throw new IllegalStateException(
-                    "User must have fetched their own following data before unfollowing a user");
+                    "User must have fetched their own following data before unfollowing a " +
+                            "user");
         }
         WriteBatch batch = db.batch();
 

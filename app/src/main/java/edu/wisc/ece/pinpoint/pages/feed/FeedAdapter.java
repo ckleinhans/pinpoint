@@ -1,6 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.feed;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,9 +56,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         ActivityItem action = activity.get(position);
         String author = action.getAuthor();
 
-        User cachedAuthor = firebase.getCachedUser(author);
-        if (cachedAuthor != null) {
-            setContents(cachedAuthor, action, holder);
+        if (firebase.isUserCached(author)) {
+            setContents(firebase.getCachedUser(author), action, holder);
         } else {
             // Since only using author for profile pic & username, only fetch if not cached
             firebase.fetchUser(author)
@@ -75,68 +76,79 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
         holder.timestamp.setText(FormatUtils.formattedDateTime(action.getTimestamp()));
 
-        author.loadProfilePic(holder.image, fragment);
+        if (author != null) author.loadProfilePic(holder.image, fragment);
 
-        // Detect if the activity belongs to current user, and trim if username is too long
+        // Detect if the activity belongs to current user
         String username =
-                action.getAuthor().equals(firebase.getUid()) ? "You" : author.getUsername();
+                action.getAuthor().equals(firebase.getUid()) ? fragment.getString(R.string.you) :
+                        author != null ? author.getUsername() :
+                                fragment.getString(R.string.deleted_user);
         String location = FormatUtils.formattedActivityLocation(action.getBroadLocationName(),
                 action.getNearbyLocationName());
-        String textContents = "";
         switch (type) {
             case DROP:
-                textContents = location == null ? username + " dropped a pin" :
-                        username + " dropped a pin " + location;
+                holder.text.setText(
+                        String.format(fragment.getString(R.string.activity_drop_text), username,
+                                location));
                 holder.icon.setImageResource(R.drawable.ic_drop);
                 break;
             case FIND:
-                textContents = location == null ? username + " found a pin" :
-                        username + " found a pin " + location;
+                holder.text.setText(
+                        String.format(fragment.getString(R.string.activity_find_text), username,
+                                location));
                 holder.icon.setImageResource(R.drawable.ic_search);
                 break;
             case COMMENT:
-                textContents = location == null ? username + " commented on a pin" :
-                        username + " commented on a pin " + location;
+                holder.text.setText(
+                        String.format(fragment.getString(R.string.activity_comment_text), username,
+                                location));
                 holder.icon.setImageResource(R.drawable.ic_comment);
                 break;
             case FOLLOW:
                 holder.icon.setImageResource(R.drawable.ic_follow);
-                if (firebase.getUid().equals(id)) {
-                    textContents = username + " followed you";
+                if (firebase.isUserCached(id)) {
+                    setFollowActivityContents(holder, firebase.getCachedUser(id), id, username);
                 } else {
-                    User cachedPinAuthor = firebase.getCachedUser(id);
-                    if (cachedPinAuthor != null) {
-                        textContents = username + " followed " + cachedPinAuthor.getUsername();
-                    } else {
-                        firebase.fetchUser(id).addOnCompleteListener(task -> {
-                            String finalTextContents =
-                                    username + " followed " + task.getResult().getUsername();
-                            holder.text.setText(finalTextContents);
-                        });
-                    }
+                    firebase.fetchUser(id).addOnCompleteListener(
+                            task -> setFollowActivityContents(holder, task.getResult(), id,
+                                    username));
                 }
                 break;
         }
-        if (!textContents.isEmpty()) holder.text.setText(textContents);
 
         // Clicking author's picture will navigate to their profile unless already there
-        if (source != FeedSource.PROFILE) holder.image.setOnClickListener(
+        if (source != FeedSource.PROFILE && author != null) holder.image.setOnClickListener(
                 view -> navController.navigate(
                         NavigationDirections.profile().setUid(action.getAuthor())));
 
         // Clicking on the card will navigate to the action's relevant page
-        holder.item.setOnClickListener(view -> {
-            if (type == ActivityItem.ActivityType.DROP || type == ActivityItem.ActivityType.FIND || type == ActivityItem.ActivityType.COMMENT) {
-                if (firebase.getCachedFoundPinMetadata()
-                        .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
-                    navController.navigate(NavigationDirections.pinView(id));
-                else Toast.makeText(parentContext, R.string.pin_not_discovered, Toast.LENGTH_SHORT)
-                        .show();
-
-            } else if (type == ActivityItem.ActivityType.FOLLOW) {
-                navController.navigate(NavigationDirections.profile().setUid(id));
-            }
+        if (type != ActivityItem.ActivityType.FOLLOW) holder.item.setOnClickListener(view -> {
+            if (firebase.getCachedFoundPinMetadata()
+                    .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
+                navController.navigate(NavigationDirections.pinView(id));
+                // TODO: need to change this toast
+            else Toast.makeText(parentContext, R.string.pin_not_discovered, Toast.LENGTH_SHORT)
+                    .show();
         });
+    }
+
+    private void setFollowActivityContents(FeedViewHolder holder, User target, String targetUID,
+                                           String username) {
+        if (target != null) {
+            String targetUsername = targetUID.equals(firebase.getUid()) ?
+                    fragment.getString(R.string.you_lowercase) : target.getUsername();
+            holder.text.setText(
+                    String.format(fragment.getString(R.string.activity_follow_text), username,
+                            targetUsername));
+            holder.item.setOnClickListener(view -> navController.navigate(
+                    NavigationDirections.profile().setUid(targetUID)));
+            holder.text.setTextColor(ContextCompat.getColor(parentContext, R.color.grey));
+        } else {
+            holder.text.setText(
+                    String.format(fragment.getString(R.string.activity_follow_text), username,
+                            fragment.getString(R.string.deleted_user)));
+            holder.text.setTextColor(Color.RED);
+        }
     }
 
     public enum FeedSource {

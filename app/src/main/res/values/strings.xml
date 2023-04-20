@@ -94,4 +94,10 @@
     <string name="profile_location_icon_text">Profile Location Icon</string>
     <string name="pinnie_reward_message">You received %d pinnies as a reward!</string>
     <string name="deleted_user">Deleted User</string>
+    <string name="activity_drop_text">%s dropped a pin %s</string>
+    <string name="activity_find_text">%s found a pin %s</string>
+    <string name="activity_comment_text">%s commented on a pin %s</string>
+    <string name="activity_follow_text">%s followed %s</string>
+    <string name="you">You</string>
+    <string name="you_lowercase">you</string>
 </resources>
