@@ -124,6 +124,7 @@ public class FirebaseDriver {
     public Task<Void> logout(@NonNull Context context) {
         foundPinMetadata = null;
         droppedPinMetadata = null;
+        pinnies = null;
         return AuthUI.getInstance().signOut(context);
     }
 
@@ -373,7 +374,7 @@ public class FirebaseDriver {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
             droppedPinMetadata.add(new PinMetadata(pid, newPin.getBroadLocationName(),
-                    newPin.getNearbyLocationName()));
+                    newPin.getNearbyLocationName(), PinMetadata.PinSource.SELF));
             activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.DROP,
                     newPin.getBroadLocationName(), newPin.getNearbyLocationName()));
             pinnies -= cost;
@@ -381,7 +382,7 @@ public class FirebaseDriver {
         }).addOnFailureListener(e -> Log.w(TAG, "Error dropping pin.", e));
     }
 
-    public Task<Long> findPin(String pid, Location location) {
+    public Task<Long> findPin(String pid, Location location, PinMetadata.PinSource pinSource) {
         ActivityList activity = activityMap.get(auth.getUid());
         if (activity == null) {
             throw new IllegalStateException(
@@ -391,6 +392,7 @@ public class FirebaseDriver {
         data.put("pid", pid);
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
+        data.put("pinSource", pinSource.name());
 
         return functions.getHttpsCallable("findPin")
                 .call(data)
@@ -407,7 +409,7 @@ public class FirebaseDriver {
 
                     activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
                             broadLocationName, nearbyLocationName));
-                    foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName));
+                    foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName, pinSource));
 
                     return reward;
                 })
