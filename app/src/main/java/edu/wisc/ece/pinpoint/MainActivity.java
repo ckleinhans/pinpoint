@@ -45,12 +45,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Instantiate view switcher & start on loading screen
         switcher = findViewById(R.id.view_switcher);
         showView(R.id.loading_view);
+        // Instantiate nav components
         BottomNavigationView navBar = findViewById(R.id.navBar);
         BottomAppBar navBarContainer = findViewById(R.id.bottomBar);
         FloatingActionButton mapButton = findViewById(R.id.mapButton);
         NotificationDriver.getInstance(this);
+        // Disable hidden middle button
         navBar.getMenu().getItem(2).setEnabled(false);
 
 
@@ -72,12 +75,13 @@ public class MainActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> Log.w(TAG, e)).continueWith(t -> null));
         // Wait until all tasks complete before showing view
         Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(fetchingComplete -> {
-            Log.d(TAG, "FETCH TASKS COMPLETE!.");
+            // Instantiate nav host and inject into view
             navHostFragment = NavHostFragment.create(R.navigation.navigation);
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.nav_host_placeholder, navHostFragment)
                     .commitNow();
+            // Set up nav controller
             navController = navHostFragment.getNavController();
             NavigationUI.setupWithNavController(navBar, navController);
             // Set nav bar visibility
@@ -90,10 +94,10 @@ public class MainActivity extends AppCompatActivity {
                     mapButton.setVisibility(View.VISIBLE);
                 }
             });
+            // Switch to app view once loading is complete
             showView(R.id.content_view);
         });
-
-
+        
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
             PeriodicWorkRequest saveRequest =
