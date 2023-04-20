@@ -65,7 +65,6 @@ public class EditProfileFragment extends Fragment {
     private EditText locationInput;
     private EditText bioInput;
     private ImageView profilePicUpload;
-    private EditText edittext;
     private ActivityResultLauncher<Intent> photoPickerLauncher;
     private ActivityResultLauncher<Intent> locationAutocompleteLauncher;
     private Uri photo;
@@ -156,17 +155,20 @@ public class EditProfileFragment extends Fragment {
             cachedUser.loadProfilePic(profilePicUpload, this);
         }
 
-        edittext = requireView().findViewById(R.id.profile_edit_bio);
-        edittext.addTextChangedListener(new TextWatcher() {
+        bioInput.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+            }
+
             @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) { }
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+            }
 
             @Override
             public void afterTextChanged(Editable editable) {
-                if (null != edittext.getLayout() && edittext.getLayout().getLineCount() > 3) {
-                    edittext.getText().delete(edittext.getText().length() - 1, edittext.getText().length());
+                if (null != bioInput.getLayout() && bioInput.getLayout().getLineCount() > 3) {
+                    bioInput.getText()
+                            .delete(bioInput.getText().length() - 1, bioInput.getText().length());
                 }
             }
         });
