@@ -159,6 +159,7 @@ public class MapFragment extends Fragment {
         Marker pinMarker = map.addMarker(new MarkerOptions().icon(
                         BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)).alpha(.5f)
                 .position(pinLocation));
+        //noinspection ConstantConditions
         pinMarker.setTag(key);
     }
 
@@ -179,19 +180,16 @@ public class MapFragment extends Fragment {
             if (LocationDriver.isCloseEnoughToFindPin(
                     new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
                     marker.getPosition())) {
-                firebase.findPin((String) marker.getTag(), userLoc)
-                        .addOnSuccessListener(reward -> {
-                                    Toast.makeText(
-                                            requireContext(),
-                                            String.format("You received %d pinnies as a reward!", reward),
-                                            Toast.LENGTH_LONG).show();
-                                    navController.navigate(MapContainerFragmentDirections
-                                                    .pinView(marker.getTag().toString()));
-                                })
-                        .addOnFailureListener(e ->
-                            Toast.makeText(requireContext(), e.getMessage(),
-                                    Toast.LENGTH_LONG).show()
-                        );
+                firebase.findPin((String) marker.getTag(), userLoc).addOnSuccessListener(reward -> {
+                    Toast.makeText(requireContext(),
+                            String.format(getString(R.string.pinnie_reward_message), reward),
+                            Toast.LENGTH_LONG).show();
+                    //noinspection ConstantConditions
+                    navController.navigate(
+                            MapContainerFragmentDirections.pinView(marker.getTag().toString()));
+                }).addOnFailureListener(
+                        e -> Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG)
+                                .show());
             } else {
                 Toast.makeText(requireContext(), R.string.undiscovered_pin_not_close_enough,
                         Toast.LENGTH_SHORT).show();
@@ -205,6 +203,7 @@ public class MapFragment extends Fragment {
         Marker pinMarker = map.addMarker(new MarkerOptions().icon(
                         BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)).alpha(1f)
                 .position(pinLocation));
+        //noinspection ConstantConditions
         pinMarker.setTag(id);
     }
 

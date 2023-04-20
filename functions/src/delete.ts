@@ -1,4 +1,4 @@
-import { firestore, storage } from "firebase-admin";
+import { auth, firestore, storage } from "firebase-admin";
 import { FieldValue } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
 const client = require("firebase-tools");
@@ -12,12 +12,14 @@ export const deleteAccountHandler = async (data, context) => {
     );
   }
 
-  const path = `/users/${context.auth.uid}`;
+  const path = `users/${context.auth.uid}`;
   // Delete profile pic
   const bucket = storage().bucket();
-  await bucket.file(path).delete({ ignoreNotFound: true }).catch(console.error);
+  await bucket.file(path).delete({ ignoreNotFound: true });
   // Delete all user data
-  await recursiveDelete(path, process.env.FB_CI_TOKEN).catch(console.error);
+  await recursiveDelete(path);
+  // Delete user authentication account
+  await auth().deleteUser(context.auth.uid);
 };
 
 export const deletePinHandler = async ({ pid }, context) => {
@@ -48,33 +50,27 @@ export const deletePinHandler = async ({ pid }, context) => {
     );
   }
 
-  const batch = firestore().batch();
+  // Delete pin image if it exists
+  if (pinData.get("type") === "IMAGE") {
+    console.log("deleting image");
+    const bucket = storage().bucket();
+    await bucket.file(`pins/${pid}`).delete();
+  }
+  
+  // Delete all comments
+  await recursiveDelete(`pins/${pid}/comments`);
 
+  const batch = firestore().batch();
   batch.update(droppedRef, { [pinRef.id]: FieldValue.delete() });
   batch.update(userRef, { numPinsDropped: FieldValue.increment(-1) });
   batch.delete(pinRef);
-
-  await batch.commit().catch(console.error);
-
-  // Delete pin image if it exists
-  const bucket = storage().bucket();
-  await bucket
-    .file(`/pins/${pid}`)
-    .delete({ ignoreNotFound: true })
-    .catch(console.error);
-  // Delete all comments
-  await recursiveDelete(`/pins/${pid}/comments`, process.env.FB_CI_TOKEN).catch(
-    console.error
-  );
+  await batch.commit();
 };
 
 // Run a recursive delete on the given document or collection path.
-// The 'token' must be set in the functions config, and can be generated
-// at the command line by running 'firebase login:ci'.
-const recursiveDelete = (path, token) =>
+const recursiveDelete = (path) =>
   client.firestore.delete(path, {
     project: process.env.GCLOUD_PROJECT,
     recursive: true,
     force: true,
-    token,
   });

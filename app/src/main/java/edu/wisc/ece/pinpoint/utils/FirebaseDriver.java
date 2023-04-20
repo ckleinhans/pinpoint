@@ -395,7 +395,7 @@ public class FirebaseDriver {
         }).addOnFailureListener(e -> Log.w(TAG, "Error dropping pin.", e));
     }
 
-    public Task<Long> findPin(String pid, Location location) {
+    public Task<Integer> findPin(String pid, Location location) {
         ActivityList activity = activityMap.get(auth.getUid());
         if (activity == null) {
             throw new IllegalStateException(
@@ -414,7 +414,7 @@ public class FirebaseDriver {
             String broadLocationName = (String) result.get("broadLocationName");
             String nearbyLocationName = (String) result.get("nearbyLocationName");
             //noinspection ConstantConditions
-            long reward = (long) result.get("reward");
+            int reward = (int) result.get("reward");
             pinnies += reward;
             Log.d(TAG, String.format("Got reward for pin: %d", reward));
 
