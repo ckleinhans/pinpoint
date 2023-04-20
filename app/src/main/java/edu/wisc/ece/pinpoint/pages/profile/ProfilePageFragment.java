@@ -97,9 +97,8 @@ public class ProfilePageFragment extends Fragment {
             setButton(uid);
         }
 
-        User cachedUser = firebase.getCachedUser(uid);
-        if (cachedUser != null) {
-            setUserData(cachedUser);
+        if (firebase.isUserCached(uid)) {
+            setUserData(firebase.getCachedUser(uid));
         }
         firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult()));
 
@@ -137,7 +136,14 @@ public class ProfilePageFragment extends Fragment {
         });
     }
 
-    public void setUserData(@NonNull User user) {
+    public void setUserData(User user) {
+        if (user == null) {
+            // user was deleted
+            if (getContext() != null)
+                Toast.makeText(getContext(), R.string.deleted_user, Toast.LENGTH_SHORT).show();
+            navController.popBackStack();
+            return;
+        }
         user.loadProfilePic(profilePic, this);
         username.setText(user.getUsername());
         followerCount.setText(String.valueOf(user.getNumFollowers()));

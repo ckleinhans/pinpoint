@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -52,25 +53,33 @@ public class PinCommentAdapter
         Comment comment = comments.get(position);
         holder.content.setText(comment.getContent());
         holder.timestamp.setText(FormatUtils.formattedDate(comment.getTimestamp()));
-        holder.image.setOnClickListener(view -> navController.navigate(
-                NavigationDirections.profile().setUid(comment.getAuthorUID())));
 
-        User user = firebase.getCachedUser(comment.getAuthorUID());
-        if (user == null) {
-            firebase.fetchUser(comment.getAuthorUID()).addOnCompleteListener(t -> {
-                User res = t.getResult();
-                holder.username.setText(res.getUsername());
-                res.loadProfilePic(holder.image, fragment);
-            });
+        String authorUID = comment.getAuthorUID();
+        if (firebase.isUserCached(authorUID)) {
+            setAuthorData(holder, firebase.getCachedUser(authorUID), authorUID);
         } else {
-            holder.username.setText(user.getUsername());
-            user.loadProfilePic(holder.image, fragment);
+            firebase.fetchUser(authorUID)
+                    .addOnCompleteListener(t -> setAuthorData(holder, t.getResult(), authorUID));
         }
     }
 
     @Override
     public int getItemCount() {
         return comments == null ? 0 : comments.size();
+    }
+
+    private void setAuthorData(PinCommentAdapter.PinCommentViewHolder holder, User author,
+                               String authorUID) {
+        if (author == null) {
+            // user was deleted
+            holder.username.setText(R.string.deleted_user);
+            holder.username.setTextColor(Color.RED);
+        } else {
+            holder.username.setText(author.getUsername());
+            author.loadProfilePic(holder.image, fragment);
+            holder.image.setOnClickListener(view -> navController.navigate(
+                    NavigationDirections.profile().setUid(authorUID)));
+        }
     }
 
     public static class PinCommentViewHolder extends RecyclerView.ViewHolder {

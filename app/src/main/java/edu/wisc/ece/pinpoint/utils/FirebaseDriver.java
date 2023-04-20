@@ -156,15 +156,42 @@ public class FirebaseDriver {
     }
 
     public Task<User> fetchUser(@NonNull String uid) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch users");
+        }
         return db.collection("users").document(uid).get().continueWith(task -> {
             User user = task.getResult().toObject(User.class);
-            users.put(uid, user);
+            if (user == null) {
+                // user deleted, remove from followers/following
+                if (getCachedFollowing(auth.getUid()).remove(uid)) {
+                    // Remove other user from own following & decrement own numFollowing
+                    WriteBatch batch = db.batch();
+                    batch.update(db.collection("users").document(auth.getUid()).collection("social")
+                            .document("following"), "following", FieldValue.arrayRemove(uid));
+                    batch.update(db.collection("users").document(auth.getUid()), "numFollowing",
+                            FieldValue.increment(-1));
+                }
+                if (getCachedFollowers(auth.getUid()).remove(uid)) {
+                    // Remove other user from own followers & decrement own numFollowers
+                    WriteBatch batch = db.batch();
+                    batch.update(db.collection("users").document(auth.getUid()).collection("social")
+                            .document("followers"), "followers", FieldValue.arrayRemove(uid));
+                    batch.update(db.collection("users").document(auth.getUid()), "numFollowers",
+                            FieldValue.increment(-1));
+                }
+            } else {
+                users.put(uid, user);
+            }
             return user;
         }).addOnFailureListener(e -> Log.w(TAG, String.format("Error fetching user %s", uid), e));
     }
 
     public User getCachedUser(@NonNull String uid) {
         return users.get(uid);
+    }
+
+    public boolean isUserCached(@NonNull String uid) {
+        return users.containsKey(uid);
     }
 
     public Task<Void> handleNewUser() {
@@ -544,13 +571,13 @@ public class FirebaseDriver {
         }
         WriteBatch batch = db.batch();
 
-        // Remove other user to own following & decrement own numFollowing
+        // Remove other user from own following & decrement own numFollowing
         batch.update(db.collection("users").document(auth.getUid()).collection("social")
                 .document("following"), "following", FieldValue.arrayRemove(uid));
         batch.update(db.collection("users").document(auth.getUid()), "numFollowing",
                 FieldValue.increment(-1));
 
-        // Remove self to other user's followers & decrement their numFollowers
+        // Remove self from other user's followers & decrement their numFollowers
         batch.update(
                 db.collection("users").document(uid).collection("social").document("followers"),
                 "followers", FieldValue.arrayRemove(auth.getUid()));
