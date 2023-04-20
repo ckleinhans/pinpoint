@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
             // Switch to app view once loading is complete
             showView(R.id.content_view);
         });
-        
+
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
             PeriodicWorkRequest saveRequest =

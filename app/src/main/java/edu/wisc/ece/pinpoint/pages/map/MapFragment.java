@@ -116,11 +116,11 @@ public class MapFragment extends Fragment {
     }
 
     private void handleFilters(){
-        CheckBox generalBox = requireView().findViewById(R.id.checkbox_strangers);
+        CheckBox strangerBox = requireView().findViewById(R.id.checkbox_strangers);
         CheckBox friendBox = requireView().findViewById(R.id.checkbox_friends);
         CheckBox nfcBox = requireView().findViewById(R.id.checkbox_nfc);
         CheckBox droppedBox = requireView().findViewById(R.id.checkbox_dropped);
-        CheckBox pinpointBox = requireView().findViewById(R.id.checkbox_devs);
+        CheckBox devBox = requireView().findViewById(R.id.checkbox_devs);
         ImageView filterTab = requireView().findViewById(R.id.checkbox_tab);
         ConstraintLayout filterContainer = requireView().findViewById(R.id.filter_container);
 
@@ -140,40 +140,20 @@ public class MapFragment extends Fragment {
             }
         });
 
-        generalBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            for(Marker marker : strangerMarkers){
-                if(isChecked)
-                    marker.setVisible(true);
-                else marker.setVisible(false);
-            }
+        strangerBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            strangerMarkers.forEach(m -> m.setVisible(isChecked));
         });
         friendBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            for(Marker marker : friendMarkers){
-                if(isChecked)
-                    marker.setVisible(true);
-                else marker.setVisible(false);
-            }
+            friendMarkers.forEach(m -> m.setVisible(isChecked));
         });
         nfcBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            for(Marker marker : nfcMarkers){
-                if(isChecked)
-                    marker.setVisible(true);
-                else marker.setVisible(false);
-            }
+            nfcMarkers.forEach(m -> m.setVisible(isChecked));
         });
         droppedBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            for(Marker marker : droppedMarkers){
-                if(isChecked)
-                    marker.setVisible(true);
-                else marker.setVisible(false);
-            }
+            droppedMarkers.forEach(m -> m.setVisible(isChecked));
         });
-        pinpointBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            for(Marker marker : devMarkers){
-                if(isChecked)
-                    marker.setVisible(true);
-                else marker.setVisible(false);
-            }
+        devBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            devMarkers.forEach(m -> m.setVisible(isChecked));
         });
     }
 
