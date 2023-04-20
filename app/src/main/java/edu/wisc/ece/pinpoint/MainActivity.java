@@ -3,6 +3,7 @@ package edu.wisc.ece.pinpoint;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.ViewSwitcher;
 
@@ -10,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.NavigationUI;
-import androidx.work.ExistingPeriodicWorkPolicy;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -30,6 +30,7 @@ import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = MainActivity.class.getName();
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
                     R.id.new_pin_fragment, R.id.pin_view);
@@ -70,6 +71,12 @@ public class MainActivity extends AppCompatActivity {
         fetchTasks.add(firebase.fetchFollowing(uid).continueWith(t -> null));
         fetchTasks.add(firebase.fetchFollowers(uid).continueWith(t -> null));
         fetchTasks.add(firebase.fetchActivity(uid).continueWith(t -> null));
+        fetchTasks.add(firebase.fetchDroppedPins()
+                .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched dropped pins."))
+                .addOnFailureListener(e -> Log.w(TAG, e)).continueWith(t -> null));
+        fetchTasks.add(firebase.fetchFoundPins()
+                .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched found pins."))
+                .addOnFailureListener(e -> Log.w(TAG, e)).continueWith(t -> null));
         // Wait until all tasks complete before showing view
         Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(fetchingComplete -> showView(R.id.content_view));
 

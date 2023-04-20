@@ -53,7 +53,6 @@ public class MapFragment extends Fragment {
     private final List<Task<OrderedPinMetadata>> pinTasks = new ArrayList<>();
     private GoogleMap map;
     private NavController navController;
-    private boolean pinsLoaded = false;
     private Long pinnieCount;
     private ProgressBar pinnieProgressBar;
     private ImageView pinnies_logo;
@@ -68,17 +67,6 @@ public class MapFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (firebase.getCachedDroppedPinMetadata() == null && firebase.getCachedFoundPinMetadata() == null) {
-            pinsLoaded = true;
-            pinTasks.add(firebase.fetchDroppedPins()
-                    .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched dropped pins."))
-                    .addOnFailureListener(e -> Log.w(TAG, e)));
-            pinTasks.add(firebase.fetchFoundPins()
-                    .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched found pins."))
-                    .addOnFailureListener(e -> Log.w(TAG, e)));
-            Tasks.whenAllComplete(pinTasks)
-                    .addOnCompleteListener(pinFetchingComplete -> loadDiscoveredPins());
-        }
         droppedMarkers = new ArrayList<>();
         friendMarkers = new ArrayList<>();
         nfcMarkers = new ArrayList<>();
@@ -98,9 +86,7 @@ public class MapFragment extends Fragment {
             this.map = googleMap;
             styleMap();
             getDeviceLocation();
-            if (!pinsLoaded) {
-                loadDiscoveredPins();
-            }
+            loadDiscoveredPins();
             map.setOnInfoWindowClickListener(marker -> {
                 if (marker.getAlpha() == 1f) {
                     // Already discovered pin
