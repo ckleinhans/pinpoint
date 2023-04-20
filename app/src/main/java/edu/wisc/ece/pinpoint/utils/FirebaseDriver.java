@@ -122,19 +122,22 @@ public class FirebaseDriver {
     }
 
     public Task<Void> logout(@NonNull Context context) {
-        foundPinMetadata = null;
-        droppedPinMetadata = null;
-        return AuthUI.getInstance().signOut(context)
-                .addOnFailureListener(e -> Log.w(TAG, "Error logging out", e));
+        return AuthUI.getInstance().signOut(context).addOnSuccessListener(t -> {
+            foundPinMetadata = null;
+            droppedPinMetadata = null;
+        }).addOnFailureListener(e -> Log.w(TAG, "Error logging out", e));
     }
 
     public Task<Void> deleteAccount(@NonNull Context context) {
-        foundPinMetadata = null;
-        droppedPinMetadata = null;
-        WriteBatch batch = db.batch();
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to check if they are new.");
+        }
 
-        return AuthUI.getInstance().signOut(context)
-                .addOnFailureListener(e -> Log.w(TAG, "Error logging out", e));
+        return functions.getHttpsCallable("deleteAccount").call().continueWithTask(t -> {
+            if (!t.isSuccessful()) //noinspection ConstantConditions
+                throw t.getException();
+            return logout(context);
+        }).addOnFailureListener(e -> Log.w(TAG, "Error deleting account", e));
     }
 
     public String getUid() {
@@ -402,28 +405,23 @@ public class FirebaseDriver {
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
 
-        return functions.getHttpsCallable("findPin")
-                .call(data)
-                .continueWith(task -> {
-                    //noinspection unchecked
-                    Map<String, Object> result = (Map<String, Object>) task.getResult().getData();
+        return functions.getHttpsCallable("findPin").call(data).continueWith(task -> {
+            //noinspection unchecked
+            Map<String, Object> result = (Map<String, Object>) task.getResult().getData();
 
-                    //noinspection ConstantConditions
-                    String broadLocationName = (String) result.get("broadLocationName");
-                    String nearbyLocationName = (String) result.get("nearbyLocationName");
-                    Long reward = Long.parseLong(result.getOrDefault("reward", 0L).toString());
-                    pinnies += reward;
-                    Log.d(TAG, String.format("Got reward for pin: %d", reward));
+            //noinspection ConstantConditions
+            String broadLocationName = (String) result.get("broadLocationName");
+            String nearbyLocationName = (String) result.get("nearbyLocationName");
+            Long reward = Long.parseLong(result.getOrDefault("reward", 0L).toString());
+            pinnies += reward;
+            Log.d(TAG, String.format("Got reward for pin: %d", reward));
 
-                    activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
-                            broadLocationName, nearbyLocationName));
-                    foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName));
+            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
+                    broadLocationName, nearbyLocationName));
+            foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName));
 
-                    return reward;
-                })
-                .addOnFailureListener(
-                        e -> Log.w(TAG, "Error finding pin from cloud func: ", e)
-                );
+            return reward;
+        }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin from cloud func: ", e));
     }
 
     public Task<Map<String, Map<String, Object>>> fetchNearbyPins(@NonNull Location location) {

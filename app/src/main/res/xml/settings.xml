@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
     <Preference
-        android:textColor="@android:color/holo_red_dark"
+        app:icon="@drawable/ic_logout"
         app:key="logout"
-        app:title="@string/logout_text"
-        app:icon="@drawable/ic_logout" />
+        app:title="@string/logout_text" />
     <Preference
+        app:icon="@drawable/ic_delete"
         app:key="deleteAccount"
-        app:title="@string/delete_account"
-        app:icon="@drawable/ic_delete" />
+        app:title="@string/delete_account" />
 
 </androidx.preference.PreferenceScreen>
