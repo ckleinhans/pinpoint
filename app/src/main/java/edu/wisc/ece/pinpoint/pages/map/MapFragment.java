@@ -62,7 +62,7 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> friendMarkers;
     private ArrayList<Marker> nfcMarkers;
     private ArrayList<Marker> devMarkers;
-    private ArrayList<Marker> generalMarkers;
+    private ArrayList<Marker> strangerMarkers;
     private boolean isFilterVisible = false;
 
     @Override
@@ -83,7 +83,7 @@ public class MapFragment extends Fragment {
         friendMarkers = new ArrayList<>();
         nfcMarkers = new ArrayList<>();
         devMarkers = new ArrayList<>();
-        generalMarkers = new ArrayList<>();
+        strangerMarkers = new ArrayList<>();
     }
 
     @Override
@@ -129,11 +129,11 @@ public class MapFragment extends Fragment {
     }
 
     private void handleFilters(){
-        CheckBox generalBox = requireView().findViewById(R.id.checkbox_general);
-        CheckBox friendBox = requireView().findViewById(R.id.checkbox_following);
+        CheckBox generalBox = requireView().findViewById(R.id.checkbox_strangers);
+        CheckBox friendBox = requireView().findViewById(R.id.checkbox_friends);
         CheckBox nfcBox = requireView().findViewById(R.id.checkbox_nfc);
         CheckBox droppedBox = requireView().findViewById(R.id.checkbox_dropped);
-        CheckBox pinpointBox = requireView().findViewById(R.id.checkbox_pinpoint);
+        CheckBox pinpointBox = requireView().findViewById(R.id.checkbox_devs);
         ImageView filterTab = requireView().findViewById(R.id.checkbox_tab);
         ConstraintLayout filterContainer = requireView().findViewById(R.id.filter_container);
 
@@ -147,14 +147,14 @@ public class MapFragment extends Fragment {
                 filterTab.setImageResource(R.drawable.ic_back_arrow);
             }
             else {
-                filterContainer.animate().translationX(-160 * scale + 0.5f);
+                filterContainer.animate().translationX(-140 * scale + 0.5f);
                 isFilterVisible = true;
                 filterTab.setImageResource(R.drawable.ic_filter);
             }
         });
 
         generalBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            for(Marker marker : generalMarkers){
+            for(Marker marker : strangerMarkers){
                 if(isChecked)
                     marker.setVisible(true);
                 else marker.setVisible(false);
@@ -236,7 +236,7 @@ public class MapFragment extends Fragment {
         float color = BitmapDescriptorFactory.HUE_RED;
         // Data field to persist in pin marker to know the pin source when the user finds the pin
         PinSource source = PinSource.GENERAL;
-        ArrayList<Marker> markerList = generalMarkers;
+        ArrayList<Marker> markerList = strangerMarkers;
         // TODO: change color for nfc pin (cyan)
         if(authorUID == "pinpoint"){
             color = BitmapDescriptorFactory.HUE_YELLOW;
@@ -306,7 +306,7 @@ public class MapFragment extends Fragment {
         LatLng pinLocation = new LatLng(geoPoint.getLatitude(), geoPoint.getLongitude());
         float color;
         PinSource snippet = pinSource;
-        ArrayList<Marker> markerList = generalMarkers;
+        ArrayList<Marker> markerList = strangerMarkers;
         switch (pinSource){
             case DEV:
                 color = BitmapDescriptorFactory.HUE_YELLOW;
