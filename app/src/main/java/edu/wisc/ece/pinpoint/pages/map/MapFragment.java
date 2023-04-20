@@ -257,11 +257,19 @@ public class MapFragment extends Fragment {
                         break;
                 }
                 //noinspection ConstantConditions
-                firebase.findPin((String) marker.getTag(), userLoc, pinSource).addOnSuccessListener(
-                                pin -> navController.navigate(
-                                        MapContainerFragmentDirections.pinView(marker.getTag().toString())))
-                        .addOnFailureListener(e -> Toast.makeText(requireContext(), e.getMessage(),
-                                Toast.LENGTH_LONG).show());
+                firebase.findPin((String) marker.getTag(), userLoc, pinSource)
+                        .addOnSuccessListener(reward -> {
+                                    Toast.makeText(
+                                            requireContext(),
+                                            String.format("You received %d pinnies as a reward!", reward),
+                                            Toast.LENGTH_LONG).show();
+                                    navController.navigate(MapContainerFragmentDirections
+                                                    .pinView(marker.getTag().toString()));
+                                })
+                        .addOnFailureListener(e ->
+                            Toast.makeText(requireContext(), e.getMessage(),
+                                    Toast.LENGTH_LONG).show()
+                        );
             } else {
                 Toast.makeText(requireContext(), R.string.undiscovered_pin_not_close_enough,
                         Toast.LENGTH_SHORT).show();

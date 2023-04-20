@@ -131,7 +131,7 @@
                 android:importantForAutofill="no"
                 android:inputType="textMultiLine"
                 android:lines="3"
-                android:maxLength="50" />
+                android:maxLength="125" />
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
