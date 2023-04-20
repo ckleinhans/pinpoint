@@ -4,7 +4,7 @@ import * as functions from "firebase-functions";
 import { getNearbyPinsHandler } from "./location";
 import { calcPinCostHandler } from "./cost";
 import { dropPinHandler, findPinHandler } from "./pin";
-import { deleteAccountHandler } from "./user";
+import { deleteAccountHandler, deletePinHandler } from "./delete";
 
 admin.initializeApp();
 
@@ -15,3 +15,6 @@ export const findPin = functions.https.onCall(findPinHandler);
 export const deleteAccount = functions
   .runWith({ secrets: ["FB_CI_TOKEN"] })
   .https.onCall(deleteAccountHandler);
+export const deletePin = functions
+  .runWith({ secrets: ["FB_CI_TOKEN"] })
+  .https.onCall(deletePinHandler);

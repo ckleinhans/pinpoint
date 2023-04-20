@@ -23,6 +23,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.functions.HttpsCallableResult;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -412,7 +413,8 @@ public class FirebaseDriver {
             //noinspection ConstantConditions
             String broadLocationName = (String) result.get("broadLocationName");
             String nearbyLocationName = (String) result.get("nearbyLocationName");
-            Long reward = Long.parseLong(result.getOrDefault("reward", 0L).toString());
+            //noinspection ConstantConditions
+            long reward = (long) result.get("reward");
             pinnies += reward;
             Log.d(TAG, String.format("Got reward for pin: %d", reward));
 
@@ -475,23 +477,13 @@ public class FirebaseDriver {
         return userFollowingIds.get(uid);
     }
 
-    public Task<Void> deletePin(String pid) {
+    public Task<HttpsCallableResult> deletePin(String pid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to delete a pin");
         }
-        WriteBatch batch = db.batch();
-        batch.delete(db.collection("pins").document(pid));
-        batch.update(db.collection("users").document(auth.getUid()).collection("dropped")
-                .document("dropped"), pid, FieldValue.delete());
-        batch.update(db.collection("users").document(auth.getUid()), "numPinsDropped",
-                FieldValue.increment(-1));
-        return batch.commit().addOnSuccessListener(t -> {
-            Pin pin = pins.get(pid);
-            if (pin != null && pin.getType() == Pin.PinType.IMAGE) {
-                storage.getReference("pins").child(pid).delete()
-                        .addOnFailureListener(e -> Log.w(TAG, "Error deleting pin image.", e))
-                        .addOnSuccessListener(t2 -> Log.d(TAG, "Successfully deleted pin image."));
-            }
+        Map<String, Object> data = new HashMap<>();
+        data.put("pid", pid);
+        return functions.getHttpsCallable("deletePin").call(data).addOnSuccessListener(t -> {
             pins.remove(pid);
             droppedPinMetadata.remove(pid);
         }).addOnFailureListener(e -> Log.w(TAG, "Error deleting pin.", e));
