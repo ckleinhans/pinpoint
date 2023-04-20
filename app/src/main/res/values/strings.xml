@@ -91,4 +91,5 @@
     <string name="comment_author_profile_pic_text">Comment Author Profile Pic</string>
     <string name="delete_account">Delete Account</string>
     <string name="account_delete_message">Are you sure you want to irreversibly delete your account? All of your profile and activity information will be deleted. Pins you have dropped and comments you have posted will remain, but they will no longer be linked to your account.</string>
+    <string name="profile_location_icon_text">Profile Location Icon</string>
 </resources>

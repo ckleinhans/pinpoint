@@ -11,6 +11,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -152,6 +154,24 @@ public class EditProfileFragment extends Fragment {
             bioInput.setText(cachedUser.getBio());
             cachedUser.loadProfilePic(profilePicUpload, this);
         }
+
+        bioInput.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i2, int i3) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                if (null != bioInput.getLayout() && bioInput.getLayout().getLineCount() > 3) {
+                    bioInput.getText()
+                            .delete(bioInput.getText().length() - 1, bioInput.getText().length());
+                }
+            }
+        });
     }
 
     private void save(View buttonView) {
