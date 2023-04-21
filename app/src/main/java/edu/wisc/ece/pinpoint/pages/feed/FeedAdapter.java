@@ -126,9 +126,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
             if (firebase.getCachedFoundPinMetadata()
                     .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
                 navController.navigate(NavigationDirections.pinView(id));
-                // TODO: need to change this toast
-            else Toast.makeText(parentContext, R.string.pin_not_discovered, Toast.LENGTH_SHORT)
-                    .show();
+            else Toast.makeText(parentContext, R.string.feed_pin_deleted_or_undiscovered,
+                    Toast.LENGTH_SHORT).show();
         });
     }
 

@@ -62,7 +62,7 @@
     <string name="activity_fetch_error">Something went wrong fetching activity. Try again later.</string>
     <string name="undiscovered_pin_not_close_enough">You have to move a bit closer to this pin to discover it!</string>
     <string name="undiscovered_pin_locked">Travel close to this pin to unlock it on the map!</string>
-    <string name="pin_not_discovered">You haven\'t discovered this pin yet.</string>
+    <string name="feed_pin_deleted_or_undiscovered">You haven\'t yet discovered this pin or it was deleted by the author.</string>
     <string name="user_fetch_error_message">Something went wrong fetching the user! Try again later.</string>
     <string name="pin_finds_singular">1 find</string>
     <string name="pin_finds_plural">%d finds</string>
