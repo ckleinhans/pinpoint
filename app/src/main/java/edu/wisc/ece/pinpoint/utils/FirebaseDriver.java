@@ -126,6 +126,7 @@ public class FirebaseDriver {
         return AuthUI.getInstance().signOut(context).addOnSuccessListener(t -> {
             foundPinMetadata = null;
             droppedPinMetadata = null;
+            pinnies = null;
         }).addOnFailureListener(e -> Log.w(TAG, "Error logging out", e));
     }
 
@@ -427,7 +428,7 @@ public class FirebaseDriver {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
             droppedPinMetadata.add(new PinMetadata(pid, newPin.getBroadLocationName(),
-                    newPin.getNearbyLocationName()));
+                    newPin.getNearbyLocationName(), PinMetadata.PinSource.SELF));
             activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.DROP,
                     newPin.getBroadLocationName(), newPin.getNearbyLocationName()));
             pinnies -= cost;
@@ -435,7 +436,7 @@ public class FirebaseDriver {
         }).addOnFailureListener(e -> Log.w(TAG, "Error dropping pin.", e));
     }
 
-    public Task<Integer> findPin(String pid, Location location) {
+    public Task<Integer> findPin(String pid, Location location, PinMetadata.PinSource pinSource) {
         ActivityList activity = activityMap.get(auth.getUid());
         if (activity == null) {
             throw new IllegalStateException(
@@ -445,6 +446,7 @@ public class FirebaseDriver {
         data.put("pid", pid);
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
+        data.put("pinSource", pinSource.name());
 
         return functions.getHttpsCallable("findPin").call(data).continueWith(task -> {
             //noinspection unchecked
@@ -458,9 +460,9 @@ public class FirebaseDriver {
             pinnies += reward;
             Log.d(TAG, String.format("Got reward for pin: %d", reward));
 
-            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
-                    broadLocationName, nearbyLocationName));
-            foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName));
+                    activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
+                            broadLocationName, nearbyLocationName));
+                    foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName, pinSource));
 
             return reward;
         }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin from cloud func: ", e));
