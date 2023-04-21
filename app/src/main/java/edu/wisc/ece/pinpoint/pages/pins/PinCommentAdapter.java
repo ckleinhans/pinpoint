@@ -52,7 +52,7 @@ public class PinCommentAdapter
                                  int position) {
         Comment comment = comments.get(position);
         holder.content.setText(comment.getContent());
-        holder.timestamp.setText(FormatUtils.formattedDate(comment.getTimestamp()));
+        holder.timestamp.setText(FormatUtils.formattedDateTime(comment.getTimestamp()));
 
         String authorUID = comment.getAuthorUID();
         if (firebase.isUserCached(authorUID)) {
