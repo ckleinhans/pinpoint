@@ -23,7 +23,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.functions.FirebaseFunctions;
-import com.google.firebase.functions.HttpsCallableResult;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -125,6 +124,7 @@ public class FirebaseDriver {
     public Task<Void> logout(@NonNull Context context) {
         foundPinMetadata = null;
         droppedPinMetadata = null;
+        pinnies = null;
         return AuthUI.getInstance().signOut(context);
     }
 
@@ -374,7 +374,7 @@ public class FirebaseDriver {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
             droppedPinMetadata.add(new PinMetadata(pid, newPin.getBroadLocationName(),
-                    newPin.getNearbyLocationName()));
+                    newPin.getNearbyLocationName(), PinMetadata.PinSource.SELF));
             activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.DROP,
                     newPin.getBroadLocationName(), newPin.getNearbyLocationName()));
             pinnies -= cost;
@@ -382,7 +382,7 @@ public class FirebaseDriver {
         }).addOnFailureListener(e -> Log.w(TAG, "Error dropping pin.", e));
     }
 
-    public Task<HttpsCallableResult> findPin(String pid, Location location) {
+    public Task<Long> findPin(String pid, Location location, PinMetadata.PinSource pinSource) {
         ActivityList activity = activityMap.get(auth.getUid());
         if (activity == null) {
             throw new IllegalStateException(
@@ -392,18 +392,30 @@ public class FirebaseDriver {
         data.put("pid", pid);
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
+        data.put("pinSource", pinSource.name());
 
-        return functions.getHttpsCallable("findPin").call(data).addOnSuccessListener(task -> {
-            // TODO: make cloud function return reward & update cached pinnie count with it
-            //noinspection unchecked
-            Map<String, String> result = (Map<String, String>) task.getData();
-            //noinspection ConstantConditions
-            String broadLocationName = result.get("broadLocationName");
-            String nearbyLocationName = result.get("nearbyLocationName");
-            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
-                    broadLocationName, nearbyLocationName));
-            foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName));
-        }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin.", e));
+        return functions.getHttpsCallable("findPin")
+                .call(data)
+                .continueWith(task -> {
+                    //noinspection unchecked
+                    Map<String, Object> result = (Map<String, Object>) task.getResult().getData();
+
+                    //noinspection ConstantConditions
+                    String broadLocationName = (String) result.get("broadLocationName");
+                    String nearbyLocationName = (String) result.get("nearbyLocationName");
+                    Long reward = Long.parseLong(result.getOrDefault("reward", 0L).toString());
+                    pinnies += reward;
+                    Log.d(TAG, String.format("Got reward for pin: %d", reward));
+
+                    activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
+                            broadLocationName, nearbyLocationName));
+                    foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName, pinSource));
+
+                    return reward;
+                })
+                .addOnFailureListener(
+                        e -> Log.w(TAG, "Error finding pin from cloud func: ", e)
+                );
     }
 
     public Task<Map<String, Map<String, Object>>> fetchNearbyPins(@NonNull Location location) {

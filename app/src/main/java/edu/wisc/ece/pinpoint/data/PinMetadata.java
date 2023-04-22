@@ -14,6 +14,7 @@ public class PinMetadata {
     private final Long reward;
     private final Long cost;
     private final String pinId;
+    private final PinSource pinSource;
 
     public PinMetadata(String pinId, Map<String, Object> data) {
         this.pinId = pinId;
@@ -23,15 +24,17 @@ public class PinMetadata {
         this.nearbyLocationName = (String) data.get("nearbyLocationName");
         this.reward = (Long) data.get("reward");
         this.cost = (Long) data.get("cost");
+        this.pinSource = PinSource.valueOf((String) data.get("pinSource"));
     }
 
-    public PinMetadata(String pinId, String broadLocationName, String nearbyLocationName) {
+    public PinMetadata(String pinId, String broadLocationName, String nearbyLocationName, PinSource pinSource) {
         this.pinId = pinId;
         this.timestamp = new Date();
         this.broadLocationName = broadLocationName;
         this.nearbyLocationName = nearbyLocationName;
         this.reward = null;
         this.cost = null;
+        this.pinSource = pinSource;
     }
 
     public String getPinId() {
@@ -70,5 +73,11 @@ public class PinMetadata {
         } else {
             return false;
         }
+    }
+
+    public PinSource getPinSource() {return pinSource;}
+
+    public enum PinSource {
+        SELF, GENERAL, NFC, DEV, FRIEND
     }
 }
