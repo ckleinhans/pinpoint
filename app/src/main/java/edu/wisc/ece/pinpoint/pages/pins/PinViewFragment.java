@@ -29,8 +29,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Comment;
@@ -240,8 +244,8 @@ public class PinViewFragment extends Fragment {
             switch (item.getItemId()) {
                 case SHARE:
                     // TODO: add NFC sharing logic here
-                    Toast.makeText(requireContext(), "NFC pin sharing not yet implemented!",
-                            Toast.LENGTH_SHORT).show();
+                    sharePin();
+
                     return true;
                 case REPORT:
                     // TODO: add pin reporting logic here
@@ -277,6 +281,31 @@ public class PinViewFragment extends Fragment {
             // Error doesn't matter, menu will just show without icons
         }
         popup.show();
+    }
+
+    private void sharePin() {
+        // Get pin data
+        Pin pin = firebase.getCachedPin(pid);
+        // Create map to store data in temp file
+        Map<String, Object> pinData = new HashMap<>();
+        pinData.put("authorUID", pin.getAuthorUID());
+        pinData.put("latitude", pin.getLocation().getLatitude());
+        pinData.put("longitude", pin.getLocation().getLongitude());
+        // Store data locally
+        try{
+            FileOutputStream fos = new FileOutputStream("tmp_nfc_pin");
+            ObjectOutputStream out = new ObjectOutputStream(fos);
+            out.writeObject(pinData);
+            out.close();
+            fos.close();
+            Log.d(TAG, "Successfully temp stored PID " + pid + ".");
+        }
+        catch (Exception e){
+            Log.w(TAG, e);
+        }
+
+        // TODO: Share via NFC
+        // TODO: Delete local file
     }
 
     private void deletePin(DialogInterface dialog, int buttonId) {

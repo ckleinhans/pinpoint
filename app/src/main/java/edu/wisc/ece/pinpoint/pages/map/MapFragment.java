@@ -33,7 +33,15 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.GeoPoint;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +71,7 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> devMarkers;
     private ArrayList<Marker> strangerMarkers;
     private boolean isFilterVisible = false;
+    private HashMap<String, Map<String, Object>> nfcPins;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -72,6 +81,7 @@ public class MapFragment extends Fragment {
         nfcMarkers = new ArrayList<>();
         devMarkers = new ArrayList<>();
         strangerMarkers = new ArrayList<>();
+        nfcPins = new HashMap<>();
     }
 
     @Override
@@ -88,6 +98,7 @@ public class MapFragment extends Fragment {
             styleMap();
             getDeviceLocation();
             loadDiscoveredPins();
+            loadNFCPins();
             map.setOnInfoWindowClickListener(marker -> {
                 if (marker.getAlpha() == 1f) {
                     // Already discovered pin
@@ -197,14 +208,58 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void createUndiscoveredPin(String key, Map<String, Object> val) {
-        String authorUID = (String) val.get("authorUID");
-        LatLng pinLocation = new LatLng((double) val.get("latitude"), (double) val.get("longitude"));
+    private void loadNFCPins() {
+        // Pull hash map of <String pid, Map<String, Object> data>
+        // Drop an undiscovered marker for each
+        try{
+            FileInputStream fis = new FileInputStream("nfc_pins");
+            ObjectInputStream in = new ObjectInputStream(fis);
+            nfcPins = (HashMap<String, Map<String, Object>>) in.readObject();
+            nfcPins.forEach((pid, data) -> createUndiscoveredPin(pid, data, true));
+            in.close();
+            fis.close();
+            Log.d(TAG, "Successfully loaded "+nfcPins.size()+" NFC pins.");
+        }
+        // If file not found, the user has no NFC pins
+        catch (FileNotFoundException e){
+            Log.d(TAG, "No NFC Pins loaded.");
+        }
+        catch (Exception e){
+            Log.w(TAG, e);
+        }
+    }
+
+    private void receiveNFCPin() {
+        // TODO: receive file, add to hashmap, call updateNFCPins, reload NFC and undiscovered pins on map
+    }
+
+    private void updateNFCPins() {
+        // Rewrite nfc_pins file with updated hash map
+        try{
+            FileOutputStream fos = new FileOutputStream("nfc_pins");
+            ObjectOutputStream out = new ObjectOutputStream(fos);
+            out.writeObject(nfcPins);
+            out.close();
+            fos.close();
+            Log.d(TAG, "Successfully stored " + nfcPins.size() + " pins.");
+        }
+        catch (Exception e){
+            Log.w(TAG, e);
+        }
+    }
+
+    private void createUndiscoveredPin(String pid, Map<String, Object> data, boolean isNFCPin) {
+        String authorUID = (String) data.get("authorUID");
+        LatLng pinLocation = new LatLng((double) data.get("latitude"), (double) data.get("longitude"));
         float color = BitmapDescriptorFactory.HUE_RED;
         // Data field to persist in pin marker to know the pin source when the user finds the pin
         PinSource source = PinSource.GENERAL;
         ArrayList<Marker> markerList = strangerMarkers;
-        // TODO: change color for nfc pin (cyan)
+        if(isNFCPin){
+            color = BitmapDescriptorFactory.HUE_CYAN;
+            source = PinSource.NFC;
+            markerList = nfcMarkers;
+        }
         if(authorUID == "pinpoint"){
             color = BitmapDescriptorFactory.HUE_YELLOW;
             source = PinSource.DEV;
@@ -220,7 +275,7 @@ public class MapFragment extends Fragment {
         Marker pinMarker = map.addMarker(new MarkerOptions().icon(
                         BitmapDescriptorFactory.defaultMarker(color)).alpha(.3f)
                 .position(pinLocation));
-        pinMarker.setTag(key);
+        pinMarker.setTag(pid);
         pinMarker.setSnippet(source.name());
         markerList.add(pinMarker);
     }
@@ -249,6 +304,9 @@ public class MapFragment extends Fragment {
                         break;
                     case "NFC":
                         pinSource = PinSource.NFC;
+                        // Remove NFC pin from hash map
+                        nfcPins.remove(marker.getTag().toString());
+                        updateNFCPins();
                         break;
                     default:
                         // Do not store friend enum in cloud,
@@ -330,7 +388,7 @@ public class MapFragment extends Fragment {
                                         // load pin if undiscovered
                                         if (!firebase.getCachedDroppedPinMetadata().contains(
                                                 key) && !firebase.getCachedFoundPinMetadata()
-                                                .contains(key)) createUndiscoveredPin(key, val);
+                                                .contains(key)) createUndiscoveredPin(key, val, false);
                                     })));
                     locationResult.addOnCompleteListener(requireActivity(), task -> {
                         if (task.isSuccessful()) {
