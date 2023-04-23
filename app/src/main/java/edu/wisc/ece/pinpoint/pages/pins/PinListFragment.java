@@ -49,8 +49,8 @@ public class PinListFragment extends Fragment {
             case USER:
                 String uid = requireArguments().getString(UID_ARG_KEY);
                 if (firebase.getCachedUserPinMetadata(uid) == null) {
-                    firebase.fetchUserPins(uid)
-                            .addOnSuccessListener(metadata -> setupRecyclerView(view, metadata))
+                    firebase.fetchUserPins(uid).addOnSuccessListener(
+                                    metadata -> setupRecyclerView(view, metadata, false))
                             .addOnFailureListener(e -> {
                                 Log.w(TAG, e);
                                 Toast.makeText(requireContext(), R.string.pin_fetch_error,
@@ -58,27 +58,28 @@ public class PinListFragment extends Fragment {
                             });
                 } else {
                     pinMetadata = firebase.getCachedUserPinMetadata(uid);
-                    setupRecyclerView(view, pinMetadata);
+                    setupRecyclerView(view, pinMetadata, false);
                 }
                 break;
             case DROPPED:
                 pinMetadata = firebase.getCachedDroppedPinMetadata();
-                setupRecyclerView(view, pinMetadata);
+                setupRecyclerView(view, pinMetadata, false);
                 break;
             case FOUND:
                 pinMetadata = firebase.getCachedFoundPinMetadata();
-                setupRecyclerView(view, pinMetadata);
+                setupRecyclerView(view, pinMetadata, true);
                 break;
         }
     }
 
-    private void setupRecyclerView(View view, OrderedPinMetadata pinMetadata) {
+    private void setupRecyclerView(View view, OrderedPinMetadata pinMetadata,
+                                   boolean displayPinTypes) {
         RecyclerView recyclerView = view.findViewById(R.id.pinlist_recycler_view);
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());
 
         recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 3));
-        recyclerView.setAdapter(new PinListAdapter(pinMetadata, navController));
+        recyclerView.setAdapter(new PinListAdapter(pinMetadata, navController, displayPinTypes));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
     }
 

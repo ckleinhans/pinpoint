@@ -7,101 +7,101 @@
     tools:context=".pages.map.MapFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/filter_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/filter_container"
-        android:translationZ="45dp"
         android:alpha="0.75"
-        android:translationX="-140dp">
+        android:translationX="-141dp"
+        android:translationZ="45dp">
 
         <ImageView
+            android:id="@+id/checkbox_tab"
             android:layout_width="30dp"
             android:layout_height="80dp"
-            android:src="@drawable/ic_filter"
-            android:id="@+id/checkbox_tab"
             android:background="?attr/colorPrimary"
-            app:tint="?attr/colorOnPrimary"
+            android:contentDescription="@string/toggle_pin_filter"
+            android:src="@drawable/ic_filter"
             app:layout_constraintBottom_toBottomOf="@id/checkbox_container"
+            app:layout_constraintStart_toEndOf="@id/checkbox_container"
             app:layout_constraintTop_toTopOf="@id/checkbox_container"
-            app:layout_constraintStart_toEndOf="@id/checkbox_container"/>
+            app:tint="?attr/colorOnPrimary" />
 
         <LinearLayout
-            android:layout_width="140dp"
+            android:id="@+id/checkbox_container"
+            android:layout_width="141dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:background="?attr/colorPrimary"
-            android:paddingEnd="8dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:id="@+id/checkbox_container"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            android:background="?attr/colorPrimary"
+            android:orientation="vertical"
+            android:paddingEnd="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <CheckBox
                 android:id="@+id/checkbox_dropped"
+                style="@style/TextAppearance.Pinpoint.SmallThickText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Dropped"
-                android:drawableStart="@drawable/ic_pin"
-                android:drawableTint="#0070FF"
-                android:drawablePadding="6dp"
-                style="@style/TextAppearance.Pinpoint.SmallThickText"
-                android:textColor="?attr/colorOnPrimary"
                 android:buttonTint="?attr/colorOnPrimary"
-                android:checked="true"/>
+                android:checked="true"
+                android:drawableStart="@drawable/ic_pin"
+                android:drawablePadding="6dp"
+                android:drawableTint="@color/my_pins"
+                android:text="@string/my_pins_text"
+                android:textColor="?attr/colorOnPrimary" />
 
             <CheckBox
                 android:id="@+id/checkbox_friends"
+                style="@style/TextAppearance.Pinpoint.SmallThickText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Friends"
-                android:drawableStart="@drawable/ic_pin"
-                android:drawableTint="#00FF00"
-                android:drawablePadding="6dp"
-                style="@style/TextAppearance.Pinpoint.SmallThickText"
-                android:textColor="?attr/colorOnPrimary"
-                android:buttonTint="?attr/colorOnPrimary"
-                android:checked="true"/>
-
-            <CheckBox
-                android:id="@+id/checkbox_strangers"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Strangers"
-                android:drawableStart="@drawable/ic_pin"
-                android:drawableTint="#CC0000"
-                android:drawablePadding="6dp"
-                style="@style/TextAppearance.Pinpoint.SmallThickText"
-                android:textColor="?attr/colorOnPrimary"
                 android:buttonTint="?attr/colorOnPrimary"
                 android:checked="true"
-                />
+                android:drawableStart="@drawable/ic_pin"
+                android:drawablePadding="6dp"
+                android:drawableTint="@color/friend_pins"
+                android:text="@string/following_text"
+                android:textColor="?attr/colorOnPrimary" />
 
             <CheckBox
                 android:id="@+id/checkbox_nfc"
+                style="@style/TextAppearance.Pinpoint.SmallThickText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="NFC"
-                android:drawableStart="@drawable/ic_pin"
-                android:drawableTint="#00EEEE"
-                android:drawablePadding="6dp"
-                style="@style/TextAppearance.Pinpoint.SmallThickText"
-                android:textColor="?attr/colorOnPrimary"
                 android:buttonTint="?attr/colorOnPrimary"
-                android:checked="true"/>
+                android:checked="true"
+                android:drawableStart="@drawable/ic_pin"
+                android:drawablePadding="6dp"
+                android:drawableTint="@color/nfc_pins"
+                android:text="@string/nfc_text"
+                android:textColor="?attr/colorOnPrimary" />
 
             <CheckBox
                 android:id="@+id/checkbox_devs"
+                style="@style/TextAppearance.Pinpoint.SmallThickText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Devs"
-                android:drawableStart="@drawable/ic_pin"
-                android:drawableTint="#EEEE00"
-                android:drawablePadding="6dp"
-                style="@style/TextAppearance.Pinpoint.SmallThickText"
-                android:textColor="?attr/colorOnPrimary"
                 android:buttonTint="?attr/colorOnPrimary"
-                android:checked="true"/>
+                android:checked="true"
+                android:drawableStart="@drawable/ic_pin"
+                android:drawablePadding="6dp"
+                android:drawableTint="@color/landmark_pins"
+                android:text="@string/landmarks_text"
+                android:textColor="?attr/colorOnPrimary" />
+
+            <CheckBox
+                android:id="@+id/checkbox_strangers"
+                style="@style/TextAppearance.Pinpoint.SmallThickText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:buttonTint="?attr/colorOnPrimary"
+                android:checked="true"
+                android:drawableStart="@drawable/ic_pin"
+                android:drawablePadding="6dp"
+                android:drawableTint="@color/other_pins"
+                android:text="@string/other_text"
+                android:textColor="?attr/colorOnPrimary" />
 
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -109,13 +109,13 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
         android:layout_marginTop="12dp"
         android:layout_marginEnd="60dp"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentTop="true"
+        android:alpha="0.75"
         android:background="?attr/colorSecondary"
-        android:translationZ="45dp"
-        android:alpha="0.75">
+        android:translationZ="45dp">
 
         <ProgressBar
             android:id="@+id/map_pinnies_progress"
@@ -123,9 +123,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
+            android:foregroundTint="?attr/colorOnSecondary"
             android:scaleX="1.5"
             android:scaleY="1.5"
-            android:foregroundTint="?attr/colorOnSecondary"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -135,37 +135,36 @@
             android:id="@+id/map_pinnies_logo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="5dp"
             android:src="@drawable/ic_pinnies_logo"
             android:visibility="gone"
-            android:layout_margin="5dp"
-            app:tint="?attr/colorOnPrimary"
             app:layout_constraintBottom_toBottomOf="@+id/map_pinnies_text"
-            app:layout_constraintStart_toEndOf="@+id/map_pinnies_text"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/map_pinnies_text" />
+            app:layout_constraintStart_toEndOf="@+id/map_pinnies_text"
+            app:layout_constraintTop_toTopOf="@+id/map_pinnies_text"
+            app:tint="?attr/colorOnPrimary" />
 
         <TextView
             android:id="@+id/map_pinnies_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="test"
-            android:layout_marginEnd="5dp"
             android:layout_marginStart="5dp"
             android:layout_marginTop="10dp"
+            android:layout_marginEnd="5dp"
             android:layout_marginBottom="10dp"
             android:textColor="?attr/colorOnSecondary"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <fragment
-        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:id="@+id/google_map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent" />
 
 </RelativeLayout>
