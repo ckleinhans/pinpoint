@@ -2,9 +2,9 @@ package edu.wisc.ece.pinpoint.pages.pins;
 
 import android.content.DialogInterface;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -222,7 +222,13 @@ public class PinViewFragment extends Fragment {
         if (author == null) {
             // user was deleted
             authorUsername.setText(R.string.deleted_user);
-            authorUsername.setTextColor(Color.RED);
+            if (getContext() != null) {
+                TypedValue typedValue = new TypedValue();
+                getContext().getTheme()
+                        .resolveAttribute(com.google.android.material.R.attr.colorError, typedValue,
+                                true);
+                authorUsername.setTextColor(typedValue.data);
+            }
         } else {
             authorUsername.setText(author.getUsername());
             author.loadProfilePic(authorProfilePic, this);

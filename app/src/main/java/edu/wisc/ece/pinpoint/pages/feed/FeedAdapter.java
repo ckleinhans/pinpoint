@@ -1,7 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.feed;
 
 import android.content.Context;
-import android.graphics.Color;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +11,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
@@ -141,12 +140,20 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                             targetUsername));
             holder.item.setOnClickListener(view -> navController.navigate(
                     NavigationDirections.profile().setUid(targetUID)));
-            holder.text.setTextColor(ContextCompat.getColor(parentContext, R.color.grey));
+            TypedValue typedValue = new TypedValue();
+            parentContext.getTheme()
+                    .resolveAttribute(com.google.android.material.R.attr.colorOnBackground,
+                            typedValue, true);
+            holder.text.setTextColor(typedValue.data);
         } else {
             holder.text.setText(
                     String.format(fragment.getString(R.string.activity_follow_text), username,
                             fragment.getString(R.string.deleted_user)));
-            holder.text.setTextColor(Color.RED);
+            TypedValue typedValue = new TypedValue();
+            parentContext.getTheme()
+                    .resolveAttribute(com.google.android.material.R.attr.colorError, typedValue,
+                            true);
+            holder.text.setTextColor(typedValue.data);
         }
     }
 

@@ -1,6 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
-import android.graphics.Color;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -73,9 +73,22 @@ public class PinCommentAdapter
         if (author == null) {
             // user was deleted
             holder.username.setText(R.string.deleted_user);
-            holder.username.setTextColor(Color.RED);
+            if (fragment.getContext() != null) {
+                TypedValue typedValue = new TypedValue();
+                fragment.getContext().getTheme()
+                        .resolveAttribute(com.google.android.material.R.attr.colorError, typedValue,
+                                true);
+                holder.username.setTextColor(typedValue.data);
+            }
         } else {
             holder.username.setText(author.getUsername());
+            if (fragment.getContext() != null) {
+                TypedValue typedValue = new TypedValue();
+                fragment.getContext().getTheme()
+                        .resolveAttribute(com.google.android.material.R.attr.colorOnBackground,
+                                typedValue, true);
+                holder.username.setTextColor(typedValue.data);
+            }
             author.loadProfilePic(holder.image, fragment);
             holder.image.setOnClickListener(view -> navController.navigate(
                     NavigationDirections.profile().setUid(authorUID)));
