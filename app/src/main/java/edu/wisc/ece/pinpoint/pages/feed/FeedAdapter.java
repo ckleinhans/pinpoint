@@ -120,14 +120,22 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                 view -> navController.navigate(
                         NavigationDirections.profile().setUid(action.getAuthor())));
 
-        // Clicking on the card will navigate to the action's relevant page
-        if (type != ActivityItem.ActivityType.FOLLOW) holder.item.setOnClickListener(view -> {
-            if (firebase.getCachedFoundPinMetadata()
-                    .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
-                navController.navigate(NavigationDirections.pinView(id));
-            else Toast.makeText(parentContext, R.string.feed_pin_deleted_or_undiscovered,
-                    Toast.LENGTH_SHORT).show();
-        });
+        if (type != ActivityItem.ActivityType.FOLLOW) {
+            // Reset color if error
+            TypedValue typedValue = new TypedValue();
+            parentContext.getTheme()
+                    .resolveAttribute(com.google.android.material.R.attr.colorOnBackground,
+                            typedValue, true);
+            holder.text.setTextColor(typedValue.data);
+            // Clicking on the card will navigate to the action's relevant page
+            holder.item.setOnClickListener(view -> {
+                if (firebase.getCachedFoundPinMetadata()
+                        .contains(id) || firebase.getCachedDroppedPinMetadata().contains(id))
+                    navController.navigate(NavigationDirections.pinView(id));
+                else Toast.makeText(parentContext, R.string.feed_pin_deleted_or_undiscovered,
+                        Toast.LENGTH_SHORT).show();
+            });
+        }
     }
 
     private void setFollowActivityContents(FeedViewHolder holder, User target, String targetUID,
@@ -138,13 +146,13 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
             holder.text.setText(
                     String.format(fragment.getString(R.string.activity_follow_text), username,
                             targetUsername));
-            holder.item.setOnClickListener(view -> navController.navigate(
-                    NavigationDirections.profile().setUid(targetUID)));
             TypedValue typedValue = new TypedValue();
             parentContext.getTheme()
                     .resolveAttribute(com.google.android.material.R.attr.colorOnBackground,
                             typedValue, true);
             holder.text.setTextColor(typedValue.data);
+            holder.item.setOnClickListener(view -> navController.navigate(
+                    NavigationDirections.profile().setUid(targetUID)));
         } else {
             holder.text.setText(
                     String.format(fragment.getString(R.string.activity_follow_text), username,
@@ -154,6 +162,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                     .resolveAttribute(com.google.android.material.R.attr.colorError, typedValue,
                             true);
             holder.text.setTextColor(typedValue.data);
+            holder.item.setOnClickListener(null);
         }
     }
 

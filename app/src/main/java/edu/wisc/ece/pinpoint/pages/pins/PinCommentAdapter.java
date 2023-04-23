@@ -80,6 +80,7 @@ public class PinCommentAdapter
                                 true);
                 holder.username.setTextColor(typedValue.data);
             }
+            holder.image.setOnClickListener(null);
         } else {
             holder.username.setText(author.getUsername());
             if (fragment.getContext() != null) {
