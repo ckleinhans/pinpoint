@@ -100,4 +100,9 @@
     <string name="activity_follow_text">%s followed %s</string>
     <string name="you">You</string>
     <string name="you_lowercase">you</string>
+    <string name="landmarks_text">Landmarks</string>
+    <string name="other_text">Other</string>
+    <string name="nfc_text">NFC</string>
+    <string name="my_pins_text">My Pins</string>
+    <string name="toggle_pin_filter">Toggle Pin Filter</string>
 </resources>
