@@ -90,4 +90,10 @@
     <string name="send_comment_button_text">Send Comment Button</string>
     <string name="comment_author_profile_pic_text">Comment Author Profile Pic</string>
     <string name="profile_location_icon_text">Profile Location Icon</string>
+    <string name="landmarks_text">Landmarks</string>
+    <string name="other_text">Other</string>
+    <string name="nfc_text">NFC</string>
+    <string name="my_pins_text">My Pins</string>
+    <string name="toggle_pin_filter">Toggle Pin Filter</string>
+    <string name="pin_reward_message">You received %d pinnies as a reward!</string>
 </resources>

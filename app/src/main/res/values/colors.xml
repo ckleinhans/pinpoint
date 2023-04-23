@@ -14,4 +14,9 @@
     <color name="yellow">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="my_pins">#0070FF</color>
+    <color name="friend_pins">#00DD00</color>
+    <color name="nfc_pins">#00DDDD</color>
+    <color name="landmark_pins">#DDDD00</color>
+    <color name="other_pins">#CC0000</color>
 </resources>

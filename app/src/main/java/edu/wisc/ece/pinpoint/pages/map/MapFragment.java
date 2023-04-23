@@ -126,7 +126,7 @@ public class MapFragment extends Fragment {
         handleFilters();
     }
 
-    private void handleFilters(){
+    private void handleFilters() {
         CheckBox strangerBox = requireView().findViewById(R.id.checkbox_strangers);
         CheckBox friendBox = requireView().findViewById(R.id.checkbox_friends);
         CheckBox nfcBox = requireView().findViewById(R.id.checkbox_nfc);
@@ -139,33 +139,27 @@ public class MapFragment extends Fragment {
         float scale = getResources().getDisplayMetrics().density;
 
         filterTab.setOnClickListener(view -> {
-            if(isFilterVisible) {
+            if (isFilterVisible) {
                 filterContainer.animate().translationX(0);
                 isFilterVisible = false;
                 filterTab.setImageResource(R.drawable.ic_back_arrow);
-            }
-            else {
-                filterContainer.animate().translationX(-140 * scale + 0.5f);
+            } else {
+                filterContainer.animate().translationX(-141 * scale + 0.5f);
                 isFilterVisible = true;
                 filterTab.setImageResource(R.drawable.ic_filter);
             }
         });
 
-        strangerBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            strangerMarkers.forEach(m -> m.setVisible(isChecked));
-        });
-        friendBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            friendMarkers.forEach(m -> m.setVisible(isChecked));
-        });
-        nfcBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            nfcMarkers.forEach(m -> m.setVisible(isChecked));
-        });
-        droppedBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            droppedMarkers.forEach(m -> m.setVisible(isChecked));
-        });
-        devBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            devMarkers.forEach(m -> m.setVisible(isChecked));
-        });
+        strangerBox.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> strangerMarkers.forEach(m -> m.setVisible(isChecked)));
+        friendBox.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> friendMarkers.forEach(m -> m.setVisible(isChecked)));
+        nfcBox.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> nfcMarkers.forEach(m -> m.setVisible(isChecked)));
+        droppedBox.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> droppedMarkers.forEach(m -> m.setVisible(isChecked)));
+        devBox.setOnCheckedChangeListener(
+                (buttonView, isChecked) -> devMarkers.forEach(m -> m.setVisible(isChecked)));
     }
 
     private void styleMap() {
@@ -250,6 +244,7 @@ public class MapFragment extends Fragment {
 
     private void createUndiscoveredPin(String pid, Map<String, Object> data, boolean isNFCPin) {
         String authorUID = (String) data.get("authorUID");
+        //noinspection ConstantConditions
         LatLng pinLocation = new LatLng((double) data.get("latitude"), (double) data.get("longitude"));
         float color = BitmapDescriptorFactory.HUE_RED;
         // Data field to persist in pin marker to know the pin source when the user finds the pin
@@ -260,14 +255,14 @@ public class MapFragment extends Fragment {
             source = PinSource.NFC;
             markerList = nfcMarkers;
         }
-        if(authorUID == "pinpoint"){
+        if ("pinpoint".equals(authorUID)) {
             color = BitmapDescriptorFactory.HUE_YELLOW;
             source = PinSource.DEV;
             markerList = devMarkers;
         }
         // Change color to green if user follows author.
         // Following is subject to change at each reload
-        else if(firebase.getCachedFollowing(firebase.getUid()).contains(authorUID)) {
+        else if (firebase.getCachedFollowing(firebase.getUid()).contains(authorUID)) {
             color = BitmapDescriptorFactory.HUE_GREEN;
             source = PinSource.FRIEND;
             markerList = friendMarkers;
@@ -298,7 +293,8 @@ public class MapFragment extends Fragment {
                     new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
                     marker.getPosition())) {
                 PinSource pinSource;
-                switch (marker.getSnippet()){
+                //noinspection ConstantConditions
+                switch (marker.getSnippet()) {
                     case "DEV":
                         pinSource = PinSource.DEV;
                         break;
@@ -314,20 +310,18 @@ public class MapFragment extends Fragment {
                         pinSource = PinSource.GENERAL;
                         break;
                 }
-                //noinspection ConstantConditions
                 firebase.findPin((String) marker.getTag(), userLoc, pinSource)
                         .addOnSuccessListener(reward -> {
-                                    Toast.makeText(
-                                            requireContext(),
-                                            String.format("You received %d pinnies as a reward!", reward),
-                                            Toast.LENGTH_LONG).show();
-                                    navController.navigate(MapContainerFragmentDirections
-                                                    .pinView(marker.getTag().toString()));
-                                })
-                        .addOnFailureListener(e ->
-                            Toast.makeText(requireContext(), e.getMessage(),
-                                    Toast.LENGTH_LONG).show()
-                        );
+                            Toast.makeText(requireContext(),
+                                    String.format(getString(R.string.pin_reward_message), reward),
+                                    Toast.LENGTH_LONG).show();
+                            //noinspection ConstantConditions
+                            navController.navigate(MapContainerFragmentDirections.pinView(
+                                    marker.getTag().toString()));
+                        }).addOnFailureListener(
+                                e -> Toast.makeText(requireContext(), e.getMessage(),
+                                                Toast.LENGTH_LONG)
+                                        .show());
             } else {
                 Toast.makeText(requireContext(), R.string.undiscovered_pin_not_close_enough,
                         Toast.LENGTH_SHORT).show();
@@ -340,7 +334,7 @@ public class MapFragment extends Fragment {
         float color;
         PinSource snippet = pinSource;
         ArrayList<Marker> markerList = strangerMarkers;
-        switch (pinSource){
+        switch (pinSource) {
             case DEV:
                 color = BitmapDescriptorFactory.HUE_YELLOW;
                 markerList = devMarkers;
@@ -354,17 +348,18 @@ public class MapFragment extends Fragment {
                 markerList = nfcMarkers;
                 break;
             default:
-                if(firebase.getCachedFollowing(firebase.getUid()).contains(firebase.getCachedPin(id).getAuthorUID())) {
+                if (firebase.getCachedFollowing(firebase.getUid())
+                        .contains(firebase.getCachedPin(id).getAuthorUID())) {
                     color = BitmapDescriptorFactory.HUE_GREEN;
                     snippet = PinSource.FRIEND;
                     markerList = friendMarkers;
-                }
-                else color = BitmapDescriptorFactory.HUE_RED;
+                } else color = BitmapDescriptorFactory.HUE_RED;
                 break;
         }
-        Marker pinMarker = map.addMarker(new MarkerOptions().icon(
-                        BitmapDescriptorFactory.defaultMarker(color)).alpha(1f)
-                .position(pinLocation));
+        Marker pinMarker = map.addMarker(
+                new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(color)).alpha(1f)
+                        .position(pinLocation));
+        //noinspection ConstantConditions
         pinMarker.setTag(id);
         pinMarker.setSnippet(snippet.name());
         markerList.add(pinMarker);
