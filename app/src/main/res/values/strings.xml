@@ -105,4 +105,6 @@
     <string name="nfc_text">NFC</string>
     <string name="my_pins_text">My Pins</string>
     <string name="toggle_pin_filter">Toggle Pin Filter</string>
+    <string name="dropping_pin">Dropping Pin</string>
+    <string name="deleting_pin">Deleting Pin</string>
 </resources>
