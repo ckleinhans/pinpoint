@@ -68,6 +68,9 @@ public class PinViewFragment extends Fragment {
     private TextInputEditText addCommentEditText;
     private NestedScrollView scrollView;
     private List<Comment> comments;
+    private ConstraintLayout loadLayoutContainer;
+    private ImageButton backButton;
+    private ImageButton optionsButton;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -95,14 +98,15 @@ public class PinViewFragment extends Fragment {
         addCommentEditText = requireView().findViewById(R.id.comment_edittext_layout);
         addCommentLayout = requireView().findViewById(R.id.pin_comment_layout);
         scrollView = requireView().findViewById(R.id.viewpin_scrollview);
+        loadLayoutContainer = requireView().findViewById(R.id.pin_delete_load_layout_container);
 
         ImageView sendCommentButton = requireView().findViewById(R.id.send_comment_button);
         sendCommentButton.setOnClickListener(this::sendCommentHandler);
 
-        ImageButton backButton = requireView().findViewById(R.id.pin_view_back_button);
+        backButton = requireView().findViewById(R.id.pin_view_back_button);
         backButton.setOnClickListener((v) -> navController.popBackStack());
 
-        ImageButton optionsButton = requireView().findViewById(R.id.pin_view_options_button);
+        optionsButton = requireView().findViewById(R.id.pin_view_options_button);
         optionsButton.setOnClickListener(this::showOptionsMenu);
 
         addCommentButton.setOnClickListener((v) -> {
@@ -297,13 +301,31 @@ public class PinViewFragment extends Fragment {
         popup.show();
     }
 
+    private void lockUI(){
+        loadLayoutContainer.setVisibility(View.VISIBLE);
+        InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+        backButton.setVisibility(View.INVISIBLE);
+        optionsButton.setVisibility(View.INVISIBLE);
+    }
+
+    private void restoreUI(){
+        loadLayoutContainer.setVisibility(View.GONE);
+        backButton.setVisibility(View.VISIBLE);
+        optionsButton.setVisibility(View.VISIBLE);
+    }
+
     private void deletePin(DialogInterface dialog, int buttonId) {
+        lockUI();
         firebase.deletePin(pid).addOnFailureListener(e -> {
             Log.w(TAG, e);
+            restoreUI();
             Toast.makeText(requireContext(),
                     "Something went wrong deleting your pin. Please try again later.",
                     Toast.LENGTH_LONG).show();
         }).addOnSuccessListener(t -> {
+            restoreUI();
             Toast.makeText(requireContext(), "Successfully deleted your pin!", Toast.LENGTH_LONG)
                     .show();
             navController.popBackStack();
