@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ViewSwitcher;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -19,6 +20,8 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
-                    R.id.new_pin_fragment, R.id.pin_view);
+                    R.id.new_pin_fragment);
+    private int currentDestinationId;
     private NavController navController;
     private NavHostFragment navHostFragment;
     private ViewSwitcher switcher;
@@ -53,6 +57,17 @@ public class MainActivity extends AppCompatActivity {
         NotificationDriver.getInstance(this);
         // Disable hidden middle button
         navBar.getMenu().getItem(2).setEnabled(false);
+
+        // hide bottom app bar when keyboard opened
+        KeyboardVisibilityEvent.setEventListener(this, (isOpen) -> {
+            if (isOpen) {
+                navBarContainer.setVisibility(View.GONE);
+                mapButton.setVisibility(View.GONE);
+            } else if (!hiddenNavbarFragments.contains(currentDestinationId)) {
+                navBarContainer.setVisibility(View.VISIBLE);
+                mapButton.setVisibility(View.VISIBLE);
+            }
+        });
 
         // Fetch logged in user profile, following/followers, & activity on app load
         FirebaseDriver firebase = FirebaseDriver.getInstance();
@@ -82,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
             // Set nav bar visibility
             navController.addOnDestinationChangedListener(
                     (navController, navDestination, bundle) -> {
+                        currentDestinationId = navDestination.getId();
                         if (hiddenNavbarFragments.contains(navDestination.getId())) {
                             navBarContainer.setVisibility(View.GONE);
                             mapButton.setVisibility(View.GONE);
@@ -90,6 +106,24 @@ public class MainActivity extends AppCompatActivity {
                             mapButton.setVisibility(View.VISIBLE);
                         }
                     });
+            // call default on item selcted listener but override result to always return true to
+            // highlight the selected navbar item
+            navBar.setOnItemSelectedListener(item -> {
+                NavigationUI.onNavDestinationSelected(item, navController);
+                return true;
+            });
+            // add on item reselected listener to navigate to top level fragment
+            navBar.setOnItemReselectedListener(item -> navController.navigate(item.getItemId()));
+            // add on back button handler to handle in app back navigation
+            OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    if (navController.getPreviousBackStackEntry() != null)
+                        navController.popBackStack();
+                    else finish();
+                }
+            };
+            getOnBackPressedDispatcher().addCallback(this, callback);
             // Switch to app view once loading is complete
             showView(R.id.content_view);
         });

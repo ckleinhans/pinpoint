@@ -92,7 +92,7 @@ public class PinCommentAdapter
             }
             author.loadProfilePic(holder.image, fragment);
             holder.image.setOnClickListener(view -> navController.navigate(
-                    NavigationDirections.profile().setUid(authorUID)));
+                    NavigationDirections.profile(authorUID)));
         }
     }
 

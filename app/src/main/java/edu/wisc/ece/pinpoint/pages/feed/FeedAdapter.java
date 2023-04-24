@@ -118,7 +118,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
         // Clicking author's picture will navigate to their profile unless already there
         if (source != FeedSource.PROFILE && author != null) holder.image.setOnClickListener(
                 view -> navController.navigate(
-                        NavigationDirections.profile().setUid(action.getAuthor())));
+                        NavigationDirections.profile(action.getAuthor())));
 
         if (type != ActivityItem.ActivityType.FOLLOW) {
             // Reset color if error
@@ -152,7 +152,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                             typedValue, true);
             holder.text.setTextColor(typedValue.data);
             holder.item.setOnClickListener(view -> navController.navigate(
-                    NavigationDirections.profile().setUid(targetUID)));
+                    NavigationDirections.profile(targetUID)));
         } else {
             holder.text.setText(
                     String.format(fragment.getString(R.string.activity_follow_text), username,
