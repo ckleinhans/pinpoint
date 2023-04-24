@@ -73,7 +73,7 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
                 holder.username.setTextColor(typedValue.data);
             }
             holder.item.setOnClickListener(
-                    view -> navController.navigate(NavigationDirections.profile().setUid(userId)));
+                    view -> navController.navigate(NavigationDirections.profile(userId)));
         } else {
             holder.username.setText(R.string.deleted_user);
             if (fragment.getContext() != null) {

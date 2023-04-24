@@ -15,6 +15,9 @@
         <action
             android:id="@+id/editProfile"
             app:destination="@id/edit_profile_fragment" />
+        <action
+            android:id="@+id/userList"
+            app:destination="@id/userListFragment" />
     </fragment>
     <fragment
         android:id="@+id/navbar_map"
