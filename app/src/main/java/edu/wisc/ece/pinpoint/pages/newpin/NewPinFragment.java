@@ -1,7 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.newpin;
 
 import android.annotation.SuppressLint;
-import android.content.res.Resources;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -153,14 +152,22 @@ public class NewPinFragment extends Fragment {
         });
 
         captionInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && Resources.getSystem()
-                    .getDisplayMetrics().heightPixels == getView().getHeight()) {
-                scrollView.postDelayed(() -> scrollView.scrollTo(0,
-                        Resources.getSystem().getDisplayMetrics().heightPixels), 100);
-            } else {
-                scrollView.post(() -> scrollView.scrollTo(0, 0));
-            }
+            if (hasFocus) scrollView.postDelayed(() -> {
+                int[] viewLocation = new int[2];
+                v.getLocationOnScreen(viewLocation);
+                scrollView.smoothScrollTo(0, viewLocation[1]);
+            }, 150);
         });
+
+//        captionInput.setOnFocusChangeListener((v, hasFocus) -> {
+//            if (hasFocus && Resources.getSystem()
+//                    .getDisplayMetrics().heightPixels == getView().getHeight()) {
+//                scrollView.postDelayed(() -> scrollView.scrollTo(0,
+//                        Resources.getSystem().getDisplayMetrics().heightPixels), 100);
+//            } else {
+//                scrollView.post(() -> scrollView.scrollTo(0, 0));
+//            }
+//        });
 
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
