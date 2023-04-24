@@ -58,6 +58,39 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         PinMetadata metadata = pinMetadata.get(position);
         String pid = metadata.getPinId();
 
+        // Set pin type chip
+        if (displayPinTypes) {
+            switch (metadata.getPinSource()) {
+                case SELF:
+                    holder.pinSourceChip.setChipBackgroundColorResource(R.color.my_pins);
+                    holder.pinSourceChip.setText(R.string.my_pins_text);
+                    break;
+                case NFC:
+                    holder.pinSourceChip.setChipBackgroundColorResource(R.color.nfc_pins);
+                    holder.pinSourceChip.setText(R.string.nfc_text);
+                    break;
+                case DEV:
+                    holder.pinSourceChip.setChipBackgroundColorResource(R.color.landmark_pins);
+                    holder.pinSourceChip.setText(R.string.landmarks_text);
+                    break;
+                case GENERAL:
+                    // check for friend pin
+                    if (firebase.getCachedFollowing(firebase.getUid())
+                            .contains(firebase.getCachedPin(metadata.getPinId()).getAuthorUID())) {
+                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.friend_pins);
+                        holder.pinSourceChip.setText(R.string.following_text);
+                    } else {
+                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.other_pins);
+                        holder.pinSourceChip.setText(R.string.other_text);
+                    }
+                    break;
+            }
+            holder.pinSourceChip.setVisibility(View.VISIBLE);
+        } else {
+            holder.pinSourceChip.setVisibility(View.GONE);
+        }
+
+        // show discovered or undiscovered pin
         if (firebase.getCachedFoundPinMetadata()
                 .contains(pid) || firebase.getCachedDroppedPinMetadata().contains(pid)) {
             // Pin is discovered
@@ -67,38 +100,6 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
             } else {
                 holder.image.setImageResource(R.drawable.pin_background_img);
             }
-            if (displayPinTypes) {
-                switch (metadata.getPinSource()) {
-                    case SELF:
-                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.my_pins);
-                        holder.pinSourceChip.setText(R.string.my_pins_text);
-                        break;
-                    case NFC:
-                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.nfc_pins);
-                        holder.pinSourceChip.setText(R.string.nfc_text);
-                        break;
-                    case DEV:
-                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.landmark_pins);
-                        holder.pinSourceChip.setText(R.string.landmarks_text);
-                        break;
-                    case GENERAL:
-                        // check for friend pin
-                        if (firebase.getCachedFollowing(firebase.getUid()).contains(
-                                firebase.getCachedPin(metadata.getPinId()).getAuthorUID())) {
-                            holder.pinSourceChip.setChipBackgroundColorResource(
-                                    R.color.friend_pins);
-                            holder.pinSourceChip.setText(R.string.following_text);
-                        } else {
-                            holder.pinSourceChip.setChipBackgroundColorResource(R.color.other_pins);
-                            holder.pinSourceChip.setText(R.string.other_text);
-                        }
-                        break;
-                }
-                holder.pinSourceChip.setVisibility(View.VISIBLE);
-            } else {
-                holder.pinSourceChip.setVisibility(View.GONE);
-            }
-
             holder.item.setOnClickListener(view -> navController.navigate(
                     edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
         } else {
@@ -143,6 +144,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
             });
         }
 
+        // Set location text
         if (metadata.getBroadLocationName() != null) {
             holder.broadLocation.setText(metadata.getBroadLocationName());
         } else {
@@ -153,6 +155,8 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         } else {
             holder.nearbyLocation.setVisibility(View.GONE);
         }
+
+        // Set timestamp
         holder.timestamp.setText(FormatUtils.formattedDateTime(metadata.getTimestamp()));
     }
 

@@ -1,7 +1,6 @@
 package edu.wisc.ece.pinpoint.pages.newpin;
 
 import android.annotation.SuppressLint;
-import android.content.res.Resources;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,7 +30,6 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -154,13 +152,22 @@ public class NewPinFragment extends Fragment {
         });
 
         captionInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && Resources.getSystem().getDisplayMetrics().heightPixels == getView().getHeight()) {
-                scrollView.postDelayed(() -> scrollView.scrollTo(0,
-                        Resources.getSystem().getDisplayMetrics().heightPixels), 100);
-            } else {
-                scrollView.post(() -> scrollView.scrollTo(0, 0));
-            }
+            if (hasFocus) scrollView.postDelayed(() -> {
+                int[] viewLocation = new int[2];
+                v.getLocationOnScreen(viewLocation);
+                scrollView.smoothScrollTo(0, viewLocation[1]);
+            }, 150);
         });
+
+//        captionInput.setOnFocusChangeListener((v, hasFocus) -> {
+//            if (hasFocus && Resources.getSystem()
+//                    .getDisplayMetrics().heightPixels == getView().getHeight()) {
+//                scrollView.postDelayed(() -> scrollView.scrollTo(0,
+//                        Resources.getSystem().getDisplayMetrics().heightPixels), 100);
+//            } else {
+//                scrollView.post(() -> scrollView.scrollTo(0, 0));
+//            }
+//        });
 
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
@@ -222,7 +229,7 @@ public class NewPinFragment extends Fragment {
         userPinniesProgressBar.setVisibility(View.GONE);
         pinnies_logo_topbar.setVisibility(View.VISIBLE);
         topBarText.setText(String.format("%s %s", getString(R.string.new_pin_title_text),
-                FormatUtils.humanReadablePinnies(pinnieCount)));
+                FormatUtils.trimmedNumber(pinnieCount)));
     }
 
     private void setPinCost() {
@@ -256,7 +263,7 @@ public class NewPinFragment extends Fragment {
 
     private void setPinCostUI() {
         dropButton.setText(String.format("%s %s", getString(R.string.drop_pin_button_text),
-                FormatUtils.humanReadablePinnies(pinCost)));
+                FormatUtils.trimmedNumber(pinCost)));
         pinCostProgressBar.setVisibility(View.GONE);
         pinnies_logo_button.setVisibility(View.VISIBLE);
 
