@@ -263,8 +263,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="10dp"
+                android:clipToPadding="false"
                 android:paddingHorizontal="5dp"
-                android:paddingBottom="57dp"
+                android:paddingBottom="150dp"
                 app:layout_constraintTop_toBottomOf="@+id/pin_comment_layout" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>

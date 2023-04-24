@@ -73,24 +73,14 @@ public class ProfilePageFragment extends Fragment {
         profilePic = requireView().findViewById(R.id.profile_pic);
         button = requireView().findViewById(R.id.profile_button);
 
-        Bundle args = requireArguments();
-        String uid;
+        String uid = ProfilePageFragmentArgs.fromBundle(requireArguments()).getUid();
 
-        // If UID null, navigated from navbar, show settings button & set default UID
-        if (ProfilePageFragmentArgs.fromBundle(args).getUid() == null) {
-            uid = firebase.getUid();
-            ImageButton settingsButton = requireView().findViewById(R.id.profile_settings);
-            settingsButton.setVisibility(View.VISIBLE);
-            settingsButton.setOnClickListener(clickedView -> navController.navigate(
-                    ProfilePageFragmentDirections.settingsContainer()));
-        } else {
-            // Got here some other way than navbar, don't show settings and show back button instead
-            uid = ProfilePageFragmentArgs.fromBundle(args).getUid();
-            ImageButton backButton = requireView().findViewById(R.id.profile_back_button);
-            backButton.setVisibility(View.VISIBLE);
-            backButton.setOnClickListener(v -> navController.popBackStack());
-        }
-        if (uid.equals(firebase.getUid())) {
+        // Don't show settings and show back button instead
+        ImageButton backButton = requireView().findViewById(R.id.profile_back_button);
+        backButton.setVisibility(View.VISIBLE);
+        backButton.setOnClickListener(v -> navController.popBackStack());
+
+        if (firebase.getUid().equals(uid)) {
             // Viewing own profile, button is for editing profile
             button.setText(R.string.edit_profile_text);
             button.setOnClickListener((buttonView) -> navController.navigate(

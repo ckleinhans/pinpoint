@@ -72,6 +72,10 @@ public class OrderedPinMetadata {
             return false;
         }
         list.remove((int) listIndex);
+        // update all elements hashmap entries
+        for (int i = listIndex; i < list.size(); i++) {
+            hashMap.replace(list.get(i), i);
+        }
         return true;
     }
 
@@ -82,12 +86,7 @@ public class OrderedPinMetadata {
      * @return true if the item was removed, false if it wasn't present
      */
     public boolean remove(String pinId) {
-        Integer listIndex = hashMap.remove(new PinMetadata(pinId, null, null, null));
-        if (listIndex == null) {
-            return false;
-        }
-        list.remove((int) listIndex);
-        return true;
+        return remove(new PinMetadata(pinId, null, null, null));
     }
 
     /**
@@ -117,7 +116,7 @@ public class OrderedPinMetadata {
      * @return true if present, false if not
      */
     public boolean contains(String pinId) {
-        return hashMap.containsKey(new PinMetadata(pinId, null, null, null));
+        return contains(new PinMetadata(pinId, null, null, null));
     }
 
     /**
