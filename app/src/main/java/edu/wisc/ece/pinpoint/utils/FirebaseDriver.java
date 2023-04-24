@@ -23,6 +23,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.WriteBatch;
 import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.functions.HttpsCallableResult;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -125,10 +126,24 @@ public class FirebaseDriver {
     }
 
     public Task<Void> logout(@NonNull Context context) {
-        foundPinMetadata = null;
-        droppedPinMetadata = null;
-        pinnies = null;
-        return AuthUI.getInstance().signOut(context);
+        return AuthUI.getInstance().signOut(context).addOnSuccessListener(t -> {
+            foundPinMetadata = null;
+            droppedPinMetadata = null;
+            pinnies = null;
+        }).addOnFailureListener(e -> Log.w(TAG, "Error logging out", e));
+    }
+
+    public Task<Void> deleteAccount(@NonNull Context context) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to check if they are new.");
+        }
+
+        return functions.getHttpsCallable("deleteAccount").call().continueWithTask(t -> {
+            if (!t.isSuccessful()) //noinspection ConstantConditions
+                throw t.getException();
+            users.remove(auth.getUid());
+            return logout(context);
+        }).addOnFailureListener(e -> Log.w(TAG, "Error deleting account", e));
     }
 
     public String getUid() {
@@ -146,8 +161,40 @@ public class FirebaseDriver {
     }
 
     public Task<User> fetchUser(@NonNull String uid) {
+        if (auth.getUid() == null) {
+            throw new IllegalStateException("User must be logged in to fetch users");
+        }
         return db.collection("users").document(uid).get().continueWith(task -> {
             User user = task.getResult().toObject(User.class);
+            if (user == null) {
+                // user deleted, remove from followers/following
+                if (getCachedFollowing(auth.getUid()).remove(uid)) {
+                    // Remove other user from own following & decrement own numFollowing
+                    WriteBatch batch = db.batch();
+                    batch.update(db.collection("users").document(auth.getUid()).collection("social")
+                            .document("following"), "following", FieldValue.arrayRemove(uid));
+                    batch.update(db.collection("users").document(auth.getUid()), "numFollowing",
+                            FieldValue.increment(-1));
+                    batch.commit().addOnFailureListener(
+                                    e -> Log.w(TAG, "Error removing deleted user from following",
+                                            e))
+                            .addOnSuccessListener(t -> Log.d(TAG,
+                                    "Successfully removed deleted user from following"));
+                }
+                if (getCachedFollowers(auth.getUid()).remove(uid)) {
+                    // Remove other user from own followers & decrement own numFollowers
+                    WriteBatch batch = db.batch();
+                    batch.update(db.collection("users").document(auth.getUid()).collection("social")
+                            .document("followers"), "followers", FieldValue.arrayRemove(uid));
+                    batch.update(db.collection("users").document(auth.getUid()), "numFollowers",
+                            FieldValue.increment(-1));
+                    batch.commit().addOnFailureListener(
+                                    e -> Log.w(TAG, "Error removing deleted user from followers",
+                                            e))
+                            .addOnSuccessListener(t -> Log.d(TAG,
+                                    "Successfully removed deleted user from followers"));
+                }
+            }
             users.put(uid, user);
             return user;
         }).addOnFailureListener(e -> Log.w(TAG, String.format("Error fetching user %s", uid), e));
@@ -155,6 +202,10 @@ public class FirebaseDriver {
 
     public User getCachedUser(@NonNull String uid) {
         return users.get(uid);
+    }
+
+    public boolean isUserCached(@NonNull String uid) {
+        return users.containsKey(uid);
     }
 
     public Task<Void> handleNewUser() {
@@ -224,7 +275,8 @@ public class FirebaseDriver {
                                     .document(pinId).delete().addOnFailureListener(e -> Log.w(TAG,
                                             "Error deleting found record for " + "deleted pin.", e))
                                     .addOnSuccessListener(t2 -> Log.d(TAG,
-                                            "Successfully deleted found record for deleted pin."));
+                                            "Successfully deleted found record for deleted " +
+                                                    "pin."));
                             foundPinMetadata.remove(pinId);
                         }
                     }));
@@ -265,7 +317,8 @@ public class FirebaseDriver {
                                                     "Successfully deleted dropped record for " +
                                                             "deleted pin."))
                                             .addOnFailureListener(e -> Log.w(TAG,
-                                                    "Error deleting dropped record for deleted" + " pin.",
+                                                    "Error deleting dropped record for " +
+                                                            "deleted" + " pin.",
                                                     e));
                                     droppedPinMetadata.remove(pinId);
                                 }
@@ -341,7 +394,8 @@ public class FirebaseDriver {
                                 .addOnFailureListener(e -> Log.w(TAG,
                                         "Error deleting dropped record for " + "deleted pin.", e))
                                 .addOnSuccessListener(t -> Log.d(TAG,
-                                        "Successfully deleted dropped record for deleted pin."));
+                                        "Successfully deleted dropped record for deleted pin" +
+                                                "."));
                 }
             } else {
                 pins.put(pid, pin);
@@ -385,7 +439,7 @@ public class FirebaseDriver {
         }).addOnFailureListener(e -> Log.w(TAG, "Error dropping pin.", e));
     }
 
-    public Task<Long> findPin(String pid, Location location, PinMetadata.PinSource pinSource) {
+    public Task<Integer> findPin(String pid, Location location, PinMetadata.PinSource pinSource) {
         ActivityList activity = activityMap.get(auth.getUid());
         if (activity == null) {
             throw new IllegalStateException(
@@ -407,7 +461,8 @@ public class FirebaseDriver {
             //noinspection ConstantConditions
             String broadLocationName = (String) result.get("broadLocationName");
             String nearbyLocationName = (String) result.get("nearbyLocationName");
-            Long reward = Long.parseLong(result.getOrDefault("reward", 0L).toString());
+            //noinspection ConstantConditions
+            int reward = (int) result.get("reward");
             pinnies += reward;
             Log.d(TAG, String.format("Got reward for pin: %d", reward));
 
@@ -480,23 +535,13 @@ public class FirebaseDriver {
         return userFollowingIds.get(uid);
     }
 
-    public Task<Void> deletePin(String pid) {
+    public Task<HttpsCallableResult> deletePin(String pid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to delete a pin");
         }
-        WriteBatch batch = db.batch();
-        batch.delete(db.collection("pins").document(pid));
-        batch.update(db.collection("users").document(auth.getUid()).collection("dropped")
-                .document("dropped"), pid, FieldValue.delete());
-        batch.update(db.collection("users").document(auth.getUid()), "numPinsDropped",
-                FieldValue.increment(-1));
-        return batch.commit().addOnSuccessListener(t -> {
-            Pin pin = pins.get(pid);
-            if (pin != null && pin.getType() == Pin.PinType.IMAGE) {
-                storage.getReference("pins").child(pid).delete()
-                        .addOnFailureListener(e -> Log.w(TAG, "Error deleting pin image.", e))
-                        .addOnSuccessListener(t2 -> Log.d(TAG, "Successfully deleted pin image."));
-            }
+        Map<String, Object> data = new HashMap<>();
+        data.put("pid", pid);
+        return functions.getHttpsCallable("deletePin").call(data).addOnSuccessListener(t -> {
             pins.remove(pid);
             droppedPinMetadata.remove(pid);
         }).addOnFailureListener(e -> Log.w(TAG, "Error deleting pin.", e));
@@ -553,17 +598,18 @@ public class FirebaseDriver {
         HashSet<String> following = userFollowingIds.get(auth.getUid());
         if (following == null) {
             throw new IllegalStateException(
-                    "User must have fetched their own following data before unfollowing a user");
+                    "User must have fetched their own following data before unfollowing a " +
+                            "user");
         }
         WriteBatch batch = db.batch();
 
-        // Remove other user to own following & decrement own numFollowing
+        // Remove other user from own following & decrement own numFollowing
         batch.update(db.collection("users").document(auth.getUid()).collection("social")
                 .document("following"), "following", FieldValue.arrayRemove(uid));
         batch.update(db.collection("users").document(auth.getUid()), "numFollowing",
                 FieldValue.increment(-1));
 
-        // Remove self to other user's followers & decrement their numFollowers
+        // Remove self from other user's followers & decrement their numFollowers
         batch.update(
                 db.collection("users").document(uid).collection("social").document("followers"),
                 "followers", FieldValue.arrayRemove(auth.getUid()));

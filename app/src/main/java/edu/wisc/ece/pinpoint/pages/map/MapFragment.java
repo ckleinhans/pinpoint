@@ -238,7 +238,7 @@ public class MapFragment extends Fragment {
                 firebase.findPin(pinId, userLoc, pinData.getSource())
                         .addOnSuccessListener(reward -> {
                             Toast.makeText(requireContext(),
-                                    String.format(getString(R.string.pin_reward_message), reward),
+                                    String.format(getString(R.string.pinnie_reward_message), reward),
                                     Toast.LENGTH_LONG).show();
                             //noinspection ConstantConditions
                             navController.navigate(MapContainerFragmentDirections.pinView(

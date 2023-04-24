@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.preference.PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
     <Preference
+        app:icon="@drawable/ic_logout"
         app:key="logout"
-        app:title="@string/logout_text"
-        app:icon="@drawable/ic_logout" />
-    <!--TODO: add more settings-->
+        app:title="@string/logout_text" />
+    <Preference
+        app:icon="@drawable/ic_delete"
+        app:key="deleteAccount"
+        app:title="@string/delete_account" />
 
 </androidx.preference.PreferenceScreen>

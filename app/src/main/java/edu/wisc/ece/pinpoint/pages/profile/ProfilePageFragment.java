@@ -12,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -34,6 +35,7 @@ public class ProfilePageFragment extends Fragment {
     private TextView followingCount;
     private TextView pinsDroppedCount;
     private TextView pinsFoundCount;
+    private ConstraintLayout locationLayout;
     private TextView location;
     private TextView bio;
     private ImageView profilePic;
@@ -62,6 +64,7 @@ public class ProfilePageFragment extends Fragment {
         pinsDroppedCount = requireView().findViewById(R.id.profile_dropped_count);
         pinsFoundCount = requireView().findViewById(R.id.profile_found_count);
         location = requireView().findViewById(R.id.profile_location);
+        locationLayout = requireView().findViewById(R.id.profile_location_layout);
         bio = requireView().findViewById(R.id.profile_bio);
         profilePic = requireView().findViewById(R.id.profile_pic);
         button = requireView().findViewById(R.id.profile_button);
@@ -94,13 +97,10 @@ public class ProfilePageFragment extends Fragment {
             setButton(uid);
         }
 
-        User cachedUser = firebase.getCachedUser(uid);
-        if (cachedUser != null) {
-            setUserData(cachedUser, uid);
+        if (firebase.isUserCached(uid)) {
+            setUserData(firebase.getCachedUser(uid));
         }
-        String finalUid = uid;
-        firebase.fetchUser(uid)
-                .addOnCompleteListener(task -> setUserData(task.getResult(), finalUid));
+        firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult()));
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
@@ -136,7 +136,14 @@ public class ProfilePageFragment extends Fragment {
         });
     }
 
-    public void setUserData(@NonNull User user, String uid) {
+    public void setUserData(User user) {
+        if (user == null) {
+            // user was deleted
+            if (getContext() != null)
+                Toast.makeText(getContext(), R.string.deleted_user, Toast.LENGTH_SHORT).show();
+            navController.popBackStack();
+            return;
+        }
         user.loadProfilePic(profilePic, this);
         username.setText(user.getUsername());
         followerCount.setText(String.valueOf(user.getNumFollowers()));
@@ -146,9 +153,9 @@ public class ProfilePageFragment extends Fragment {
         location.setText(user.getLocation());
         bio.setText(user.getBio());
         if (user.getLocation() == null) {
-            location.setVisibility(View.GONE);
+            locationLayout.setVisibility(View.GONE);
         } else {
-            location.setVisibility(View.VISIBLE);
+            locationLayout.setVisibility(View.VISIBLE);
         }
         if (user.getBio() == null) {
             bio.setVisibility(View.GONE);

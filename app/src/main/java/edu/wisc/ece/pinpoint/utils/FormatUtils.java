@@ -39,7 +39,7 @@ public class FormatUtils {
                                                    @Nullable String nearbyLocationName) {
         return nearbyLocationName != null ?
                 String.format("near %s in %s", nearbyLocationName, broadLocationName) :
-                broadLocationName != null ? String.format("in %s", broadLocationName) : null;
+                broadLocationName != null ? String.format("in %s", broadLocationName) : "";
     }
 
     public static String formattedDateTime(Date timestamp) {

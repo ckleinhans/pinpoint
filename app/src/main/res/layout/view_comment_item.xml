@@ -7,7 +7,7 @@
     android:layout_gravity="center"
     android:layout_margin="5dp"
     app:cardCornerRadius="5dp"
-    app:cardElevation="2dp"
+    app:cardElevation="5dp"
     app:contentPadding="10dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -27,10 +27,13 @@
 
         <TextView
             android:id="@+id/comment_username_text"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="10dp"
+            android:ellipsize="end"
+            android:lines="1"
             android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/comment_timestamp"
             app:layout_constraintStart_toEndOf="@+id/comment_profile_image"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -38,7 +41,8 @@
             android:id="@+id/comment_timestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="10dp"
+            android:gravity="start"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/comment_username_text"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -46,7 +50,7 @@
             android:id="@+id/comment_content"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="10dp"
+            android:layout_marginStart="10dp"
             android:layout_marginTop="5dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/comment_profile_image"

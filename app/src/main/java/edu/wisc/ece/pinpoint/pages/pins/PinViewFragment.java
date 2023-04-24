@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
@@ -184,13 +185,12 @@ public class PinViewFragment extends Fragment {
 
     private void setPinData(Pin pin) {
         authorUID = pin.getAuthorUID();
-        User cachedAuthor = firebase.getCachedUser(authorUID);
-        if (cachedAuthor != null) {
-            setPinAuthorData(cachedAuthor);
+        if (firebase.isUserCached(authorUID)) {
+            setPinAuthorData(firebase.getCachedUser(authorUID), authorUID);
         } else {
             // Since only using author for profile pic & username, only fetch if not cached
             firebase.fetchUser(authorUID)
-                    .addOnCompleteListener(task -> setPinAuthorData(task.getResult()));
+                    .addOnCompleteListener(task -> setPinAuthorData(task.getResult(), authorUID));
         }
 
         timestamp.setText(FormatUtils.formattedDateTime(pin.getTimestamp()));
@@ -216,15 +216,27 @@ public class PinViewFragment extends Fragment {
         } else {
             textContent.setText(pin.getTextContent());
         }
-
-        // Set metadata bar above pin content to bring users to author profile page on click
-        metadataBar.setOnClickListener(v -> navController.navigate(
-                PinViewFragmentDirections.profile().setUid(pin.getAuthorUID())));
     }
 
-    private void setPinAuthorData(User author) {
-        authorUsername.setText(author.getUsername());
-        author.loadProfilePic(authorProfilePic, this);
+    private void setPinAuthorData(User author, String authorUID) {
+        if (author == null) {
+            // user was deleted
+            authorUsername.setText(R.string.deleted_user);
+            if (getContext() != null) {
+                TypedValue typedValue = new TypedValue();
+                getContext().getTheme()
+                        .resolveAttribute(com.google.android.material.R.attr.colorError, typedValue,
+                                true);
+                authorUsername.setTextColor(typedValue.data);
+            }
+        } else {
+            authorUsername.setText(author.getUsername());
+            author.loadProfilePic(authorProfilePic, this);
+
+            // Set metadata bar above pin content to bring users to author profile page on click
+            metadataBar.setOnClickListener(v -> navController.navigate(
+                    PinViewFragmentDirections.profile().setUid(authorUID)));
+        }
     }
 
     private void showOptionsMenu(View v) {
