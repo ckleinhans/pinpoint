@@ -86,7 +86,7 @@ public class OrderedPinMetadata {
      * @return true if the item was removed, false if it wasn't present
      */
     public boolean remove(String pinId) {
-        return remove(new PinMetadata(pinId, null, null, null));
+        return remove(new PinMetadata(pinId, null, null, null, null));
     }
 
     /**
@@ -116,7 +116,7 @@ public class OrderedPinMetadata {
      * @return true if present, false if not
      */
     public boolean contains(String pinId) {
-        return contains(new PinMetadata(pinId, null, null, null));
+        return contains(new PinMetadata(pinId, null, null, null, null));
     }
 
     /**

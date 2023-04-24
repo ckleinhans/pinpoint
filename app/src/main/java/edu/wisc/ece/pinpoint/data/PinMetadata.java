@@ -27,13 +27,14 @@ public class PinMetadata {
         this.pinSource = PinSource.valueOf((String) data.get("pinSource"));
     }
 
-    public PinMetadata(String pinId, String broadLocationName, String nearbyLocationName, PinSource pinSource) {
+    public PinMetadata(String pinId, String broadLocationName, String nearbyLocationName,
+                       PinSource pinSource, Long cost) {
         this.pinId = pinId;
         this.timestamp = new Date();
         this.broadLocationName = broadLocationName;
         this.nearbyLocationName = nearbyLocationName;
         this.reward = null;
-        this.cost = null;
+        this.cost = cost;
         this.pinSource = pinSource;
     }
 
@@ -75,7 +76,9 @@ public class PinMetadata {
         }
     }
 
-    public PinSource getPinSource() {return pinSource;}
+    public PinSource getPinSource() {
+        return pinSource;
+    }
 
     public enum PinSource {
         SELF, GENERAL, NFC, DEV, FRIEND

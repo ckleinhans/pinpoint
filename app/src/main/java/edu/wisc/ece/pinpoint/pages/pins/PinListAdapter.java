@@ -2,6 +2,7 @@ package edu.wisc.ece.pinpoint.pages.pins;
 
 import android.content.Context;
 import android.location.Location;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -86,6 +87,8 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
                 holder.pinSourceChip.setText(R.string.other_text);
             }
             holder.pinSourceChip.setVisibility(View.VISIBLE);
+        } else {
+            Log.d("TEST", String.valueOf(metadata.getPinSource()));
         }
 
         // show discovered or undiscovered pin
@@ -121,7 +124,10 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
                             if (LocationDriver.isCloseEnoughToFindPin(
                                     new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
                                     pinData.getLocation())) {
-                                firebase.findPin(pid, userLoc, pinData.getSource())
+                                PinMetadata.PinSource source =
+                                        pinData.getSource() == PinMetadata.PinSource.FRIEND ?
+                                                PinMetadata.PinSource.GENERAL : pinData.getSource();
+                                firebase.findPin(pid, userLoc, source)
                                         .addOnSuccessListener(reward -> {
                                             Toast.makeText(parentContext, String.format(
                                                     parentContext.getString(

@@ -235,18 +235,18 @@ public class MapFragment extends Fragment {
                     marker.getPosition())) {
                 String pinId = (String) marker.getTag();
                 NearbyPinData pinData = firebase.getCachedNearbyPin(pinId);
-                firebase.findPin(pinId, userLoc, pinData.getSource())
-                        .addOnSuccessListener(reward -> {
-                            Toast.makeText(requireContext(),
-                                    String.format(getString(R.string.pinnie_reward_message),
-                                            reward), Toast.LENGTH_LONG).show();
-                            //noinspection ConstantConditions
-                            navController.navigate(MapContainerFragmentDirections.pinView(
-                                    marker.getTag().toString()));
-                        }).addOnFailureListener(
-                                e -> Toast.makeText(requireContext(), e.getMessage(),
-                                                Toast.LENGTH_LONG)
-                                        .show());
+                PinSource source = pinData.getSource() == PinSource.FRIEND ? PinSource.GENERAL :
+                        pinData.getSource();
+                firebase.findPin(pinId, userLoc, source).addOnSuccessListener(reward -> {
+                    Toast.makeText(requireContext(),
+                            String.format(getString(R.string.pinnie_reward_message), reward),
+                            Toast.LENGTH_LONG).show();
+                    //noinspection ConstantConditions
+                    navController.navigate(
+                            MapContainerFragmentDirections.pinView(marker.getTag().toString()));
+                }).addOnFailureListener(
+                        e -> Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG)
+                                .show());
             } else {
                 Toast.makeText(requireContext(), R.string.undiscovered_pin_not_close_enough,
                         Toast.LENGTH_SHORT).show();
