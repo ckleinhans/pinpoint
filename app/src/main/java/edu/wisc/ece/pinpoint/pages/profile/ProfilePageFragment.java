@@ -59,7 +59,10 @@ public class ProfilePageFragment extends Fragment {
 
         navController = Navigation.findNavController(view);
         username = requireView().findViewById(R.id.profile_username);
+        ConstraintLayout followerLayout = requireView().findViewById(R.id.profile_follower_layout);
         followerCount = requireView().findViewById(R.id.profile_follower_count);
+        ConstraintLayout followingLayout =
+                requireView().findViewById(R.id.profile_following_layout);
         followingCount = requireView().findViewById(R.id.profile_following_count);
         pinsDroppedCount = requireView().findViewById(R.id.profile_dropped_count);
         pinsFoundCount = requireView().findViewById(R.id.profile_found_count);
@@ -69,11 +72,11 @@ public class ProfilePageFragment extends Fragment {
         profilePic = requireView().findViewById(R.id.profile_pic);
         button = requireView().findViewById(R.id.profile_button);
 
-        Bundle args = getArguments();
-        String uid = args != null ? ProfilePageFragmentArgs.fromBundle(args).getUid() : null;
+        Bundle args = requireArguments();
+        String uid;
 
         // If UID null, navigated from navbar, show settings button & set default UID
-        if (uid == null) {
+        if (ProfilePageFragmentArgs.fromBundle(args).getUid() == null) {
             uid = firebase.getUid();
             ImageButton settingsButton = requireView().findViewById(R.id.profile_settings);
             settingsButton.setVisibility(View.VISIBLE);
@@ -81,6 +84,7 @@ public class ProfilePageFragment extends Fragment {
                     ProfilePageFragmentDirections.settingsContainer()));
         } else {
             // Got here some other way than navbar, don't show settings and show back button instead
+            uid = ProfilePageFragmentArgs.fromBundle(args).getUid();
             ImageButton backButton = requireView().findViewById(R.id.profile_back_button);
             backButton.setVisibility(View.VISIBLE);
             backButton.setOnClickListener(v -> navController.popBackStack());
@@ -101,6 +105,13 @@ public class ProfilePageFragment extends Fragment {
             setUserData(firebase.getCachedUser(uid));
         }
         firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult()));
+
+        followerLayout.setOnClickListener(v -> navController.navigate(
+                ProfilePageFragmentDirections.userList(UserListFragment.UserListType.FOLLOWERS,
+                        uid)));
+        followingLayout.setOnClickListener(v -> navController.navigate(
+                ProfilePageFragmentDirections.userList(UserListFragment.UserListType.FOLLOWING,
+                        uid)));
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
