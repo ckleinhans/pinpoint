@@ -13,6 +13,8 @@ import androidx.cardview.widget.CardView;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.chip.Chip;
+
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
@@ -24,13 +26,16 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     private final OrderedPinMetadata pinMetadata;
     private final NavController navController;
     private final FirebaseDriver firebase;
+    private final boolean displayPinTypes;
     private Context parentContext;
 
     // TODO: make this adapter a ListAdapter to improve UX & performance
-    public PinListAdapter(OrderedPinMetadata pinMetadata, NavController navController) {
+    public PinListAdapter(OrderedPinMetadata pinMetadata, NavController navController,
+                          boolean displayPinTypes) {
         this.pinMetadata = pinMetadata;
         this.navController = navController;
         firebase = FirebaseDriver.getInstance();
+        this.displayPinTypes = displayPinTypes;
     }
 
     @NonNull
@@ -56,6 +61,38 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
             } else {
                 holder.image.setImageResource(R.drawable.pin_background_img);
             }
+            if (displayPinTypes) {
+                switch (metadata.getPinSource()) {
+                    case SELF:
+                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.my_pins);
+                        holder.pinSourceChip.setText(R.string.my_pins_text);
+                        break;
+                    case NFC:
+                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.nfc_pins);
+                        holder.pinSourceChip.setText(R.string.nfc_text);
+                        break;
+                    case DEV:
+                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.landmark_pins);
+                        holder.pinSourceChip.setText(R.string.landmarks_text);
+                        break;
+                    case GENERAL:
+                        // check for friend pin
+                        if (firebase.getCachedFollowing(firebase.getUid()).contains(
+                                firebase.getCachedPin(metadata.getPinId()).getAuthorUID())) {
+                            holder.pinSourceChip.setChipBackgroundColorResource(
+                                    R.color.friend_pins);
+                            holder.pinSourceChip.setText(R.string.following_text);
+                        } else {
+                            holder.pinSourceChip.setChipBackgroundColorResource(R.color.other_pins);
+                            holder.pinSourceChip.setText(R.string.other_text);
+                        }
+                        break;
+                }
+                holder.pinSourceChip.setVisibility(View.VISIBLE);
+            } else {
+                holder.pinSourceChip.setVisibility(View.GONE);
+            }
+
             holder.item.setOnClickListener(view -> navController.navigate(
                     edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
         } else {
@@ -91,6 +128,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         private final TextView timestamp;
         private final TextView nearbyLocation;
         private final TextView broadLocation;
+        private final Chip pinSourceChip;
 
         public PinListViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -99,6 +137,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
             timestamp = itemView.findViewById(R.id.pinlist_image_timestamp);
             nearbyLocation = itemView.findViewById(R.id.pinlist_image_nearby_location);
             broadLocation = itemView.findViewById(R.id.pinlist_image_broad_location);
+            pinSourceChip = itemView.findViewById(R.id.pinlist_pin_source);
         }
     }
 }
