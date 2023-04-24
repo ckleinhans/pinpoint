@@ -11,10 +11,12 @@ import androidx.work.WorkerParameters;
 
 import java.util.Map;
 
+import edu.wisc.ece.pinpoint.data.NearbyPinData;
+
 public class PinNotificationActivity extends Worker {
 
     FirebaseDriver firebaseDriver;
-    Map<String, Map<String, Object>> nearbyPins;
+    Map<String, NearbyPinData> nearbyPins;
     Context context;
     String x;
     private Location loc;
