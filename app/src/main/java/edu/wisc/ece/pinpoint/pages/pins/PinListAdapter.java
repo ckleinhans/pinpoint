@@ -11,7 +11,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
-import androidx.core.content.res.ResourcesCompat;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -61,14 +60,12 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
 
         // Set pin type chip
         holder.pinSourceChip.setVisibility(View.GONE);
-        holder.pinSourceChip.setCloseIcon(null);
+        holder.pinSourceChip.setCloseIconVisible(false);
         if (metadata.getPinSource() == PinMetadata.PinSource.SELF) { // && listType ==
             // PinListFragment.PinListType.DROPPED
             holder.pinSourceChip.setChipBackgroundColorResource(R.color.my_pins);
             holder.pinSourceChip.setText(FormatUtils.trimmedNumber(metadata.getCost()));
-            holder.pinSourceChip.setCloseIcon(
-                    ResourcesCompat.getDrawable(parentContext.getResources(),
-                            R.drawable.ic_pinnies_logo, parentContext.getTheme()));
+            holder.pinSourceChip.setCloseIconVisible(true);
             holder.pinSourceChip.setVisibility(View.VISIBLE);
         } else if (metadata.getPinSource() == PinMetadata.PinSource.NFC) {
             holder.pinSourceChip.setChipBackgroundColorResource(R.color.nfc_pins);
@@ -88,6 +85,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
                 holder.pinSourceChip.setChipBackgroundColorResource(R.color.other_pins);
                 holder.pinSourceChip.setText(R.string.other_text);
             }
+            holder.pinSourceChip.setVisibility(View.VISIBLE);
         }
 
         // show discovered or undiscovered pin
