@@ -9,7 +9,6 @@ import android.widget.ViewSwitcher;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 import androidx.work.PeriodicWorkRequest;
@@ -26,7 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import edu.wisc.ece.pinpoint.pages.map.MapFragment;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
@@ -56,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
         // Disable hidden middle button
         navBar.getMenu().getItem(2).setEnabled(false);
 
-
         // Fetch logged in user profile, following/followers, & activity on app load
         FirebaseDriver firebase = FirebaseDriver.getInstance();
         String uid = firebase.getUid();
@@ -77,23 +74,22 @@ public class MainActivity extends AppCompatActivity {
         Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(fetchingComplete -> {
             // Instantiate nav host and inject into view
             navHostFragment = NavHostFragment.create(R.navigation.navigation);
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.nav_host_placeholder, navHostFragment)
-                    .commitNow();
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.nav_host_placeholder, navHostFragment).commitNow();
             // Set up nav controller
             navController = navHostFragment.getNavController();
             NavigationUI.setupWithNavController(navBar, navController);
             // Set nav bar visibility
-            navController.addOnDestinationChangedListener((navController, navDestination, bundle) -> {
-                if (hiddenNavbarFragments.contains(navDestination.getId())) {
-                    navBarContainer.setVisibility(View.GONE);
-                    mapButton.setVisibility(View.GONE);
-                } else {
-                    navBarContainer.setVisibility(View.VISIBLE);
-                    mapButton.setVisibility(View.VISIBLE);
-                }
-            });
+            navController.addOnDestinationChangedListener(
+                    (navController, navDestination, bundle) -> {
+                        if (hiddenNavbarFragments.contains(navDestination.getId())) {
+                            navBarContainer.setVisibility(View.GONE);
+                            mapButton.setVisibility(View.GONE);
+                        } else {
+                            navBarContainer.setVisibility(View.VISIBLE);
+                            mapButton.setVisibility(View.VISIBLE);
+                        }
+                    });
             // Switch to app view once loading is complete
             showView(R.id.content_view);
         });
