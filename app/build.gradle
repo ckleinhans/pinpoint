@@ -67,4 +67,5 @@ dependencies {
     // Find the latest Facebook SDK releases here: https://github.com/facebook/facebook-android-sdk/blob/master/CHANGELOG.md
     // implementation 'com.facebook.android:facebook-login:8.1.0'
     implementation 'androidx.work:work-runtime:2.8.1'
+    implementation 'net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:3.0.0-RC3'
 }

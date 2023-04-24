@@ -14,14 +14,12 @@ import edu.wisc.ece.pinpoint.pages.pins.PinListFragment;
 public class ProfileFragmentAdapter extends FragmentStateAdapter {
     private final int tabCount;
     private final String uid;
-    private final boolean bottomPadding;
 
     public ProfileFragmentAdapter(@NonNull FragmentManager fragmentManager, int tabCount,
-                                  @NonNull Lifecycle lifecycle, String uid, boolean bottomPadding) {
+                                  @NonNull Lifecycle lifecycle, String uid) {
         super(fragmentManager, lifecycle);
         this.tabCount = tabCount;
         this.uid = uid;
-        this.bottomPadding = bottomPadding;
     }
 
     @Override
@@ -36,7 +34,6 @@ public class ProfileFragmentAdapter extends FragmentStateAdapter {
             FeedFragment frag = new FeedFragment();
             Bundle args = new Bundle();
             args.putString(FeedFragment.UID_ARG_KEY, uid);
-            args.putBoolean(FeedFragment.BOTTOM_PADDING_ARG_KEY, bottomPadding);
             frag.setArguments(args);
             return frag;
         } else {
