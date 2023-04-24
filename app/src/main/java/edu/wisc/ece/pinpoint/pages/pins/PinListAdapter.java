@@ -1,6 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
 import android.content.Context;
+import android.location.Location;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,14 +14,17 @@ import androidx.cardview.widget.CardView;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.chip.Chip;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.NearbyPinData;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
+import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
 public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListViewHolder> {
     private final OrderedPinMetadata pinMetadata;
@@ -28,13 +32,14 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     private final FirebaseDriver firebase;
     private final boolean displayPinTypes;
     private Context parentContext;
+    private LocationDriver locationDriver;
 
     // TODO: make this adapter a ListAdapter to improve UX & performance
     public PinListAdapter(OrderedPinMetadata pinMetadata, NavController navController,
                           boolean displayPinTypes) {
         this.pinMetadata = pinMetadata;
         this.navController = navController;
-        firebase = FirebaseDriver.getInstance();
+        this.firebase = FirebaseDriver.getInstance();
         this.displayPinTypes = displayPinTypes;
     }
 
@@ -44,6 +49,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.view_pin_list_item, parent, false);
         parentContext = parent.getContext();
+        this.locationDriver = LocationDriver.getInstance(parentContext);
         return new PinListViewHolder(view);
     }
 
@@ -98,9 +104,43 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         } else {
             // Pin is undiscovered
             holder.image.setImageResource(R.drawable.ic_lock);
-            holder.item.setOnClickListener(
-                    view -> Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
-                            Toast.LENGTH_SHORT).show());
+            holder.item.setOnClickListener(view -> {
+                NearbyPinData pinData = firebase.getCachedNearbyPin(pid);
+                if (pinData == null) {
+                    Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                locationDriver.getLastLocation(parentContext)
+                        .addOnCompleteListener(locationTask -> {
+                            Location userLoc = locationTask.getResult();
+                            if (!locationTask.isSuccessful() || userLoc == null) {
+                                Toast.makeText(parentContext, R.string.location_error_text,
+                                        Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            if (LocationDriver.isCloseEnoughToFindPin(
+                                    new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
+                                    pinData.getLocation())) {
+                                firebase.findPin(pid, userLoc, pinData.getSource())
+                                        .addOnSuccessListener(reward -> {
+                                            Toast.makeText(parentContext, String.format(
+                                                    parentContext.getString(
+                                                            R.string.pinnie_reward_message),
+                                                    reward), Toast.LENGTH_LONG).show();
+                                            navController.navigate(
+                                                    edu.wisc.ece.pinpoint.pages.map.MapContainerFragmentDirections.pinView(
+                                                            pid));
+                                        }).addOnFailureListener(
+                                                e -> Toast.makeText(parentContext, e.getMessage(),
+                                                        Toast.LENGTH_LONG).show());
+                            } else {
+                                Toast.makeText(parentContext,
+                                        R.string.undiscovered_pin_not_close_enough,
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            });
         }
 
         if (metadata.getBroadLocationName() != null) {
