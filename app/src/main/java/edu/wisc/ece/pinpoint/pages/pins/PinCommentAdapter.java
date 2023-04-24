@@ -91,8 +91,8 @@ public class PinCommentAdapter
                 holder.username.setTextColor(typedValue.data);
             }
             author.loadProfilePic(holder.image, fragment);
-            holder.image.setOnClickListener(view -> navController.navigate(
-                    NavigationDirections.profile().setUid(authorUID)));
+            holder.image.setOnClickListener(
+                    view -> navController.navigate(NavigationDirections.profile(authorUID)));
         }
     }
 

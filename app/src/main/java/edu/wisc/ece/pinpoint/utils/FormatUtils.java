@@ -22,7 +22,7 @@ public class FormatUtils {
         } else {
             return String.valueOf(number);
         }
-        String valueString = String.valueOf(value);
+        String valueString = String.format(Locale.US, "%.2f", value);
         String trimmedValueString = valueString.indexOf('.') < 3 ? valueString.substring(0, 4) :
                 valueString.substring(0, 3);
         return String.format(Locale.US, "%s%s", trimmedValueString, suffix);

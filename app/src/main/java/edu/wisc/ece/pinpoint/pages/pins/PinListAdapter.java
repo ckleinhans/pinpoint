@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
+import androidx.core.content.res.ResourcesCompat;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -30,17 +31,17 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     private final OrderedPinMetadata pinMetadata;
     private final NavController navController;
     private final FirebaseDriver firebase;
-    private final boolean displayPinTypes;
+    private final PinListFragment.PinListType listType;
     private Context parentContext;
     private LocationDriver locationDriver;
 
     // TODO: make this adapter a ListAdapter to improve UX & performance
     public PinListAdapter(OrderedPinMetadata pinMetadata, NavController navController,
-                          boolean displayPinTypes) {
+                          PinListFragment.PinListType listType) {
         this.pinMetadata = pinMetadata;
         this.navController = navController;
         this.firebase = FirebaseDriver.getInstance();
-        this.displayPinTypes = displayPinTypes;
+        this.listType = listType;
     }
 
     @NonNull
@@ -59,35 +60,34 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         String pid = metadata.getPinId();
 
         // Set pin type chip
-        if (displayPinTypes) {
-            switch (metadata.getPinSource()) {
-                case SELF:
-                    holder.pinSourceChip.setChipBackgroundColorResource(R.color.my_pins);
-                    holder.pinSourceChip.setText(R.string.my_pins_text);
-                    break;
-                case NFC:
-                    holder.pinSourceChip.setChipBackgroundColorResource(R.color.nfc_pins);
-                    holder.pinSourceChip.setText(R.string.nfc_text);
-                    break;
-                case DEV:
-                    holder.pinSourceChip.setChipBackgroundColorResource(R.color.landmark_pins);
-                    holder.pinSourceChip.setText(R.string.landmarks_text);
-                    break;
-                case GENERAL:
-                    // check for friend pin
-                    if (firebase.getCachedFollowing(firebase.getUid())
-                            .contains(firebase.getCachedPin(metadata.getPinId()).getAuthorUID())) {
-                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.friend_pins);
-                        holder.pinSourceChip.setText(R.string.following_text);
-                    } else {
-                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.other_pins);
-                        holder.pinSourceChip.setText(R.string.other_text);
-                    }
-                    break;
-            }
+        holder.pinSourceChip.setVisibility(View.GONE);
+        holder.pinSourceChip.setCloseIcon(null);
+        if (metadata.getPinSource() == PinMetadata.PinSource.SELF) { // && listType ==
+            // PinListFragment.PinListType.DROPPED
+            holder.pinSourceChip.setChipBackgroundColorResource(R.color.my_pins);
+            holder.pinSourceChip.setText(FormatUtils.trimmedNumber(metadata.getCost()));
+            holder.pinSourceChip.setCloseIcon(
+                    ResourcesCompat.getDrawable(parentContext.getResources(),
+                            R.drawable.ic_pinnies_logo, parentContext.getTheme()));
             holder.pinSourceChip.setVisibility(View.VISIBLE);
-        } else {
-            holder.pinSourceChip.setVisibility(View.GONE);
+        } else if (metadata.getPinSource() == PinMetadata.PinSource.NFC) {
+            holder.pinSourceChip.setChipBackgroundColorResource(R.color.nfc_pins);
+            holder.pinSourceChip.setText(R.string.nfc_text);
+            holder.pinSourceChip.setVisibility(View.VISIBLE);
+        } else if (metadata.getPinSource() == PinMetadata.PinSource.DEV) {
+            holder.pinSourceChip.setChipBackgroundColorResource(R.color.landmark_pins);
+            holder.pinSourceChip.setText(R.string.landmark_text);
+            holder.pinSourceChip.setVisibility(View.VISIBLE);
+        } else if (metadata.getPinSource() == PinMetadata.PinSource.GENERAL && listType != PinListFragment.PinListType.USER) {
+            // don't show other or following tags on user profile pages
+            if (firebase.getCachedFollowing(firebase.getUid())
+                    .contains(firebase.getCachedPin(metadata.getPinId()).getAuthorUID())) {
+                holder.pinSourceChip.setChipBackgroundColorResource(R.color.friend_pins);
+                holder.pinSourceChip.setText(R.string.following_text);
+            } else {
+                holder.pinSourceChip.setChipBackgroundColorResource(R.color.other_pins);
+                holder.pinSourceChip.setText(R.string.other_text);
+            }
         }
 
         // show discovered or undiscovered pin
