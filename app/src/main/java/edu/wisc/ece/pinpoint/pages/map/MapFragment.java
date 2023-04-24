@@ -257,8 +257,8 @@ public class MapFragment extends Fragment {
                 firebase.findPin((String) marker.getTag(), userLoc, pinSource)
                         .addOnSuccessListener(reward -> {
                             Toast.makeText(requireContext(),
-                                    String.format(getString(R.string.pinnie_reward_message), reward),
-                                    Toast.LENGTH_LONG).show();
+                                    String.format(getString(R.string.pinnie_reward_message),
+                                            reward), Toast.LENGTH_LONG).show();
                             //noinspection ConstantConditions
                             navController.navigate(MapContainerFragmentDirections.pinView(
                                     marker.getTag().toString()));
@@ -364,7 +364,7 @@ public class MapFragment extends Fragment {
     }
 
     private void setPinniesUI() {
-        pinniesText.setText(FormatUtils.humanReadablePinnies(pinnieCount));
+        pinniesText.setText(FormatUtils.trimmedNumber(pinnieCount));
         pinnieProgressBar.setVisibility(View.GONE);
         pinniesText.setVisibility(View.VISIBLE);
         pinnies_logo.setVisibility(View.VISIBLE);

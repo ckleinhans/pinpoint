@@ -24,6 +24,7 @@ import com.google.android.material.tabs.TabLayout;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class ProfilePageFragment extends Fragment {
     private FirebaseDriver firebase;
@@ -157,10 +158,10 @@ public class ProfilePageFragment extends Fragment {
         }
         user.loadProfilePic(profilePic, this);
         username.setText(user.getUsername());
-        followerCount.setText(String.valueOf(user.getNumFollowers()));
-        followingCount.setText(String.valueOf(user.getNumFollowing()));
-        pinsDroppedCount.setText(String.valueOf(user.getNumPinsDropped()));
-        pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
+        followerCount.setText(FormatUtils.trimmedNumber(user.getNumFollowers()));
+        followingCount.setText(FormatUtils.trimmedNumber(user.getNumFollowing()));
+        pinsDroppedCount.setText(FormatUtils.trimmedNumber(user.getNumPinsDropped()));
+        pinsFoundCount.setText(FormatUtils.trimmedNumber(user.getNumPinsFound()));
         location.setText(user.getLocation());
         bio.setText(user.getBio());
         if (user.getLocation() == null) {
