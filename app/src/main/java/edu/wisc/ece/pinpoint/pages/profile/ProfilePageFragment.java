@@ -24,6 +24,7 @@ import com.google.android.material.tabs.TabLayout;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class ProfilePageFragment extends Fragment {
     private FirebaseDriver firebase;
@@ -59,7 +60,10 @@ public class ProfilePageFragment extends Fragment {
 
         navController = Navigation.findNavController(view);
         username = requireView().findViewById(R.id.profile_username);
+        ConstraintLayout followerLayout = requireView().findViewById(R.id.profile_follower_layout);
         followerCount = requireView().findViewById(R.id.profile_follower_count);
+        ConstraintLayout followingLayout =
+                requireView().findViewById(R.id.profile_following_layout);
         followingCount = requireView().findViewById(R.id.profile_following_count);
         pinsDroppedCount = requireView().findViewById(R.id.profile_dropped_count);
         pinsFoundCount = requireView().findViewById(R.id.profile_found_count);
@@ -92,6 +96,13 @@ public class ProfilePageFragment extends Fragment {
             setUserData(firebase.getCachedUser(uid));
         }
         firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult()));
+
+        followerLayout.setOnClickListener(v -> navController.navigate(
+                ProfilePageFragmentDirections.userList(UserListFragment.UserListType.FOLLOWERS,
+                        uid)));
+        followingLayout.setOnClickListener(v -> navController.navigate(
+                ProfilePageFragmentDirections.userList(UserListFragment.UserListType.FOLLOWING,
+                        uid)));
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
@@ -137,10 +148,10 @@ public class ProfilePageFragment extends Fragment {
         }
         user.loadProfilePic(profilePic, this);
         username.setText(user.getUsername());
-        followerCount.setText(String.valueOf(user.getNumFollowers()));
-        followingCount.setText(String.valueOf(user.getNumFollowing()));
-        pinsDroppedCount.setText(String.valueOf(user.getNumPinsDropped()));
-        pinsFoundCount.setText(String.valueOf(user.getNumPinsFound()));
+        followerCount.setText(FormatUtils.trimmedNumber(user.getNumFollowers()));
+        followingCount.setText(FormatUtils.trimmedNumber(user.getNumFollowing()));
+        pinsDroppedCount.setText(FormatUtils.trimmedNumber(user.getNumPinsDropped()));
+        pinsFoundCount.setText(FormatUtils.trimmedNumber(user.getNumPinsFound()));
         location.setText(user.getLocation());
         bio.setText(user.getBio());
         if (user.getLocation() == null) {

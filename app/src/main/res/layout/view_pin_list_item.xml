@@ -31,6 +31,7 @@
             android:checkable="false"
             android:clickable="false"
             android:focusable="false"
+            android:visibility="gone"
             app:chipEndPadding="2dp"
             app:chipMinHeight="20dp"
             app:chipMinTouchTargetSize="0dp"

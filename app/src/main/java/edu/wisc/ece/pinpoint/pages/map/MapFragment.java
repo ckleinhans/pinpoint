@@ -36,10 +36,10 @@ import com.google.firebase.firestore.GeoPoint;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.NearbyPinData;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.data.PinMetadata.PinSource;
@@ -191,34 +191,28 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void createUndiscoveredPin(String key, Map<String, Object> val) {
-        String authorUID = (String) val.get("authorUID");
-        //noinspection ConstantConditions
-        LatLng pinLocation =
-                new LatLng((double) val.get("latitude"), (double) val.get("longitude"));
+    private void createUndiscoveredPin(String key, NearbyPinData val) {
         float color = BitmapDescriptorFactory.HUE_RED;
         // Data field to persist in pin marker to know the pin source when the user finds the pin
-        PinSource source = PinSource.GENERAL;
         ArrayList<Marker> markerList = strangerMarkers;
         // TODO: change color for nfc pin (cyan)
-        if ("pinpoint".equals(authorUID)) {
+        if (val.getSource() == PinSource.DEV) {
             color = BitmapDescriptorFactory.HUE_YELLOW;
-            source = PinSource.DEV;
             markerList = devMarkers;
         }
         // Change color to green if user follows author.
         // Following is subject to change at each reload
-        else if (firebase.getCachedFollowing(firebase.getUid()).contains(authorUID)) {
+        else if (firebase.getCachedFollowing(firebase.getUid()).contains(val.getAuthorUID())) {
             color = BitmapDescriptorFactory.HUE_GREEN;
-            source = PinSource.FRIEND;
+            val.setSource(PinSource.FRIEND);
             markerList = friendMarkers;
         }
         Marker pinMarker = map.addMarker(
                 new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(color)).alpha(.3f)
-                        .position(pinLocation));
+                        .position(val.getLocation()));
         //noinspection ConstantConditions
         pinMarker.setTag(key);
-        pinMarker.setSnippet(source.name());
+        pinMarker.setSnippet(val.getSource().name());
         markerList.add(pinMarker);
     }
 
@@ -239,26 +233,13 @@ public class MapFragment extends Fragment {
             if (LocationDriver.isCloseEnoughToFindPin(
                     new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
                     marker.getPosition())) {
-                PinSource pinSource;
-                //noinspection ConstantConditions
-                switch (marker.getSnippet()) {
-                    case "DEV":
-                        pinSource = PinSource.DEV;
-                        break;
-                    case "NFC":
-                        pinSource = PinSource.NFC;
-                        break;
-                    default:
-                        // Do not store friend enum in cloud,
-                        // since friendship status is subject to change.
-                        pinSource = PinSource.GENERAL;
-                        break;
-                }
-                firebase.findPin((String) marker.getTag(), userLoc, pinSource)
+                String pinId = (String) marker.getTag();
+                NearbyPinData pinData = firebase.getCachedNearbyPin(pinId);
+                firebase.findPin(pinId, userLoc, pinData.getSource())
                         .addOnSuccessListener(reward -> {
                             Toast.makeText(requireContext(),
-                                    String.format(getString(R.string.pinnie_reward_message), reward),
-                                    Toast.LENGTH_LONG).show();
+                                    String.format(getString(R.string.pinnie_reward_message),
+                                            reward), Toast.LENGTH_LONG).show();
                             //noinspection ConstantConditions
                             navController.navigate(MapContainerFragmentDirections.pinView(
                                     marker.getTag().toString()));
@@ -364,7 +345,7 @@ public class MapFragment extends Fragment {
     }
 
     private void setPinniesUI() {
-        pinniesText.setText(FormatUtils.humanReadablePinnies(pinnieCount));
+        pinniesText.setText(FormatUtils.trimmedNumber(pinnieCount));
         pinnieProgressBar.setVisibility(View.GONE);
         pinniesText.setVisibility(View.VISIBLE);
         pinnies_logo.setVisibility(View.VISIBLE);

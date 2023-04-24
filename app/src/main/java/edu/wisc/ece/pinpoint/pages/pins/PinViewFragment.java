@@ -1,7 +1,7 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
+import android.content.Context;
 import android.content.DialogInterface;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.TypedValue;
@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -46,7 +47,7 @@ public class PinViewFragment extends Fragment {
     private static final int SHARE = 0;
     private static final int REPORT = 1;
     private static final int DELETE = 2;
-    private final int COMMENT_FOCUS_SCROLL = 1000;
+    private final int COMMENT_FOCUS_SCROLL = 50;
     private FirebaseDriver firebase;
     private NavController navController;
     private TextView timestamp;
@@ -113,14 +114,19 @@ public class PinViewFragment extends Fragment {
                 addCommentButton.setForeground(
                         ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_comment));
                 addCommentLayout.setVisibility(View.GONE);
+                // hide keyboard
+                InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
         });
 
         addCommentEditText.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && Resources.getSystem()
-                    .getDisplayMetrics().heightPixels == requireView().getHeight()) {
-                scrollView.postDelayed(() -> scrollView.scrollTo(0, COMMENT_FOCUS_SCROLL), 150);
-            }
+            if (hasFocus) scrollView.postDelayed(() -> {
+                int[] viewLocation = new int[2];
+                v.getLocationOnScreen(viewLocation);
+                scrollView.smoothScrollTo(0, viewLocation[1]);
+            }, 150);
         });
 
         // Fetch pin data & load using argument

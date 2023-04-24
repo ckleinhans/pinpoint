@@ -43,6 +43,7 @@ import edu.wisc.ece.pinpoint.data.ActivityItem;
 import edu.wisc.ece.pinpoint.data.ActivityList;
 import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.GlideApp;
+import edu.wisc.ece.pinpoint.data.NearbyPinData;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
@@ -61,6 +62,7 @@ public class FirebaseDriver {
     private final HashMap<String, ActivityList> activityMap;
     private final HashMap<String, HashSet<String>> userFollowerIds;
     private final HashMap<String, HashSet<String>> userFollowingIds;
+    private final HashMap<String, NearbyPinData> nearbyPins;
     private OrderedPinMetadata foundPinMetadata;
     private OrderedPinMetadata droppedPinMetadata;
     private Long pinnies;
@@ -80,6 +82,7 @@ public class FirebaseDriver {
         activityMap = new HashMap<>();
         userFollowerIds = new HashMap<>();
         userFollowingIds = new HashMap<>();
+        nearbyPins = new HashMap<>();
     }
 
     public static FirebaseDriver getInstance() {
@@ -452,6 +455,9 @@ public class FirebaseDriver {
             //noinspection unchecked
             Map<String, Object> result = (Map<String, Object>) task.getResult().getData();
 
+            // remove pin from nearby pins
+            nearbyPins.remove(pid);
+
             //noinspection ConstantConditions
             String broadLocationName = (String) result.get("broadLocationName");
             String nearbyLocationName = (String) result.get("nearbyLocationName");
@@ -460,23 +466,33 @@ public class FirebaseDriver {
             pinnies += reward;
             Log.d(TAG, String.format("Got reward for pin: %d", reward));
 
-                    activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
-                            broadLocationName, nearbyLocationName));
-                    foundPinMetadata.add(new PinMetadata(pid, broadLocationName, nearbyLocationName, pinSource));
+            activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
+                    broadLocationName, nearbyLocationName));
+            foundPinMetadata.add(
+                    new PinMetadata(pid, broadLocationName, nearbyLocationName, pinSource));
 
             return reward;
         }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin from cloud func: ", e));
     }
 
-    public Task<Map<String, Map<String, Object>>> fetchNearbyPins(@NonNull Location location) {
+    public Task<HashMap<String, NearbyPinData>> fetchNearbyPins(@NonNull Location location) {
         Map<String, Object> data = new HashMap<>();
         data.put("latitude", location.getLatitude());
         data.put("longitude", location.getLongitude());
 
-        //noinspection unchecked
-        return functions.getHttpsCallable("getNearbyPins").call(data)
-                .continueWith(task -> (Map<String, Map<String, Object>>) task.getResult().getData())
-                .addOnFailureListener(e -> Log.w(TAG, "Error fetching nearby pins.", e));
+        return functions.getHttpsCallable("getNearbyPins").call(data).continueWith(task -> {
+            nearbyPins.clear();
+            //noinspection unchecked
+            Map<String, Map<String, Object>> res =
+                    (Map<String, Map<String, Object>>) task.getResult().getData();
+            //noinspection ConstantConditions
+            res.forEach((pid, pinData) -> nearbyPins.put(pid, new NearbyPinData(pinData)));
+            return nearbyPins;
+        }).addOnFailureListener(e -> Log.w(TAG, "Error fetching nearby pins.", e));
+    }
+
+    public NearbyPinData getCachedNearbyPin(String pid) {
+        return nearbyPins.get(pid);
     }
 
     public Task<HashSet<String>> fetchFollowers(String uid) {
