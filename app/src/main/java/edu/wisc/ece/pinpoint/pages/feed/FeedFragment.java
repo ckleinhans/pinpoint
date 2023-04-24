@@ -28,6 +28,7 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class FeedFragment extends Fragment {
     public static final String UID_ARG_KEY = "uid";
+    public static final String BOTTOM_PADDING_ARG_KEY = "bottomPadding";
     private FirebaseDriver firebase;
 
     @Override
@@ -100,7 +101,9 @@ public class FeedFragment extends Fragment {
         } else {
             // Hide top bar and push up recycler view
             topBar.setVisibility(View.GONE);
-            recyclerView.setPadding(0, 0, 0, (int) (95 * scale + 0.5f));
+            boolean bottomPadding = requireArguments().getBoolean(BOTTOM_PADDING_ARG_KEY);
+            if (bottomPadding) recyclerView.setPadding(0, 0, 0, (int) (95 * scale + 0.5f));
+            else recyclerView.setPadding(0, 0, 0, (int) (10 * scale + 0.5f));
 
             // Attempt to use cached activity before fetching
             ActivityList cachedActivity = firebase.getCachedActivity(uid);

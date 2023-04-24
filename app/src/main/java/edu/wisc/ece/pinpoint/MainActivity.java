@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
-                    R.id.new_pin_fragment, R.id.pin_view);
+                    R.id.new_pin_fragment, R.id.pin_view, R.id.user_profile);
     private NavController navController;
     private NavHostFragment navHostFragment;
     private ViewSwitcher switcher;
@@ -54,9 +54,7 @@ public class MainActivity extends AppCompatActivity {
         // Disable hidden middle button
         navBar.getMenu().getItem(2).setEnabled(false);
 
-        navBar.setOnItemReselectedListener(item -> {
-            navController.navigate(item.getItemId());
-        });
+        navBar.setOnItemReselectedListener(item -> navController.navigate(item.getItemId()));
 
         // Fetch logged in user profile, following/followers, & activity on app load
         FirebaseDriver firebase = FirebaseDriver.getInstance();
