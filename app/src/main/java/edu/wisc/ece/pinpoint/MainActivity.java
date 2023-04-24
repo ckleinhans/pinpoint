@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ViewSwitcher;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
@@ -113,6 +114,16 @@ public class MainActivity extends AppCompatActivity {
             });
             // add on item reselected listener to navigate to top level fragment
             navBar.setOnItemReselectedListener(item -> navController.navigate(item.getItemId()));
+            // add on back button handler to handle in app back navigation
+            OnBackPressedCallback callback = new OnBackPressedCallback(true) {
+                @Override
+                public void handleOnBackPressed() {
+                    if (navController.getPreviousBackStackEntry() != null)
+                        navController.popBackStack();
+                    else finish();
+                }
+            };
+            getOnBackPressedDispatcher().addCallback(this, callback);
             // Switch to app view once loading is complete
             showView(R.id.content_view);
         });
