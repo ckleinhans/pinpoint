@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -12,6 +13,7 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
+import androidx.preference.PreferenceManager;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
@@ -28,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 import edu.wisc.ece.pinpoint.pages.map.MapFragment;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.LocationChangeDetection;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
 
@@ -100,15 +103,19 @@ public class MainActivity extends AppCompatActivity {
 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
+
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            preferences.edit().remove("long").commit();
+
             PeriodicWorkRequest saveRequest =
-                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 16,
+                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 1,
                             TimeUnit.MINUTES)
                             // Constraints
                             .build();
 
             WorkManager work = WorkManager.getInstance(getApplicationContext());
             work.enqueue(saveRequest);
-        }, 1);
+        }, 1000);
     }
 
     public void onMapButtonClick(View view) {
