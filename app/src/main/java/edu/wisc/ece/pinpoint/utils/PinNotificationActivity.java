@@ -52,9 +52,9 @@ public class PinNotificationActivity extends Worker {
                     }
 
                 });
-        }, 1000);
+        }, 1);
 
         // Indicate whether the work finished successfully with the Result
-        return Result.success();
+        return Result.retry();
     }
 }

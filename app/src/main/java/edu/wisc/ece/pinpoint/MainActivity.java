@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
+import androidx.preference.PreferenceManager;
+import androidx.work.PeriodicWorkRequest;
+import androidx.work.WorkManager;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -24,6 +28,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.LocationChangeDetection;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
 public class MainActivity extends AppCompatActivity {
@@ -122,6 +127,21 @@ public class MainActivity extends AppCompatActivity {
             showView(R.id.content_view);
         });
 
+        Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(() -> {
+
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+            preferences.edit().remove("long").commit();
+
+            PeriodicWorkRequest saveRequest =
+                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 1,
+                            TimeUnit.MINUTES)
+                            // Constraints
+                            .build();
+
+            WorkManager work = WorkManager.getInstance(getApplicationContext());
+            work.enqueue(saveRequest);
+        }, 1000);
 //        Handler handler = new Handler(Looper.getMainLooper());
 //        handler.postDelayed(() -> {
 //            PeriodicWorkRequest saveRequest =
