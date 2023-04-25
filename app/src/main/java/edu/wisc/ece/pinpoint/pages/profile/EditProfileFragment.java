@@ -143,13 +143,12 @@ public class EditProfileFragment extends Fragment {
         takePictureRunnable = this::takePicture;
         uploadPictureRunnable = this::uploadPicture;
 
-
         // Make location input open autocomplete picker instead of allowing typing
         locationInput.setKeyListener(null);
         locationInput.setOnFocusChangeListener(this::launchLocationAutocomplete);
         locationInput.setOnClickListener(
                 (locationView) -> launchLocationAutocomplete(locationView, true));
-
+        loadLayoutContainer.setOnClickListener(v -> {});
         cancelButton.setOnClickListener((buttonView) -> navController.popBackStack());
         saveButton.setOnClickListener(this::save);
         profilePicUpload.setOnClickListener(view1 -> showSelectDialog());
