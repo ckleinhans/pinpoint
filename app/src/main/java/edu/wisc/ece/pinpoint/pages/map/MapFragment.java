@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -124,6 +125,9 @@ public class MapFragment extends Fragment {
 
         setPinnieCount();
         handleFilters();
+
+        ImageButton nfc_button = requireView().findViewById(R.id.map_nfc_share);
+        nfc_button.setOnClickListener(v -> navController.navigate(MapContainerFragmentDirections.receiveNFCPin()));
     }
 
     private void handleFilters() {
@@ -205,8 +209,9 @@ public class MapFragment extends Fragment {
     private void loadNFCPins() {
         // Pull hash map of <String pid, Map<String, Object> data>
         // Drop an undiscovered marker for each
+        String filename = requireContext().getFilesDir()+"shared_pins";
         try{
-            FileInputStream fis = new FileInputStream("nfc_pins");
+            FileInputStream fis = new FileInputStream(filename);
             ObjectInputStream in = new ObjectInputStream(fis);
             nfcPins = (HashMap<String, Map<String, Object>>) in.readObject();
             nfcPins.forEach((pid, data) -> createUndiscoveredPin(pid, data, true));
@@ -223,14 +228,11 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void receiveNFCPin() {
-        // TODO: receive file, add to hashmap, call updateNFCPins, reload NFC and undiscovered pins on map
-    }
-
     private void updateNFCPins() {
         // Rewrite nfc_pins file with updated hash map
+        String filename = requireContext().getFilesDir()+"shared_pins";
         try{
-            FileOutputStream fos = new FileOutputStream("nfc_pins");
+            FileOutputStream fos = new FileOutputStream(filename);
             ObjectOutputStream out = new ObjectOutputStream(fos);
             out.writeObject(nfcPins);
             out.close();

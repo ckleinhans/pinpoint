@@ -27,9 +27,17 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.connection.AdvertisingOptions;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -40,6 +48,7 @@ import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
+import edu.wisc.ece.pinpoint.pages.map.MapContainerFragmentDirections;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
@@ -285,26 +294,29 @@ public class PinViewFragment extends Fragment {
 
     private void sharePin() {
         // Get pin data
-        Pin pin = firebase.getCachedPin(pid);
-        // Create map to store data in temp file
-        Map<String, Object> pinData = new HashMap<>();
-        pinData.put("authorUID", pin.getAuthorUID());
-        pinData.put("latitude", pin.getLocation().getLatitude());
-        pinData.put("longitude", pin.getLocation().getLongitude());
-        // Store data locally
-        try{
-            FileOutputStream fos = new FileOutputStream("tmp_nfc_pin");
-            ObjectOutputStream out = new ObjectOutputStream(fos);
-            out.writeObject(pinData);
-            out.close();
-            fos.close();
-            Log.d(TAG, "Successfully temp stored PID " + pid + ".");
-        }
-        catch (Exception e){
-            Log.w(TAG, e);
-        }
+//        Pin pin = firebase.getCachedPin(pid);
+//        // Create map to store data in temp file
+//        Map<String, Object> pinData = new HashMap<>();
+//        pinData.put("authorUID", pin.getAuthorUID());
+//        pinData.put("latitude", pin.getLocation().getLatitude());
+//        pinData.put("longitude", pin.getLocation().getLongitude());
+//        // Store data locally
+//        try{
+//            String filename = requireContext().getFilesDir()+"tmp_nfc_pin.txt";
+//            FileOutputStream fos = new FileOutputStream(filename);
+//            ObjectOutputStream out = new ObjectOutputStream(fos);
+//            out.writeObject(pinData);
+//            out.close();
+//            fos.close();
+//            Log.d(TAG, "Successfully temp stored PID " + pid + ". at "+filename);
+//        }
+//        catch (Exception e){
+//            Log.w(TAG, e);
+//        }
+        // Send file
+        navController.navigate(PinViewFragmentDirections.sendNFCPin(pid));
 
-        // TODO: Share via NFC
+
         // TODO: Delete local file
     }
 

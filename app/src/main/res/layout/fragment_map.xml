@@ -106,13 +106,27 @@
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <ImageButton
+        android:id="@+id/map_nfc_share"
+        android:layout_width="39dp"
+        android:layout_height="39dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="60dp"
+        android:alpha="0.75"
+        android:background="?attr/colorPrimary"
+        android:translationZ="45dp"
+        android:src="@drawable/ic_nfc_share"
+        app:tint="?attr/colorOnPrimary"/>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="12dp"
-        android:layout_marginEnd="60dp"
+        android:layout_marginEnd="110dp"
         android:alpha="0.75"
         android:background="?attr/colorSecondary"
         android:translationZ="45dp">
