@@ -107,4 +107,5 @@
     <string name="toggle_pin_filter">Toggle Pin Filter</string>
     <string name="dropping_pin">Dropping Pin</string>
     <string name="deleting_pin">Deleting Pin</string>
+    <string name="saving_profile">Saving Profile</string>
 </resources>
