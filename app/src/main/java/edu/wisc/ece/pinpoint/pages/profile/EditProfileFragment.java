@@ -4,6 +4,7 @@ import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -16,6 +17,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -25,6 +27,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -69,8 +72,11 @@ public class EditProfileFragment extends Fragment {
     private ActivityResultLauncher<Intent> locationAutocompleteLauncher;
     private Uri photo;
     private Handler h;
+    private ConstraintLayout loadLayoutContainer;
     private Runnable takePictureRunnable;
     private Runnable uploadPictureRunnable;
+    private ImageButton cancelButton;
+    private ImageButton saveButton;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -130,8 +136,9 @@ public class EditProfileFragment extends Fragment {
         locationInput = requireView().findViewById(R.id.profile_edit_location);
         bioInput = requireView().findViewById(R.id.profile_edit_bio);
         profilePicUpload = requireView().findViewById(R.id.profile_edit_image);
-        ImageButton cancelButton = requireView().findViewById(R.id.profile_edit_cancel);
-        ImageButton saveButton = requireView().findViewById(R.id.profile_edit_save);
+        loadLayoutContainer = requireView().findViewById(R.id.edit_prof_load_layout_container);
+        cancelButton = requireView().findViewById(R.id.profile_edit_cancel);
+        saveButton = requireView().findViewById(R.id.profile_edit_save);
         h = new Handler(Looper.getMainLooper());
         takePictureRunnable = this::takePicture;
         uploadPictureRunnable = this::uploadPicture;
@@ -174,7 +181,23 @@ public class EditProfileFragment extends Fragment {
         });
     }
 
+    private void lockUI(){
+        loadLayoutContainer.setVisibility(View.VISIBLE);
+        InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+        saveButton.setVisibility(View.INVISIBLE);
+        cancelButton.setVisibility(View.INVISIBLE);
+    }
+
+    private void restoreUI(){
+        loadLayoutContainer.setVisibility(View.GONE);
+        saveButton.setVisibility(View.VISIBLE);
+        cancelButton.setVisibility(View.VISIBLE);
+    }
+
     private void save(View buttonView) {
+
         if (ValidationUtils.isEmpty(usernameInput)) {
             usernameInputLayout.setError(getString(R.string.missing_username));
             return;
@@ -182,7 +205,8 @@ public class EditProfileFragment extends Fragment {
             usernameInputLayout.setErrorEnabled(false);
         }
 
-        buttonView.setEnabled(false);
+        lockUI();
+
         String uid = firebase.getUid();
         User cachedUser = firebase.getCachedUser(uid);
 
@@ -205,7 +229,7 @@ public class EditProfileFragment extends Fragment {
                         .setProfilePicUrl(oldProfilePicUrl, false);
                 Toast.makeText(requireContext(), "Couldn't save profile. Try again later.",
                         Toast.LENGTH_LONG).show();
-                buttonView.setEnabled(true);
+                restoreUI();
             }
         };
 
@@ -222,7 +246,7 @@ public class EditProfileFragment extends Fragment {
                 } else {
                     Toast.makeText(requireActivity(), "Image upload failed. Try again later.",
                             Toast.LENGTH_LONG).show();
-                    buttonView.setEnabled(true);
+                    restoreUI();
                 }
             });
         } else {
