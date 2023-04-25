@@ -1,8 +1,6 @@
 package edu.wisc.ece.pinpoint;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ViewSwitcher;
@@ -12,8 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
-import androidx.work.PeriodicWorkRequest;
-import androidx.work.WorkManager;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
@@ -26,11 +22,9 @@ import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
-import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
@@ -128,17 +122,17 @@ public class MainActivity extends AppCompatActivity {
             showView(R.id.content_view);
         });
 
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.postDelayed(() -> {
-            PeriodicWorkRequest saveRequest =
-                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 16,
-                            TimeUnit.MINUTES)
-                            // Constraints
-                            .build();
-
-            WorkManager work = WorkManager.getInstance(getApplicationContext());
-            work.enqueue(saveRequest);
-        }, 1);
+//        Handler handler = new Handler(Looper.getMainLooper());
+//        handler.postDelayed(() -> {
+//            PeriodicWorkRequest saveRequest =
+//                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 16,
+//                            TimeUnit.MINUTES)
+//                            // Constraints
+//                            .build();
+//
+//            WorkManager work = WorkManager.getInstance(getApplicationContext());
+//            work.enqueue(saveRequest);
+//        }, 1);
     }
 
     public void onMapButtonClick(View view) {
