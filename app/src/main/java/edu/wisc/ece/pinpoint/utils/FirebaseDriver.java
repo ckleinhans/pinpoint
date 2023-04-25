@@ -431,7 +431,7 @@ public class FirebaseDriver {
             String pid = (String) task.getResult().getData();
             pins.put(pid, newPin);
             droppedPinMetadata.add(new PinMetadata(pid, newPin.getBroadLocationName(),
-                    newPin.getNearbyLocationName(), PinMetadata.PinSource.SELF));
+                    newPin.getNearbyLocationName(), PinMetadata.PinSource.SELF, cost));
             activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.DROP,
                     newPin.getBroadLocationName(), newPin.getNearbyLocationName()));
             pinnies -= cost;
@@ -469,7 +469,7 @@ public class FirebaseDriver {
             activity.add(new ActivityItem(auth.getUid(), pid, ActivityItem.ActivityType.FIND,
                     broadLocationName, nearbyLocationName));
             foundPinMetadata.add(
-                    new PinMetadata(pid, broadLocationName, nearbyLocationName, pinSource));
+                    new PinMetadata(pid, broadLocationName, nearbyLocationName, pinSource, null));
 
             return reward;
         }).addOnFailureListener(e -> Log.w(TAG, "Error finding pin from cloud func: ", e));

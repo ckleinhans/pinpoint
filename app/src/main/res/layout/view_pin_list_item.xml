@@ -36,6 +36,12 @@
             app:chipMinHeight="20dp"
             app:chipMinTouchTargetSize="0dp"
             app:chipStartPadding="0dp"
+            app:closeIcon="@drawable/ic_pinnies_logo"
+            app:closeIconEndPadding="4dp"
+            app:closeIconSize="13dp"
+            app:closeIconStartPadding="-4dp"
+            app:closeIconTint="@color/white"
+            app:closeIconVisible="false"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>

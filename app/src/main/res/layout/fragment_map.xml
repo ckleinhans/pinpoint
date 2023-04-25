@@ -87,7 +87,7 @@
                 android:drawableStart="@drawable/ic_pin"
                 android:drawablePadding="6dp"
                 android:drawableTint="@color/landmark_pins"
-                android:text="@string/landmarks_text"
+                android:text="@string/landmark_text"
                 android:textColor="?attr/colorOnPrimary" />
 
             <CheckBox
