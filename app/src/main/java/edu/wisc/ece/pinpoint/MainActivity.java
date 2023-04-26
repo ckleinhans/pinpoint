@@ -131,10 +131,11 @@ public class MainActivity extends AppCompatActivity {
         handler.postDelayed(() -> {
 
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-            preferences.edit().remove("long").commit();
+            preferences.edit().remove("longitude").commit();
+            preferences.edit().remove("latitude").commit();
 
             PeriodicWorkRequest saveRequest =
-                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 1,
+                    new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 1,
                             TimeUnit.MINUTES)
                             // Constraints
                             .build();
