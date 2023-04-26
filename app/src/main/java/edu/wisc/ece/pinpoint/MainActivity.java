@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
             preferences.edit().remove("latitude").commit();
 
             PeriodicWorkRequest saveRequest =
-                    new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 1,
+                    new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 30,
                             TimeUnit.MINUTES)
                             // Constraints
                             .build();
