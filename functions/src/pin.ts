@@ -57,28 +57,7 @@ export const dropPinHandler = async (
   await firestore().runTransaction(async (t) => {
     const timestamp = new Date();
 
-    // anti-spoof check
-    const userData = (await t.get(privateDataRef)).data();
-    if (!userData) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "User does not exist."
-      );
-    }
-
-    const lastActivity = new Date(userData.lastActivity);
-    const lastLocation: Geopoint = userData.lastLocation;
-
-    if (!antiSpoofCheck(
-      lastLocation,
-      [latitude, longitude],
-      lastActivity,
-      timestamp)) {
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "You are moving suspiciously fast."
-      );
-    }
+    await locationSecurityCheck(t, privateDataRef, [latitude, longitude], timestamp);
 
     // Create pin object & calculate cost
     const pin: Pin = {
@@ -153,9 +132,7 @@ export const findPinHandler = async (
       "dropPin must be called while authenticated."
     );
   }
-  // TODO: add !pinSource once merged & remove below line
-  if (pinSource == undefined) pinSource = PinSource.GENERAL;
-  if (!pid || !latitude || !longitude) {
+  if (!pid || !latitude || !longitude || !pinSource) {
     throw new functions.https.HttpsError(
       "invalid-argument",
       "dropPin must be called with proper arguments."
@@ -182,28 +159,7 @@ export const findPinHandler = async (
   return await firestore().runTransaction(async (t) => {
     const timestamp = new Date();
 
-    // anti-spoof check
-    const userData = (await t.get(privateDataRef)).data();
-    if (!userData) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "User does not exist."
-      );
-    }
-
-    const lastActivity = new Date(userData.lastActivity);
-    const lastLocation: Geopoint = userData.lastLocation;
-
-    if (!antiSpoofCheck(
-      lastLocation,
-      [latitude, longitude],
-      lastActivity,
-      timestamp)) {
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "You are moving too fast."
-      );
-    }
+    await locationSecurityCheck(t, privateDataRef, [latitude, longitude], timestamp);
 
     // Check pin exists
     const pinData: Pin = <Pin>(await pinRef.get()).data();
@@ -274,6 +230,44 @@ export const findPinHandler = async (
   });
 };
 
+// checks speed based on diff between previous and current timestamp and location
+// throws HTTP error if invalid speed is detected
+// users with `isDev: true` in their private metadata will bypass this check
+async function locationSecurityCheck(
+  transaction: firestore.Transaction,
+  privDataRef: firestore.DocumentReference<firestore.DocumentData>,
+  currLoc: Geopoint,
+  currTime: Date
+) {
+  // anti-spoof check
+  const userData = (await transaction.get(privDataRef)).data();
+  if (!userData) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "User does not exist."
+    );
+  }
+
+  // developers get to skip location check
+  if (userData.isDev) {
+    return;
+  }
+
+  const lastActivity = new Date(userData.lastActivity);
+  const lastLocation: Geopoint = userData.lastLocation;
+
+  if (!antiSpoofCheck(
+    lastLocation,
+    currLoc,
+    lastActivity,
+    currTime)) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Location spoofing detected. You are moving suspiciously fast."
+    );
+  }
+}
+
 function antiSpoofCheck(
   prevLoc: Geopoint,
   currLoc: Geopoint,
@@ -283,7 +277,7 @@ function antiSpoofCheck(
   const KILO_TO_MILE: number = 0.6213711;
 
   // so we don't break existing users
-  if (prevLoc === undefined || prevTimestamp === undefined) {
+  if (!prevLoc || !prevTimestamp) {
     console.log("user does not have previous location / timestamp, passing check");
     return true;
   }
