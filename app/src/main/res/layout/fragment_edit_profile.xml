@@ -119,7 +119,7 @@
 
     <RelativeLayout
         android:id="@+id/profile_edit_img"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@+id/top_bar"
         tools:ignore="MissingConstraints">
@@ -128,8 +128,8 @@
             android:id="@+id/profile_edit_image"
             android:layout_width="125dp"
             android:layout_height="125dp"
-            android:layout_marginTop="15dp"
-            android:layout_marginLeft="150dp"
+            android:layout_marginTop="30dp"
+            android:layout_centerInParent="true"
             android:contentDescription="@string/profile_pic_upload_text"
             android:src="@drawable/ic_profile"
             android:foreground="@drawable/profile_pic_overlay"
@@ -146,7 +146,7 @@
             android:layout_alignTop="@id/profile_edit_image"
             android:layout_alignRight="@id/profile_edit_image"
             android:layout_alignBottom="@id/profile_edit_image"
-            android:layout_marginBottom="15dp"
+            android:layout_marginBottom="27dp"
             android:layout_marginLeft="27dp"
             android:gravity="bottom"
             android:text="Edit Picture"
