@@ -108,4 +108,5 @@
     <string name="deleting_pin">Deleting Pin</string>
     <string name="saving_profile">Saving Profile</string>
     <string name="deleting_account">Deleting Account</string>
+    <string name="loading_pin">Loading Pin</string>
 </resources>

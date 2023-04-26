@@ -11,6 +11,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -22,6 +23,7 @@ import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
 public class MapContainerFragment extends Fragment {
     private ActivityResultLauncher<String[]> locationPermissionRequest;
+    private ConstraintLayout loadLayoutContainer;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -56,6 +58,9 @@ public class MapContainerFragment extends Fragment {
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        loadLayoutContainer = requireView().findViewById(R.id.map_load_layout_container);
+        loadLayoutContainer.setOnClickListener(v -> {});
+
         locationPermissionRequest.launch(new String[]{Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION});
         NavController navController = Navigation.findNavController(view);
