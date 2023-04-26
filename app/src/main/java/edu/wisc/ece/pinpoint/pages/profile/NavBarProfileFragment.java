@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
@@ -55,7 +56,10 @@ public class NavBarProfileFragment extends Fragment {
         navController = Navigation.findNavController(view);
         username = requireView().findViewById(R.id.profile_username);
         followerCount = requireView().findViewById(R.id.profile_follower_count);
+        ConstraintLayout followerLayout = requireView().findViewById(R.id.profile_follower_layout);
         followingCount = requireView().findViewById(R.id.profile_following_count);
+        ConstraintLayout followingLayout =
+                requireView().findViewById(R.id.profile_following_layout);
         pinsDroppedCount = requireView().findViewById(R.id.profile_dropped_count);
         pinsFoundCount = requireView().findViewById(R.id.profile_found_count);
         location = requireView().findViewById(R.id.profile_location);
@@ -79,6 +83,13 @@ public class NavBarProfileFragment extends Fragment {
             setUserData(cachedUser, uid);
         }
         firebase.fetchUser(uid).addOnCompleteListener(task -> setUserData(task.getResult(), uid));
+
+        followerLayout.setOnClickListener(v -> navController.navigate(
+                ProfilePageFragmentDirections.userList(UserListFragment.UserListType.FOLLOWERS,
+                        uid)));
+        followingLayout.setOnClickListener(v -> navController.navigate(
+                ProfilePageFragmentDirections.userList(UserListFragment.UserListType.FOLLOWING,
+                        uid)));
 
         tabLayout = requireView().findViewById(R.id.tab_layout);
         viewPager = requireView().findViewById(R.id.view_pager);
