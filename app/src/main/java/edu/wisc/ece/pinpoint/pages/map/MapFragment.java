@@ -64,8 +64,7 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> nfcMarkers;
     private ArrayList<Marker> devMarkers;
     private ArrayList<Marker> strangerMarkers;
-    private final Integer MARKER_IMAGE_LOAD_TIME_FAST = 200;
-    private final Integer MARKER_IMAGE_LOAD_TIME_SLOW = 1000;
+    private final Integer MARKER_IMAGE_LOAD_TIME = 250;
     private boolean isFilterVisible = false;
     private ConstraintLayout loadLayoutContainer;
 
@@ -196,9 +195,7 @@ public class MapFragment extends Fragment {
 
                 //call a second time to set the image (should actually be loaded by this time)
                 final Handler handler = new Handler(Looper.getMainLooper());
-                handler.postDelayed(() -> mark.showInfoWindow(), MARKER_IMAGE_LOAD_TIME_FAST);
-                handler.postDelayed(() -> mark.showInfoWindow(), MARKER_IMAGE_LOAD_TIME_SLOW);
-
+                handler.postDelayed(() -> mark.showInfoWindow(), MARKER_IMAGE_LOAD_TIME);
                 return true;
             });
         }
