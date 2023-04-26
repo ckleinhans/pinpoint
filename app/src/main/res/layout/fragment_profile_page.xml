@@ -60,7 +60,6 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-
     <ImageView
         android:id="@+id/profile_pic"
         android:layout_width="100dp"
@@ -68,15 +67,9 @@
         android:layout_margin="15dp"
         android:contentDescription="@string/profile_pic_text"
         android:src="@drawable/ic_profile"
-        android:background="@drawable/profile_pic_overlay"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/top_bar" />
-
-
-
-
-
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/profile_follower_layout"
