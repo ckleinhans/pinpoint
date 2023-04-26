@@ -27,8 +27,8 @@ export async function calculateCost(
   dropLoc: Geopoint,
   transaction?: Transaction
 ) {
-  const RADIUS_METERS = 2000;
-  const MAX_COEFF = 20;
+  const RADIUS_METERS = 1000;
+  const MAX_COEFF = 50;
   const SCALE = 4;
 
   const pins = await getPinsNearby(dropLoc, RADIUS_METERS, transaction);
