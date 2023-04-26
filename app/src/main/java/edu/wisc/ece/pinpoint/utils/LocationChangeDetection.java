@@ -15,8 +15,10 @@ import androidx.work.WorkerParameters;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.tasks.Task;
 
+import java.util.HashMap;
 import java.util.Map;
 
+import edu.wisc.ece.pinpoint.data.NearbyPinData;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 
 public class LocationChangeDetection extends Worker {
@@ -25,7 +27,7 @@ public class LocationChangeDetection extends Worker {
     private static final double ONE_MILE_LATITUDE_DEGREES = 0.014492753623188;
     String x;
     Context context;
-    Map<String, Map<String, Object>> nearbyPins;
+    HashMap<String, NearbyPinData> nearbyPins;
 
     OrderedPinMetadata pins;
     private Location newLoc;
@@ -96,7 +98,7 @@ public class LocationChangeDetection extends Worker {
             }
 
 
-        }, 1000);
+        }, 1);
 
         return Result.retry();
     }
