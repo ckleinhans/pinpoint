@@ -143,17 +143,6 @@ public class MainActivity extends AppCompatActivity {
             WorkManager work = WorkManager.getInstance(getApplicationContext());
             work.enqueue(saveRequest);
         }, 1000);
-//        Handler handler = new Handler(Looper.getMainLooper());
-//        handler.postDelayed(() -> {
-//            PeriodicWorkRequest saveRequest =
-//                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 16,
-//                            TimeUnit.MINUTES)
-//                            // Constraints
-//                            .build();
-//
-//            WorkManager work = WorkManager.getInstance(getApplicationContext());
-//            work.enqueue(saveRequest);
-//        }, 1);
     }
 
     public void onMapButtonClick(View view) {
