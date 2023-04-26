@@ -718,6 +718,4 @@ public class FirebaseDriver {
                     }
                 });
     }
-
-
 }
