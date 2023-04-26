@@ -10,7 +10,6 @@ import android.widget.ViewSwitcher;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
-import androidx.navigation.Navigation;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
 import androidx.preference.PreferenceManager;
@@ -28,11 +27,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import edu.wisc.ece.pinpoint.pages.map.MapFragment;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationChangeDetection;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
-import edu.wisc.ece.pinpoint.utils.PinNotificationActivity;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = MainActivity.class.getName();
@@ -105,10 +102,11 @@ public class MainActivity extends AppCompatActivity {
         handler.postDelayed(() -> {
 
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-            preferences.edit().remove("long").commit();
+            preferences.edit().remove("longitude").commit();
+            preferences.edit().remove("latitude").commit();
 
             PeriodicWorkRequest saveRequest =
-                    new PeriodicWorkRequest.Builder(PinNotificationActivity.class, 1,
+                    new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 1,
                             TimeUnit.MINUTES)
                             // Constraints
                             .build();
