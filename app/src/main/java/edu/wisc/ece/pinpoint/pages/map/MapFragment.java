@@ -66,6 +66,7 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> strangerMarkers;
     private final Integer MARKER_IMAGE_LOAD_TIME = 200;
     private boolean isFilterVisible = false;
+    private ConstraintLayout loadLayoutContainer;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -110,13 +111,21 @@ public class MapFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
-
+        loadLayoutContainer = this.getParentFragment().requireView().findViewById(R.id.map_load_layout_container);
         pinnieProgressBar = requireView().findViewById(R.id.map_pinnies_progress);
         pinniesText = requireView().findViewById(R.id.map_pinnies_text);
         pinnies_logo = requireView().findViewById(R.id.map_pinnies_logo);
 
         setPinnieCount();
         handleFilters();
+    }
+
+    private void lockUI(){
+        loadLayoutContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void restoreUI(){
+        loadLayoutContainer.setVisibility(View.GONE);
     }
 
     private void handleFilters() {
@@ -237,6 +246,7 @@ public class MapFragment extends Fragment {
     }
 
     private void handleUndiscoveredPinClick(Marker marker) {
+
         if (getActivity() == null) {
             Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_SHORT)
                     .show();
@@ -253,11 +263,13 @@ public class MapFragment extends Fragment {
             if (LocationDriver.isCloseEnoughToFindPin(
                     new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
                     marker.getPosition())) {
+                lockUI();
                 String pinId = (String) marker.getTag();
                 NearbyPinData pinData = firebase.getCachedNearbyPin(pinId);
                 PinSource source = pinData.getSource() == PinSource.FRIEND ? PinSource.GENERAL :
                         pinData.getSource();
                 firebase.findPin(pinId, userLoc, source).addOnSuccessListener(reward -> {
+                    restoreUI();
                     Toast.makeText(requireContext(),
                             String.format(getString(R.string.pinnie_reward_message), reward),
                             Toast.LENGTH_LONG).show();
@@ -265,8 +277,9 @@ public class MapFragment extends Fragment {
                     navController.navigate(
                             MapContainerFragmentDirections.pinView(marker.getTag().toString()));
                 }).addOnFailureListener(
-                        e -> Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG)
-                                .show());
+                        e -> {restoreUI();
+                            Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG)
+                                .show();});
             } else {
                 Toast.makeText(requireContext(), R.string.undiscovered_pin_not_close_enough,
                         Toast.LENGTH_SHORT).show();

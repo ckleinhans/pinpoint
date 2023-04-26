@@ -2,7 +2,6 @@
     <!-- Fields for FirebaseUI Authentication -->
     <string name="fui_missing_first_and_last_name">@string/missing_username</string>
     <string name="fui_name_hint">@string/username_text</string>
-
     <string name="app_name">PinPoint</string>
     <string name="follow_text">Follow</string>
     <string name="unfollow_text">Unfollow</string>
@@ -105,4 +104,9 @@
     <string name="nfc_text">NFC</string>
     <string name="my_pins_text">My Pins</string>
     <string name="toggle_pin_filter">Toggle Pin Filter</string>
+    <string name="dropping_pin">Dropping Pin</string>
+    <string name="deleting_pin">Deleting Pin</string>
+    <string name="saving_profile">Saving Profile</string>
+    <string name="deleting_account">Deleting Account</string>
+    <string name="loading_pin">Loading Pin</string>
 </resources>
