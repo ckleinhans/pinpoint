@@ -63,8 +63,9 @@ public class LocationChangeDetection extends Worker {
                             double newLong = newLoc.getLongitude();
                             double distance = calcDistanceMiles(newLat , Double.parseDouble(preferences.getString("latitude","")) ,
                                     newLong, Double.parseDouble(preferences.getString("longitude","")));
+                            Log.d("dist", String.valueOf(distance));
 
-                            if (newLoc != null && (distance <= 1.0)) {
+                            if (newLoc != null && (distance <= 0.2)) {
                             } else {
                                 firebaseDriver = FirebaseDriver.getInstance();
                                 firebaseDriver.fetchNearbyPins(newLoc).addOnCompleteListener(task1 -> {
