@@ -45,13 +45,14 @@ import java.util.Map;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
-public class ReceiveNFCFragment extends Fragment {
+public class ReceiveSharedFragment extends Fragment {
 
     private final FirebaseDriver firebase = FirebaseDriver.getInstance();
-    private final String recipient = firebase.getCachedUser(firebase.getUid()).getUsername();
+    private final String recipient = firebase.getUid();
     private TextView progressText;
     private TextView senderText;
     private NavController navController;
+    private static final String TAG = "RECEIVE";
 
     private final EndpointDiscoveryCallback endpointDiscoveryCallback = new EndpointDiscoveryCallback() {
         @Override
@@ -67,6 +68,8 @@ public class ReceiveNFCFragment extends Fragment {
                     .addOnFailureListener(
                             (Exception e) -> {
                                 // Nearby Connections failed to request the connection.
+                                Toast.makeText(requireContext(),
+                                        R.string.pin_share_exception_text, Toast.LENGTH_LONG).show();
                             });
         }
 
@@ -78,10 +81,13 @@ public class ReceiveNFCFragment extends Fragment {
 
     private final ConnectionLifecycleCallback connectionLifecycleCallback =
             new ConnectionLifecycleCallback() {
+                private String sender;
                 @Override
                 public void onConnectionInitiated(String endpointId, ConnectionInfo connectionInfo) {
                     // Automatically accept the connection on both sides.
+
                     Nearby.getConnectionsClient(requireContext()).acceptConnection(endpointId, payloadCallback);
+                    sender = connectionInfo.getEndpointName();
                 }
 
                 @Override
@@ -89,13 +95,17 @@ public class ReceiveNFCFragment extends Fragment {
                     switch (result.getStatus().getStatusCode()) {
                         case ConnectionsStatusCodes.STATUS_OK:
                             // We're connected! Can now start sending and receiving data.
-                            senderText.setText("Connected to "+endpointId);
+                            senderText.setText("Connected to "+sender);
                             break;
                         case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                             // The connection was rejected by one or both sides.
+                            Toast.makeText(requireContext(),
+                                    R.string.connection_rejected_text, Toast.LENGTH_LONG).show();
                             break;
                         case ConnectionsStatusCodes.STATUS_ERROR:
                             // The connection broke before it was able to be accepted.
+                            Toast.makeText(requireContext(),
+                                    R.string.pin_share_exception_text, Toast.LENGTH_LONG).show();
                             break;
                         default:
                             // Unknown status code
@@ -123,16 +133,9 @@ public class ReceiveNFCFragment extends Fragment {
                         case PayloadTransferUpdate.Status.SUCCESS:
                             progressText.setText("TRANSFER COMPLETE!");
                             break;
-                        case  PayloadTransferUpdate.Status.FAILURE:
-                            progressText.setText("TRANSFER FAILURE!");
-                            break;
-
-                        case PayloadTransferUpdate.Status.CANCELED:
-                            progressText.setText("TRANSFER CANCELED!");
-                            break;
-
-                        case PayloadTransferUpdate.Status.IN_PROGRESS:
-                            progressText.setText("TRANSFER IN PROGRESS!");
+                        default:
+                            Toast.makeText(requireContext(),
+                                    R.string.pin_share_exception_text, Toast.LENGTH_LONG).show();
                             break;
                     }
 
@@ -238,9 +241,9 @@ public class ReceiveNFCFragment extends Fragment {
                     in.close();
                     fis.close();
                 } catch (FileNotFoundException e) {
-                    Log.i("ReceiveNFCPins", "No existing nfc pins");
+                    Log.i(TAG, "No existing nfc pins");
                 } catch (Exception e) {
-                    Log.w("ReceiveNFCPins", e);
+                    Log.w(TAG, e);
                 }
                 // Add new pin to hash map
                 nfcPins.put(pid, pinData);
@@ -250,9 +253,8 @@ public class ReceiveNFCFragment extends Fragment {
                     out.writeObject(nfcPins);
                     out.close();
                     fos.close();
-                    System.out.println("Successfully stored " + nfcPins.size() + " pins.");
                 } catch (Exception e) {
-                    Log.w("ReceiveNFCPins", e);
+                    Log.w(TAG, e);
                 }
                 navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.map());
             }

@@ -101,4 +101,6 @@
     <string name="share_in_progress_text">Pin sharing in progress...</string>
     <string name="share_complete_text">Pin sharing complete!</string>
     <string name="service_id">edu.wisc.ece.pinpoint</string>
+    <string name="pin_share_exception_text">Something went wrong when trying to share pins. Please try again later.</string>
+    <string name="connection_rejected_text">Connection was rejected by other user.</string>
 </resources>

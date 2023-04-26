@@ -96,12 +96,12 @@
     </fragment>
     <fragment
         android:id="@+id/receive_nfc_fragment"
-        android:name="edu.wisc.ece.pinpoint.pages.map.ReceiveNFCFragment"
+        android:name="edu.wisc.ece.pinpoint.pages.map.ReceiveSharedFragment"
         android:label="fragment_receive_nfc"
         tools:layout="@layout/fragment_receive_nfc" />
     <fragment
         android:id="@+id/send_nfc_fragment"
-        android:name="edu.wisc.ece.pinpoint.pages.map.SendNFCFragment"
+        android:name="edu.wisc.ece.pinpoint.pages.map.SendSharedFragment"
         android:label="fragment_send_nfc"
         tools:layout="@layout/fragment_send_nfc" >
         <argument

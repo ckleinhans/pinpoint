@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".pages.map.ReceiveNFCFragment">
+    tools:context=".pages.map.ReceiveSharedFragment">
 
     <TextView
         android:id="@+id/receive_text"

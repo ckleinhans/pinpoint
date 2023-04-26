@@ -37,9 +37,7 @@ import com.google.firebase.firestore.GeoPoint;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,7 +70,7 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> devMarkers;
     private ArrayList<Marker> strangerMarkers;
     private boolean isFilterVisible = false;
-    private HashMap<String, Map<String, Object>> nfcPins;
+    private HashMap<String, Map<String, Object>> sharedPins;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -82,7 +80,7 @@ public class MapFragment extends Fragment {
         nfcMarkers = new ArrayList<>();
         devMarkers = new ArrayList<>();
         strangerMarkers = new ArrayList<>();
-        nfcPins = new HashMap<>();
+        sharedPins = new HashMap<>();
     }
 
     @Override
@@ -99,7 +97,7 @@ public class MapFragment extends Fragment {
             styleMap();
             getDeviceLocation();
             loadDiscoveredPins();
-            loadNFCPins();
+            loadSharedPins();
             map.setOnInfoWindowClickListener(marker -> {
                 if (marker.getAlpha() == 1f) {
                     // Already discovered pin
@@ -206,38 +204,42 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void loadNFCPins() {
+    private void loadSharedPins() {
         // Pull hash map of <String pid, Map<String, Object> data>
         // Drop an undiscovered marker for each
         String filename = requireContext().getFilesDir()+"shared_pins";
         try{
             FileInputStream fis = new FileInputStream(filename);
             ObjectInputStream in = new ObjectInputStream(fis);
-            nfcPins = (HashMap<String, Map<String, Object>>) in.readObject();
-            nfcPins.forEach((pid, data) -> createUndiscoveredPin(pid, data, true));
+            sharedPins = (HashMap<String, Map<String, Object>>) in.readObject();
+            sharedPins.forEach((pid, data) -> createUndiscoveredPin(pid, data, true));
             in.close();
             fis.close();
-            Log.d(TAG, "Successfully loaded "+nfcPins.size()+" NFC pins.");
+            Log.d(TAG, "Successfully loaded "+ sharedPins.size()+" shared pins.");
         }
         // If file not found, the user has no NFC pins
         catch (FileNotFoundException e){
-            Log.d(TAG, "No NFC Pins loaded.");
+            Log.d(TAG, "No shared pins loaded.");
+            // Reset nfc pins if exception occurs
+            sharedPins = new HashMap<>();
         }
         catch (Exception e){
             Log.w(TAG, e);
+            // Reset nfc pins if exception occurs
+            sharedPins = new HashMap<>();
         }
     }
 
-    private void updateNFCPins() {
+    private void updateSharedPins() {
         // Rewrite nfc_pins file with updated hash map
         String filename = requireContext().getFilesDir()+"shared_pins";
         try{
             FileOutputStream fos = new FileOutputStream(filename);
             ObjectOutputStream out = new ObjectOutputStream(fos);
-            out.writeObject(nfcPins);
+            out.writeObject(sharedPins);
             out.close();
             fos.close();
-            Log.d(TAG, "Successfully stored " + nfcPins.size() + " pins.");
+            Log.d(TAG, "Successfully stored " + sharedPins.size() + " pins.");
         }
         catch (Exception e){
             Log.w(TAG, e);
@@ -303,8 +305,8 @@ public class MapFragment extends Fragment {
                     case "NFC":
                         pinSource = PinSource.NFC;
                         // Remove NFC pin from hash map
-                        nfcPins.remove(marker.getTag().toString());
-                        updateNFCPins();
+                        sharedPins.remove(marker.getTag().toString());
+                        updateSharedPins();
                         break;
                     default:
                         // Do not store friend enum in cloud,
@@ -385,7 +387,8 @@ public class MapFragment extends Fragment {
                                         // load pin if undiscovered
                                         if (!firebase.getCachedDroppedPinMetadata().contains(
                                                 key) && !firebase.getCachedFoundPinMetadata()
-                                                .contains(key)) createUndiscoveredPin(key, val, false);
+                                                .contains(key) && !sharedPins.containsKey(key))
+                                            createUndiscoveredPin(key, val, false);
                                     })));
                     locationResult.addOnCompleteListener(requireActivity(), task -> {
                         if (task.isSuccessful()) {

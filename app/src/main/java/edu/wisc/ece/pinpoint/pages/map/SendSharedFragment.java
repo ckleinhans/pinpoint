@@ -38,10 +38,10 @@ import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
-public class SendNFCFragment extends Fragment {
+public class SendSharedFragment extends Fragment {
 
     private final FirebaseDriver firebase = FirebaseDriver.getInstance();
-    private final String sender = firebase.getCachedUser(firebase.getUid()).getUsername();
+    private final String sender = firebase.getUid();
     private TextView progressText;
     private TextView recipientText;
     private String pid;
@@ -49,10 +49,12 @@ public class SendNFCFragment extends Fragment {
 
     private final ConnectionLifecycleCallback connectionLifecycleCallback =
             new ConnectionLifecycleCallback() {
+                private String recipient;
                 @Override
                 public void onConnectionInitiated(String endpointId, ConnectionInfo connectionInfo) {
                     // Automatically accept the connection on both sides.
                     Nearby.getConnectionsClient(requireContext()).acceptConnection(endpointId, payloadCallback);
+                    recipient = connectionInfo.getEndpointName();
                 }
 
                 @Override
@@ -60,18 +62,14 @@ public class SendNFCFragment extends Fragment {
                     switch (result.getStatus().getStatusCode()) {
                         case ConnectionsStatusCodes.STATUS_OK:
                             // We're connected! Can now start sending and receiving data.
-                            recipientText.setText("Connected to "+endpointId);
+                            recipientText.setText("Connected to "+recipient);
                             Payload bytesPayload = Payload.fromBytes(createByteArray());
                             Nearby.getConnectionsClient(requireContext()).sendPayload(endpointId, bytesPayload);
                             break;
-                        case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
-                            // The connection was rejected by one or both sides.
-                            break;
-                        case ConnectionsStatusCodes.STATUS_ERROR:
-                            // The connection broke before it was able to be accepted.
-                            break;
                         default:
-                            // Unknown status code
+                            Toast.makeText(requireContext(),
+                                    R.string.pin_share_exception_text, Toast.LENGTH_LONG).show();
+                            break;
                     }
                 }
 
@@ -116,7 +114,7 @@ public class SendNFCFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         // Fetch pin data & load using argument
         Bundle args = getArguments();
-        pid = args != null ? SendNFCFragmentArgs.fromBundle(args).getPid() : null;
+        pid = args != null ? SendSharedFragmentArgs.fromBundle(args).getPid() : null;
         navController = Navigation.findNavController(view);
         checkPermissions();
     }
@@ -175,8 +173,8 @@ public class SendNFCFragment extends Fragment {
         pinData.put("pid", pid);
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream out = null;
-        byte[] bytes = null;
+        ObjectOutputStream out;
+        byte[] bytes;
         try {
             out = new ObjectOutputStream(bos);
             out.writeObject(pinData);
