@@ -329,12 +329,13 @@ public class MapFragment extends Fragment {
                 lockUI();
                 String pinId = (String) marker.getTag();
                 NearbyPinData pinData = firebase.getCachedNearbyPin(pinId);
-                PinSource source = pinData.getSource() == PinSource.FRIEND ? PinSource.GENERAL :
+                PinSource source = (sharedPins.containsKey(pinId)) ? PinSource.NFC :
+                        pinData.getSource() == PinSource.FRIEND ? PinSource.GENERAL :
                         pinData.getSource();
                 firebase.findPin(pinId, userLoc, source).addOnSuccessListener(reward -> {
                     restoreUI();
                     if(source.equals(PinSource.NFC)){
-                        sharedPins.remove(marker.getTag().toString());
+                        sharedPins.remove(pinId);
                         updateSharedPins();
                     }
                     Toast.makeText(requireContext(),
