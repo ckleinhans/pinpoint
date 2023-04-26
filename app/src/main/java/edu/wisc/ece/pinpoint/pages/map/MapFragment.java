@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,10 +45,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.NearbyPinData;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.data.PinMetadata.PinSource;
@@ -69,8 +71,10 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> nfcMarkers;
     private ArrayList<Marker> devMarkers;
     private ArrayList<Marker> strangerMarkers;
+    private final Integer MARKER_IMAGE_LOAD_TIME = 200;
     private boolean isFilterVisible = false;
-    private HashMap<String, Map<String, Object>> sharedPins;
+    private HashMap<String, NearbyPinData> sharedPins;
+    private ConstraintLayout loadLayoutContainer;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -95,9 +99,10 @@ public class MapFragment extends Fragment {
             this.map = googleMap;
             map.clear();
             styleMap();
+            setMarkerWindowFunction();
+            loadSharedPins();
             getDeviceLocation();
             loadDiscoveredPins();
-            loadSharedPins();
             map.setOnInfoWindowClickListener(marker -> {
                 if (marker.getAlpha() == 1f) {
                     // Already discovered pin
@@ -116,7 +121,7 @@ public class MapFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
-
+        loadLayoutContainer = this.getParentFragment().requireView().findViewById(R.id.map_load_layout_container);
         pinnieProgressBar = requireView().findViewById(R.id.map_pinnies_progress);
         pinniesText = requireView().findViewById(R.id.map_pinnies_text);
         pinnies_logo = requireView().findViewById(R.id.map_pinnies_logo);
@@ -126,6 +131,14 @@ public class MapFragment extends Fragment {
 
         ImageButton nfc_button = requireView().findViewById(R.id.map_nfc_share);
         nfc_button.setOnClickListener(v -> navController.navigate(MapContainerFragmentDirections.receiveNFCPin()));
+    }
+
+    private void lockUI(){
+        loadLayoutContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void restoreUI(){
+        loadLayoutContainer.setVisibility(View.GONE);
     }
 
     private void handleFilters() {
@@ -166,7 +179,6 @@ public class MapFragment extends Fragment {
 
     private void styleMap() {
         if (getActivity() != null) {
-            map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
             int nightModeFlags = requireActivity().getResources()
                     .getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
             switch (nightModeFlags) {
@@ -183,6 +195,23 @@ public class MapFragment extends Fragment {
                 case Configuration.UI_MODE_NIGHT_UNDEFINED:
                     break;
             }
+        }
+    }
+
+    private void setMarkerWindowFunction(){
+        if (getActivity() != null){
+            map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
+            map.setOnMarkerClickListener(mark -> {
+
+                //call once to force an image load
+                mark.showInfoWindow();
+
+                //call a second time to set the image (should actually be loaded by this time)
+                final Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(() -> mark.showInfoWindow(), MARKER_IMAGE_LOAD_TIME);
+
+                return true;
+            });
         }
     }
 
@@ -211,8 +240,8 @@ public class MapFragment extends Fragment {
         try{
             FileInputStream fis = new FileInputStream(filename);
             ObjectInputStream in = new ObjectInputStream(fis);
-            sharedPins = (HashMap<String, Map<String, Object>>) in.readObject();
-            sharedPins.forEach((pid, data) -> createUndiscoveredPin(pid, data, true));
+            sharedPins = (HashMap<String, NearbyPinData>) in.readObject();
+            sharedPins.forEach((pid, data) -> createUndiscoveredPin(pid, data));
             in.close();
             fis.close();
             Log.d(TAG, "Successfully loaded "+ sharedPins.size()+" shared pins.");
@@ -246,40 +275,36 @@ public class MapFragment extends Fragment {
         }
     }
 
-    private void createUndiscoveredPin(String pid, Map<String, Object> data, boolean isNFCPin) {
-        String authorUID = (String) data.get("authorUID");
-        //noinspection ConstantConditions
-        LatLng pinLocation = new LatLng((double) data.get("latitude"), (double) data.get("longitude"));
+    private void createUndiscoveredPin(String key, NearbyPinData val) {
         float color = BitmapDescriptorFactory.HUE_RED;
         // Data field to persist in pin marker to know the pin source when the user finds the pin
-        PinSource source = PinSource.GENERAL;
         ArrayList<Marker> markerList = strangerMarkers;
-        if(isNFCPin){
+        if(val.getSource() == PinSource.NFC){
             color = BitmapDescriptorFactory.HUE_CYAN;
-            source = PinSource.NFC;
             markerList = nfcMarkers;
         }
-        if ("pinpoint".equals(authorUID)) {
+        if (val.getSource() == PinSource.DEV) {
             color = BitmapDescriptorFactory.HUE_YELLOW;
-            source = PinSource.DEV;
             markerList = devMarkers;
         }
         // Change color to green if user follows author.
         // Following is subject to change at each reload
-        else if (firebase.getCachedFollowing(firebase.getUid()).contains(authorUID)) {
+        else if (firebase.getCachedFollowing(firebase.getUid()).contains(val.getAuthorUID())) {
             color = BitmapDescriptorFactory.HUE_GREEN;
-            source = PinSource.FRIEND;
+            val.setSource(PinSource.FRIEND);
             markerList = friendMarkers;
         }
-        Marker pinMarker = map.addMarker(new MarkerOptions().icon(
-                        BitmapDescriptorFactory.defaultMarker(color)).alpha(.3f)
-                .position(pinLocation));
-        pinMarker.setTag(pid);
-        pinMarker.setSnippet(source.name());
+        Marker pinMarker = map.addMarker(
+                new MarkerOptions().icon(BitmapDescriptorFactory.defaultMarker(color)).alpha(.3f)
+                        .position(val.getLocation()));
+        //noinspection ConstantConditions
+        pinMarker.setTag(key);
+        pinMarker.setSnippet(val.getSource().name());
         markerList.add(pinMarker);
     }
 
     private void handleUndiscoveredPinClick(Marker marker) {
+
         if (getActivity() == null) {
             Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_SHORT)
                     .show();
@@ -296,36 +321,27 @@ public class MapFragment extends Fragment {
             if (LocationDriver.isCloseEnoughToFindPin(
                     new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
                     marker.getPosition())) {
-                PinSource pinSource;
-                //noinspection ConstantConditions
-                switch (marker.getSnippet()) {
-                    case "DEV":
-                        pinSource = PinSource.DEV;
-                        break;
-                    case "NFC":
-                        pinSource = PinSource.NFC;
-                        // Remove NFC pin from hash map
+                lockUI();
+                String pinId = (String) marker.getTag();
+                NearbyPinData pinData = firebase.getCachedNearbyPin(pinId);
+                PinSource source = pinData.getSource() == PinSource.FRIEND ? PinSource.GENERAL :
+                        pinData.getSource();
+                firebase.findPin(pinId, userLoc, source).addOnSuccessListener(reward -> {
+                    restoreUI();
+                    if(source.equals(PinSource.NFC)){
                         sharedPins.remove(marker.getTag().toString());
                         updateSharedPins();
-                        break;
-                    default:
-                        // Do not store friend enum in cloud,
-                        // since friendship status is subject to change.
-                        pinSource = PinSource.GENERAL;
-                        break;
-                }
-                firebase.findPin((String) marker.getTag(), userLoc, pinSource)
-                        .addOnSuccessListener(reward -> {
-                            Toast.makeText(requireContext(),
-                                    String.format(getString(R.string.pin_reward_message), reward),
-                                    Toast.LENGTH_LONG).show();
-                            //noinspection ConstantConditions
-                            navController.navigate(MapContainerFragmentDirections.pinView(
-                                    marker.getTag().toString()));
-                        }).addOnFailureListener(
-                                e -> Toast.makeText(requireContext(), e.getMessage(),
-                                                Toast.LENGTH_LONG)
-                                        .show());
+                    }
+                    Toast.makeText(requireContext(),
+                            String.format(getString(R.string.pinnie_reward_message), reward),
+                            Toast.LENGTH_LONG).show();
+                    //noinspection ConstantConditions
+                    navController.navigate(
+                            MapContainerFragmentDirections.pinView(marker.getTag().toString()));
+                }).addOnFailureListener(
+                        e -> {restoreUI();
+                            Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG)
+                                .show();});
             } else {
                 Toast.makeText(requireContext(), R.string.undiscovered_pin_not_close_enough,
                         Toast.LENGTH_SHORT).show();
@@ -388,7 +404,7 @@ public class MapFragment extends Fragment {
                                         if (!firebase.getCachedDroppedPinMetadata().contains(
                                                 key) && !firebase.getCachedFoundPinMetadata()
                                                 .contains(key) && !sharedPins.containsKey(key))
-                                            createUndiscoveredPin(key, val, false);
+                                            createUndiscoveredPin(key, val);
                                     })));
                     locationResult.addOnCompleteListener(requireActivity(), task -> {
                         if (task.isSuccessful()) {
@@ -425,7 +441,7 @@ public class MapFragment extends Fragment {
     }
 
     private void setPinniesUI() {
-        pinniesText.setText(FormatUtils.humanReadablePinnies(pinnieCount));
+        pinniesText.setText(FormatUtils.trimmedNumber(pinnieCount));
         pinnieProgressBar.setVisibility(View.GONE);
         pinniesText.setVisibility(View.VISIBLE);
         pinnies_logo.setVisibility(View.VISIBLE);

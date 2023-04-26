@@ -1,13 +1,15 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
+import android.content.Context;
 import android.content.DialogInterface;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
@@ -58,7 +60,7 @@ public class PinViewFragment extends Fragment {
     private static final int SHARE = 0;
     private static final int REPORT = 1;
     private static final int DELETE = 2;
-    private final int COMMENT_FOCUS_SCROLL = 1000;
+    private final int COMMENT_FOCUS_SCROLL = 50;
     private FirebaseDriver firebase;
     private NavController navController;
     private TextView timestamp;
@@ -79,6 +81,9 @@ public class PinViewFragment extends Fragment {
     private TextInputEditText addCommentEditText;
     private NestedScrollView scrollView;
     private List<Comment> comments;
+    private ConstraintLayout loadLayoutContainer;
+    private ImageButton backButton;
+    private ImageButton optionsButton;
 
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -106,14 +111,15 @@ public class PinViewFragment extends Fragment {
         addCommentEditText = requireView().findViewById(R.id.comment_edittext_layout);
         addCommentLayout = requireView().findViewById(R.id.pin_comment_layout);
         scrollView = requireView().findViewById(R.id.viewpin_scrollview);
+        loadLayoutContainer = requireView().findViewById(R.id.pin_delete_load_layout_container);
 
         ImageView sendCommentButton = requireView().findViewById(R.id.send_comment_button);
         sendCommentButton.setOnClickListener(this::sendCommentHandler);
 
-        ImageButton backButton = requireView().findViewById(R.id.pin_view_back_button);
+        backButton = requireView().findViewById(R.id.pin_view_back_button);
         backButton.setOnClickListener((v) -> navController.popBackStack());
 
-        ImageButton optionsButton = requireView().findViewById(R.id.pin_view_options_button);
+        optionsButton = requireView().findViewById(R.id.pin_view_options_button);
         optionsButton.setOnClickListener(this::showOptionsMenu);
 
         addCommentButton.setOnClickListener((v) -> {
@@ -125,14 +131,19 @@ public class PinViewFragment extends Fragment {
                 addCommentButton.setForeground(
                         ContextCompat.getDrawable(requireContext(), R.drawable.ic_add_comment));
                 addCommentLayout.setVisibility(View.GONE);
+                // hide keyboard
+                InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
+                        Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
             }
         });
 
         addCommentEditText.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && Resources.getSystem()
-                    .getDisplayMetrics().heightPixels == requireView().getHeight()) {
-                scrollView.postDelayed(() -> scrollView.scrollTo(0, COMMENT_FOCUS_SCROLL), 150);
-            }
+            if (hasFocus) scrollView.postDelayed(() -> {
+                int[] viewLocation = new int[2];
+                v.getLocationOnScreen(viewLocation);
+                scrollView.smoothScrollTo(0, viewLocation[1]);
+            }, 150);
         });
 
         // Fetch pin data & load using argument
@@ -197,13 +208,12 @@ public class PinViewFragment extends Fragment {
 
     private void setPinData(Pin pin) {
         authorUID = pin.getAuthorUID();
-        User cachedAuthor = firebase.getCachedUser(authorUID);
-        if (cachedAuthor != null) {
-            setPinAuthorData(cachedAuthor);
+        if (firebase.isUserCached(authorUID)) {
+            setPinAuthorData(firebase.getCachedUser(authorUID), authorUID);
         } else {
             // Since only using author for profile pic & username, only fetch if not cached
             firebase.fetchUser(authorUID)
-                    .addOnCompleteListener(task -> setPinAuthorData(task.getResult()));
+                    .addOnCompleteListener(task -> setPinAuthorData(task.getResult(), authorUID));
         }
 
         timestamp.setText(FormatUtils.formattedDateTime(pin.getTimestamp()));
@@ -229,15 +239,27 @@ public class PinViewFragment extends Fragment {
         } else {
             textContent.setText(pin.getTextContent());
         }
-
-        // Set metadata bar above pin content to bring users to author profile page on click
-        metadataBar.setOnClickListener(v -> navController.navigate(
-                PinViewFragmentDirections.profile().setUid(pin.getAuthorUID())));
     }
 
-    private void setPinAuthorData(User author) {
-        authorUsername.setText(author.getUsername());
-        author.loadProfilePic(authorProfilePic, this);
+    private void setPinAuthorData(User author, String authorUID) {
+        if (author == null) {
+            // user was deleted
+            authorUsername.setText(R.string.deleted_user);
+            if (getContext() != null) {
+                TypedValue typedValue = new TypedValue();
+                getContext().getTheme()
+                        .resolveAttribute(com.google.android.material.R.attr.colorError, typedValue,
+                                true);
+                authorUsername.setTextColor(typedValue.data);
+            }
+        } else {
+            authorUsername.setText(author.getUsername());
+            author.loadProfilePic(authorProfilePic, this);
+
+            // Set metadata bar above pin content to bring users to author profile page on click
+            metadataBar.setOnClickListener(
+                    v -> navController.navigate(PinViewFragmentDirections.profile(authorUID)));
+        }
     }
 
     private void showOptionsMenu(View v) {
@@ -252,8 +274,7 @@ public class PinViewFragment extends Fragment {
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case SHARE:
-                    // TODO: add NFC sharing logic here
-                    sharePin();
+                    navController.navigate(PinViewFragmentDirections.sendNFCPin(pid));
 
                     return true;
                 case REPORT:
@@ -292,41 +313,31 @@ public class PinViewFragment extends Fragment {
         popup.show();
     }
 
-    private void sharePin() {
-        // Get pin data
-//        Pin pin = firebase.getCachedPin(pid);
-//        // Create map to store data in temp file
-//        Map<String, Object> pinData = new HashMap<>();
-//        pinData.put("authorUID", pin.getAuthorUID());
-//        pinData.put("latitude", pin.getLocation().getLatitude());
-//        pinData.put("longitude", pin.getLocation().getLongitude());
-//        // Store data locally
-//        try{
-//            String filename = requireContext().getFilesDir()+"tmp_nfc_pin.txt";
-//            FileOutputStream fos = new FileOutputStream(filename);
-//            ObjectOutputStream out = new ObjectOutputStream(fos);
-//            out.writeObject(pinData);
-//            out.close();
-//            fos.close();
-//            Log.d(TAG, "Successfully temp stored PID " + pid + ". at "+filename);
-//        }
-//        catch (Exception e){
-//            Log.w(TAG, e);
-//        }
-        // Send file
-        navController.navigate(PinViewFragmentDirections.sendNFCPin(pid));
+    private void lockUI(){
+        loadLayoutContainer.setVisibility(View.VISIBLE);
+        InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+        backButton.setVisibility(View.INVISIBLE);
+        optionsButton.setVisibility(View.INVISIBLE);
+    }
 
-
-        // TODO: Delete local file
+    private void restoreUI(){
+        loadLayoutContainer.setVisibility(View.GONE);
+        backButton.setVisibility(View.VISIBLE);
+        optionsButton.setVisibility(View.VISIBLE);
     }
 
     private void deletePin(DialogInterface dialog, int buttonId) {
+        lockUI();
         firebase.deletePin(pid).addOnFailureListener(e -> {
             Log.w(TAG, e);
+            restoreUI();
             Toast.makeText(requireContext(),
                     "Something went wrong deleting your pin. Please try again later.",
                     Toast.LENGTH_LONG).show();
         }).addOnSuccessListener(t -> {
+            restoreUI();
             Toast.makeText(requireContext(), "Successfully deleted your pin!", Toast.LENGTH_LONG)
                     .show();
             navController.popBackStack();

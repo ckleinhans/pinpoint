@@ -2,7 +2,6 @@
     <!-- Fields for FirebaseUI Authentication -->
     <string name="fui_missing_first_and_last_name">@string/missing_username</string>
     <string name="fui_name_hint">@string/username_text</string>
-
     <string name="app_name">PinPoint</string>
     <string name="follow_text">Follow</string>
     <string name="unfollow_text">Unfollow</string>
@@ -62,7 +61,7 @@
     <string name="activity_fetch_error">Something went wrong fetching activity. Try again later.</string>
     <string name="undiscovered_pin_not_close_enough">You have to move a bit closer to this pin to discover it!</string>
     <string name="undiscovered_pin_locked">Travel close to this pin to unlock it on the map!</string>
-    <string name="pin_not_discovered">You haven\'t discovered this pin yet.</string>
+    <string name="feed_pin_deleted_or_undiscovered">You haven\'t yet discovered this pin or it was deleted by the author.</string>
     <string name="user_fetch_error_message">Something went wrong fetching the user! Try again later.</string>
     <string name="pin_finds_singular">1 find</string>
     <string name="pin_finds_plural">%d finds</string>
@@ -89,8 +88,18 @@
     <string name="add_comment_button_text">Add Comment Button</string>
     <string name="send_comment_button_text">Send Comment Button</string>
     <string name="comment_author_profile_pic_text">Comment Author Profile Pic</string>
+    <string name="delete_account">Delete Account</string>
+    <string name="account_delete_message">Are you sure you want to irreversibly delete your account? All of your profile and activity information will be deleted. Pins you have dropped and comments you have posted will remain, but they will no longer be linked to your account.</string>
     <string name="profile_location_icon_text">Profile Location Icon</string>
-    <string name="landmarks_text">Landmarks</string>
+    <string name="pinnie_reward_message">You received %d pinnies as a reward!</string>
+    <string name="deleted_user">Deleted User</string>
+    <string name="activity_drop_text">%s dropped a pin %s</string>
+    <string name="activity_find_text">%s found a pin %s</string>
+    <string name="activity_comment_text">%s commented on a pin %s</string>
+    <string name="activity_follow_text">%s followed %s</string>
+    <string name="you">You</string>
+    <string name="you_lowercase">you</string>
+    <string name="landmark_text">Landmark</string>
     <string name="other_text">Other</string>
     <string name="nfc_text">NFC</string>
     <string name="my_pins_text">My Pins</string>
@@ -103,4 +112,9 @@
     <string name="service_id">edu.wisc.ece.pinpoint</string>
     <string name="pin_share_exception_text">Something went wrong when trying to share pins. Please try again later.</string>
     <string name="connection_rejected_text">Connection was rejected by other user.</string>
+    <string name="dropping_pin">Dropping Pin</string>
+    <string name="deleting_pin">Deleting Pin</string>
+    <string name="saving_profile">Saving Profile</string>
+    <string name="deleting_account">Deleting Account</string>
+    <string name="loading_pin">Loading Pin</string>
 </resources>

@@ -1,6 +1,8 @@
 package edu.wisc.ece.pinpoint.pages.pins;
 
 import android.content.Context;
+import android.location.Location;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,29 +15,33 @@ import androidx.cardview.widget.CardView;
 import androidx.navigation.NavController;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.material.chip.Chip;
 
 import edu.wisc.ece.pinpoint.R;
+import edu.wisc.ece.pinpoint.data.NearbyPinData;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
+import edu.wisc.ece.pinpoint.utils.LocationDriver;
 
 public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListViewHolder> {
     private final OrderedPinMetadata pinMetadata;
     private final NavController navController;
     private final FirebaseDriver firebase;
-    private final boolean displayPinTypes;
+    private final PinListFragment.PinListType listType;
     private Context parentContext;
+    private LocationDriver locationDriver;
 
     // TODO: make this adapter a ListAdapter to improve UX & performance
     public PinListAdapter(OrderedPinMetadata pinMetadata, NavController navController,
-                          boolean displayPinTypes) {
+                          PinListFragment.PinListType listType) {
         this.pinMetadata = pinMetadata;
         this.navController = navController;
-        firebase = FirebaseDriver.getInstance();
-        this.displayPinTypes = displayPinTypes;
+        this.firebase = FirebaseDriver.getInstance();
+        this.listType = listType;
     }
 
     @NonNull
@@ -44,6 +50,7 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.view_pin_list_item, parent, false);
         parentContext = parent.getContext();
+        this.locationDriver = LocationDriver.getInstance(parentContext);
         return new PinListViewHolder(view);
     }
 
@@ -52,6 +59,39 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         PinMetadata metadata = pinMetadata.get(position);
         String pid = metadata.getPinId();
 
+        // Set pin type chip
+        holder.pinSourceChip.setVisibility(View.GONE);
+        holder.pinSourceChip.setCloseIconVisible(false);
+        if (metadata.getPinSource() == PinMetadata.PinSource.SELF) { // && listType ==
+            // PinListFragment.PinListType.DROPPED
+            holder.pinSourceChip.setChipBackgroundColorResource(R.color.my_pins);
+            holder.pinSourceChip.setText(FormatUtils.trimmedNumber(metadata.getCost()));
+            holder.pinSourceChip.setCloseIconVisible(true);
+            holder.pinSourceChip.setVisibility(View.VISIBLE);
+        } else if (metadata.getPinSource() == PinMetadata.PinSource.NFC) {
+            holder.pinSourceChip.setChipBackgroundColorResource(R.color.nfc_pins);
+            holder.pinSourceChip.setText(R.string.nfc_text);
+            holder.pinSourceChip.setVisibility(View.VISIBLE);
+        } else if (metadata.getPinSource() == PinMetadata.PinSource.DEV) {
+            holder.pinSourceChip.setChipBackgroundColorResource(R.color.landmark_pins);
+            holder.pinSourceChip.setText(R.string.landmark_text);
+            holder.pinSourceChip.setVisibility(View.VISIBLE);
+        } else if (metadata.getPinSource() == PinMetadata.PinSource.GENERAL && listType != PinListFragment.PinListType.USER) {
+            // don't show other or following tags on user profile pages
+            if (firebase.getCachedFollowing(firebase.getUid())
+                    .contains(firebase.getCachedPin(metadata.getPinId()).getAuthorUID())) {
+                holder.pinSourceChip.setChipBackgroundColorResource(R.color.friend_pins);
+                holder.pinSourceChip.setText(R.string.following_text);
+            } else {
+                holder.pinSourceChip.setChipBackgroundColorResource(R.color.other_pins);
+                holder.pinSourceChip.setText(R.string.other_text);
+            }
+            holder.pinSourceChip.setVisibility(View.VISIBLE);
+        } else {
+            Log.d("TEST", String.valueOf(metadata.getPinSource()));
+        }
+
+        // show discovered or undiscovered pin
         if (firebase.getCachedFoundPinMetadata()
                 .contains(pid) || firebase.getCachedDroppedPinMetadata().contains(pid)) {
             // Pin is discovered
@@ -61,48 +101,54 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
             } else {
                 holder.image.setImageResource(R.drawable.pin_background_img);
             }
-            if (displayPinTypes) {
-                switch (metadata.getPinSource()) {
-                    case SELF:
-                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.my_pins);
-                        holder.pinSourceChip.setText(R.string.my_pins_text);
-                        break;
-                    case NFC:
-                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.nfc_pins);
-                        holder.pinSourceChip.setText(R.string.nfc_text);
-                        break;
-                    case DEV:
-                        holder.pinSourceChip.setChipBackgroundColorResource(R.color.landmark_pins);
-                        holder.pinSourceChip.setText(R.string.landmarks_text);
-                        break;
-                    case GENERAL:
-                        // check for friend pin
-                        if (firebase.getCachedFollowing(firebase.getUid()).contains(
-                                firebase.getCachedPin(metadata.getPinId()).getAuthorUID())) {
-                            holder.pinSourceChip.setChipBackgroundColorResource(
-                                    R.color.friend_pins);
-                            holder.pinSourceChip.setText(R.string.following_text);
-                        } else {
-                            holder.pinSourceChip.setChipBackgroundColorResource(R.color.other_pins);
-                            holder.pinSourceChip.setText(R.string.other_text);
-                        }
-                        break;
-                }
-                holder.pinSourceChip.setVisibility(View.VISIBLE);
-            } else {
-                holder.pinSourceChip.setVisibility(View.GONE);
-            }
-
             holder.item.setOnClickListener(view -> navController.navigate(
                     edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid)));
         } else {
             // Pin is undiscovered
             holder.image.setImageResource(R.drawable.ic_lock);
-            holder.item.setOnClickListener(
-                    view -> Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
-                            Toast.LENGTH_SHORT).show());
+            holder.item.setOnClickListener(view -> {
+                NearbyPinData pinData = firebase.getCachedNearbyPin(pid);
+                if (pinData == null) {
+                    Toast.makeText(parentContext, R.string.undiscovered_pin_locked,
+                            Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                locationDriver.getLastLocation(parentContext)
+                        .addOnCompleteListener(locationTask -> {
+                            Location userLoc = locationTask.getResult();
+                            if (!locationTask.isSuccessful() || userLoc == null) {
+                                Toast.makeText(parentContext, R.string.location_error_text,
+                                        Toast.LENGTH_SHORT).show();
+                                return;
+                            }
+                            if (LocationDriver.isCloseEnoughToFindPin(
+                                    new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
+                                    pinData.getLocation())) {
+                                PinMetadata.PinSource source =
+                                        pinData.getSource() == PinMetadata.PinSource.FRIEND ?
+                                                PinMetadata.PinSource.GENERAL : pinData.getSource();
+                                firebase.findPin(pid, userLoc, source)
+                                        .addOnSuccessListener(reward -> {
+                                            Toast.makeText(parentContext, String.format(
+                                                    parentContext.getString(
+                                                            R.string.pinnie_reward_message),
+                                                    reward), Toast.LENGTH_LONG).show();
+                                            navController.navigate(
+                                                    edu.wisc.ece.pinpoint.pages.map.MapContainerFragmentDirections.pinView(
+                                                            pid));
+                                        }).addOnFailureListener(
+                                                e -> Toast.makeText(parentContext, e.getMessage(),
+                                                        Toast.LENGTH_LONG).show());
+                            } else {
+                                Toast.makeText(parentContext,
+                                        R.string.undiscovered_pin_not_close_enough,
+                                        Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            });
         }
 
+        // Set location text
         if (metadata.getBroadLocationName() != null) {
             holder.broadLocation.setText(metadata.getBroadLocationName());
         } else {
@@ -113,6 +159,8 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
         } else {
             holder.nearbyLocation.setVisibility(View.GONE);
         }
+
+        // Set timestamp
         holder.timestamp.setText(FormatUtils.formattedDateTime(metadata.getTimestamp()));
     }
 

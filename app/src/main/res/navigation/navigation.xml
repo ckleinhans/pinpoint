@@ -5,6 +5,21 @@
     android:id="@+id/navigation"
     app:startDestination="@id/navbar_map">
     <fragment
+        android:id="@+id/user_profile"
+        android:name="edu.wisc.ece.pinpoint.pages.profile.ProfilePageFragment"
+        android:label="fragment_profile_page"
+        tools:layout="@layout/fragment_profile_page">
+        <argument
+            android:name="uid"
+            app:argType="string" />
+        <action
+            android:id="@+id/editProfile"
+            app:destination="@id/edit_profile_fragment" />
+        <action
+            android:id="@+id/userList"
+            app:destination="@id/userListFragment" />
+    </fragment>
+    <fragment
         android:id="@+id/navbar_map"
         android:name="edu.wisc.ece.pinpoint.pages.map.MapContainerFragment"
         android:label="fragment_map"
@@ -23,22 +38,19 @@
         tools:layout="@layout/fragment_new_pin" />
     <fragment
         android:id="@+id/navbar_profile"
-        android:name="edu.wisc.ece.pinpoint.pages.profile.ProfilePageFragment"
-        android:label="fragment_profile_page"
+        android:name="edu.wisc.ece.pinpoint.pages.profile.NavBarProfileFragment"
+        android:label="navbar_profile_page"
         tools:layout="@layout/fragment_profile_page">
         <action
             android:id="@+id/editProfile"
             app:destination="@id/edit_profile_fragment" />
-        <argument
-            android:name="uid"
-            android:defaultValue="@null"
-            app:argType="string"
-            app:nullable="true" />
         <action
             android:id="@+id/settingsContainer"
             app:destination="@id/settings_container_fragment" />
+        <action
+            android:id="@+id/userList"
+            app:destination="@id/userListFragment" />
     </fragment>
-
     <fragment
         android:id="@+id/edit_profile_fragment"
         android:name="edu.wisc.ece.pinpoint.pages.profile.EditProfileFragment"
@@ -49,7 +61,7 @@
         app:destination="@id/navbar_map" />
     <action
         android:id="@+id/profile"
-        app:destination="@id/navbar_profile" />
+        app:destination="@id/user_profile" />
     <fragment
         android:id="@+id/settings_container_fragment"
         android:name="edu.wisc.ece.pinpoint.pages.profile.SettingsContainerFragment"
@@ -73,9 +85,6 @@
             app:destination="@id/send_nfc_fragment" />
     </fragment>
     <action
-        android:id="@+id/board"
-        app:destination="@id/navbar_board" />
-    <action
         android:id="@+id/pinView"
         app:destination="@id/pin_view" />
     <fragment
@@ -87,12 +96,24 @@
         android:id="@+id/navbar_feed"
         android:name="edu.wisc.ece.pinpoint.pages.feed.FeedFragment"
         android:label="fragment_feed"
-        tools:layout="@layout/fragment_feed" >
+        tools:layout="@layout/fragment_feed">
         <argument
             android:name="uid"
+            android:defaultValue="@null"
             app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
+            app:nullable="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/userListFragment"
+        android:name="edu.wisc.ece.pinpoint.pages.profile.UserListFragment"
+        android:label="fragment_user_list"
+        tools:layout="@layout/fragment_user_list">
+        <argument
+            android:name="userListType"
+            app:argType="edu.wisc.ece.pinpoint.pages.profile.UserListFragment$UserListType" />
+        <argument
+            android:name="uid"
+            app:argType="string" />
     </fragment>
     <fragment
         android:id="@+id/receive_nfc_fragment"

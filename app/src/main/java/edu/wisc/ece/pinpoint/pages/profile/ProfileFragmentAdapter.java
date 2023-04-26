@@ -12,7 +12,6 @@ import edu.wisc.ece.pinpoint.pages.feed.FeedFragment;
 import edu.wisc.ece.pinpoint.pages.pins.PinListFragment;
 
 public class ProfileFragmentAdapter extends FragmentStateAdapter {
-
     private final int tabCount;
     private final String uid;
 

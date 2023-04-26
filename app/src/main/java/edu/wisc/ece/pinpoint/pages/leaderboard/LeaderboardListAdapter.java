@@ -18,6 +18,7 @@ import edu.wisc.ece.pinpoint.NavigationDirections;
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.User;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+import edu.wisc.ece.pinpoint.utils.FormatUtils;
 
 public class LeaderboardListAdapter
         extends RecyclerView.Adapter<LeaderboardListAdapter.LeaderboardViewHolder> {
@@ -56,14 +57,25 @@ public class LeaderboardListAdapter
         user.loadProfilePic(holder.image, fragment);
         holder.username.setText(user.getUsername());
         if (listType == LeaderboardListFragment.LeaderboardListType.FOUND) {
-            holder.stat.setText(String.valueOf(user.getNumPinsFound()));
+            holder.stat.setText(FormatUtils.trimmedNumber(user.getNumPinsFound()));
         } else {
-            holder.stat.setText(String.valueOf(user.getNumPinsDropped()));
+            holder.stat.setText(FormatUtils.trimmedNumber(user.getNumPinsDropped()));
         }
 
-        holder.rank.setText(String.valueOf(position + 1));
+        String rankString = String.valueOf(position + 1);
+        if (rankString.length() > 3) {
+            holder.rank.setTextSize(25);
+            if (rankString.length() > 4) {
+                holder.rank.setText(FormatUtils.trimmedNumber(position + 1));
+            } else {
+                holder.rank.setText(rankString);
+            }
+        } else {
+            holder.rank.setTextSize(30);
+            holder.rank.setText(rankString);
+        }
         holder.item.setOnClickListener(
-                view -> navController.navigate(NavigationDirections.profile().setUid(userId)));
+                view -> navController.navigate(NavigationDirections.profile(userId)));
 
         if (position < 3) {
             holder.rankBackground.setVisibility(View.VISIBLE);

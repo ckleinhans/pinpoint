@@ -1,13 +1,14 @@
 package edu.wisc.ece.pinpoint.pages.newpin;
 
 import android.annotation.SuppressLint;
-import android.content.res.Resources;
+import android.content.Context;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -21,6 +22,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
@@ -31,7 +33,6 @@ import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.textfield.TextInputLayout;
 
 import edu.wisc.ece.pinpoint.R;
-import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.Pin.PinType;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
@@ -66,6 +67,8 @@ public class NewPinFragment extends Fragment {
     private Long pinnieCount;
     private Long pinCost;
     private Location pinLocation;
+    private ConstraintLayout loadLayoutContainer;
+    private ImageButton cancelButton;
     private int selectedLocationIndex;
 
     @Override
@@ -91,7 +94,7 @@ public class NewPinFragment extends Fragment {
         insufficientPinniesText = requireView().findViewById(R.id.pinnies_error_text);
         userPinniesProgressBar = requireView().findViewById(R.id.new_pin_balance_progress);
         pinCostProgressBar = requireView().findViewById(R.id.new_pin_cost_progress);
-        ImageButton cancelButton = requireView().findViewById(R.id.newpin_cancel);
+        cancelButton = requireView().findViewById(R.id.newpin_cancel);
         cancelButton.setOnClickListener(v -> navController.popBackStack());
         dropButton = requireView().findViewById(R.id.drop_pin_button);
         dropButton.setOnClickListener(v -> createNewPin());
@@ -102,7 +105,9 @@ public class NewPinFragment extends Fragment {
         pinnies_logo_topbar = requireView().findViewById(R.id.topbar_pinnies_logo);
         pinnies_logo_button = requireView().findViewById(R.id.button_pinnies_logo);
         locationNameInput = requireView().findViewById(R.id.newpin_location_name_input);
+        loadLayoutContainer = requireView().findViewById(R.id.newpin_load_layout_container);
         Spinner locationNameSelect = requireView().findViewById(R.id.newpin_location_name_select);
+        loadLayoutContainer.setOnClickListener(v -> {});
 
         if (!locationDriver.hasFineLocation(requireContext())) {
             Toast.makeText(requireContext(), R.string.fine_location_error_text, Toast.LENGTH_LONG)
@@ -154,13 +159,22 @@ public class NewPinFragment extends Fragment {
         });
 
         captionInput.setOnFocusChangeListener((v, hasFocus) -> {
-            if (hasFocus && Resources.getSystem().getDisplayMetrics().heightPixels == getView().getHeight()) {
-                scrollView.postDelayed(() -> scrollView.scrollTo(0,
-                        Resources.getSystem().getDisplayMetrics().heightPixels), 100);
-            } else {
-                scrollView.post(() -> scrollView.scrollTo(0, 0));
-            }
+            if (hasFocus) scrollView.postDelayed(() -> {
+                int[] viewLocation = new int[2];
+                v.getLocationOnScreen(viewLocation);
+                scrollView.smoothScrollTo(0, viewLocation[1]);
+            }, 150);
         });
+
+//        captionInput.setOnFocusChangeListener((v, hasFocus) -> {
+//            if (hasFocus && Resources.getSystem()
+//                    .getDisplayMetrics().heightPixels == getView().getHeight()) {
+//                scrollView.postDelayed(() -> scrollView.scrollTo(0,
+//                        Resources.getSystem().getDisplayMetrics().heightPixels), 100);
+//            } else {
+//                scrollView.post(() -> scrollView.scrollTo(0, 0));
+//            }
+//        });
 
         viewPager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
             @Override
@@ -222,7 +236,7 @@ public class NewPinFragment extends Fragment {
         userPinniesProgressBar.setVisibility(View.GONE);
         pinnies_logo_topbar.setVisibility(View.VISIBLE);
         topBarText.setText(String.format("%s %s", getString(R.string.new_pin_title_text),
-                FormatUtils.humanReadablePinnies(pinnieCount)));
+                FormatUtils.trimmedNumber(pinnieCount)));
     }
 
     private void setPinCost() {
@@ -256,7 +270,7 @@ public class NewPinFragment extends Fragment {
 
     private void setPinCostUI() {
         dropButton.setText(String.format("%s %s", getString(R.string.drop_pin_button_text),
-                FormatUtils.humanReadablePinnies(pinCost)));
+                FormatUtils.trimmedNumber(pinCost)));
         pinCostProgressBar.setVisibility(View.GONE);
         pinnies_logo_button.setVisibility(View.VISIBLE);
 
@@ -267,8 +281,23 @@ public class NewPinFragment extends Fragment {
         }
     }
 
-    private void createNewPin() {
+    private void lockUI(){
+        loadLayoutContainer.setVisibility(View.VISIBLE);
+        InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
+                Context.INPUT_METHOD_SERVICE);
+        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
         dropButton.setEnabled(false);
+        cancelButton.setVisibility(View.INVISIBLE);
+    }
+
+    private void restoreUI(){
+        loadLayoutContainer.setVisibility(View.GONE);
+        dropButton.setEnabled(true);
+        cancelButton.setVisibility(View.VISIBLE);
+    }
+
+    private void createNewPin() {
+        lockUI();
         PinType type = viewPager.getCurrentItem() == 0 ? PinType.TEXT : PinType.IMAGE;
         String caption = captionInput.getText().toString().trim();
 
@@ -278,7 +307,7 @@ public class NewPinFragment extends Fragment {
                     requireView().findViewById(R.id.newpin_text_content_input_layout);
             if (ValidationUtils.isEmpty(textContentInput)) {
                 textContentLayout.setError(getString(R.string.empty_pin_text));
-                dropButton.setEnabled(true);
+                restoreUI();
                 return;
             } else {
                 textContentLayout.setErrorEnabled(false);
@@ -288,7 +317,7 @@ public class NewPinFragment extends Fragment {
             if (fragmentAdapter.getImageContentFragment().photo_uri == null) {
                 Toast.makeText(requireContext(), R.string.empty_pin_text, Toast.LENGTH_SHORT)
                         .show();
-                dropButton.setEnabled(true);
+                restoreUI();
                 return;
             }
         }
@@ -296,18 +325,18 @@ public class NewPinFragment extends Fragment {
         if (pinLocation == null) {
             Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_LONG)
                     .show();
-            dropButton.setEnabled(true);
+            restoreUI();
             return;
         } else if (!locationDriver.hasFineLocation(requireContext())) {
             Toast.makeText(requireContext(), R.string.fine_location_error_text, Toast.LENGTH_LONG)
                     .show();
-            dropButton.setEnabled(true);
+            restoreUI();
             return;
         } else if (selectedLocationIndex == LOADING_LOCATIONS || ValidationUtils.isEmpty(
                 locationNameInput)) {
             Toast.makeText(requireContext(), R.string.nearby_location_name_missing_message,
                     Toast.LENGTH_LONG).show();
-            dropButton.setEnabled(true);
+            restoreUI();
             return;
         }
 
@@ -324,7 +353,7 @@ public class NewPinFragment extends Fragment {
             Log.w(TAG, "Error adding pin document", e);
             if (getContext() != null)
                 Toast.makeText(getContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-            dropButton.setEnabled(true);
+            restoreUI();
         }).addOnSuccessListener(pid -> {
             if (pin.getType() == PinType.IMAGE) {
                 Log.d(TAG, pid);
@@ -336,7 +365,7 @@ public class NewPinFragment extends Fragment {
                                                 R.string.photo_upload_error_message,
                                                 Toast.LENGTH_LONG)
                                         .show();
-                                dropButton.setEnabled(true);
+                                restoreUI();
                                 return;
                             }
 

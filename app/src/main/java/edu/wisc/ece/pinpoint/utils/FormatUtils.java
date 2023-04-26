@@ -7,24 +7,25 @@ import java.util.Locale;
 import javax.annotation.Nullable;
 
 public class FormatUtils {
-    public static String humanReadablePinnies(Long pinniesCount) {
+    public static String trimmedNumber(long number) {
         String suffix;
-        double value = pinniesCount;
-
-        if (pinniesCount >= 1_000_000_000) {
+        double value = number;
+        if (number >= 1_000_000_000) {
             value /= 1_000_000_000;
             suffix = "B";
-        } else if (pinniesCount >= 1_000_000) {
+        } else if (number >= 1_000_000) {
             value /= 1_000_000;
             suffix = "M";
-        } else if (pinniesCount >= 1_000) {
+        } else if (number >= 1_000) {
             value /= 1_000;
             suffix = "K";
         } else {
-            return pinniesCount.toString();
+            return String.valueOf(number);
         }
-
-        return String.format(Locale.US, "%.2f%s", value, suffix);
+        String valueString = String.format(Locale.US, "%.2f", value);
+        String trimmedValueString = valueString.indexOf('.') < 3 ? valueString.substring(0, 4) :
+                valueString.substring(0, 3);
+        return String.format(Locale.US, "%s%s", trimmedValueString, suffix);
     }
 
     @Nullable
@@ -39,7 +40,7 @@ public class FormatUtils {
                                                    @Nullable String nearbyLocationName) {
         return nearbyLocationName != null ?
                 String.format("near %s in %s", nearbyLocationName, broadLocationName) :
-                broadLocationName != null ? String.format("in %s", broadLocationName) : null;
+                broadLocationName != null ? String.format("in %s", broadLocationName) : "";
     }
 
     public static String formattedDateTime(Date timestamp) {
