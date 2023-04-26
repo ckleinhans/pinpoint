@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,7 +64,9 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> nfcMarkers;
     private ArrayList<Marker> devMarkers;
     private ArrayList<Marker> strangerMarkers;
+    private final Integer MARKER_IMAGE_LOAD_TIME = 200;
     private boolean isFilterVisible = false;
+    private ConstraintLayout loadLayoutContainer;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -86,6 +90,7 @@ public class MapFragment extends Fragment {
             this.map = googleMap;
             map.clear();
             styleMap();
+            setMarkerWindowFunction();
             getDeviceLocation();
             loadDiscoveredPins();
             map.setOnInfoWindowClickListener(marker -> {
@@ -106,13 +111,21 @@ public class MapFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         navController = Navigation.findNavController(view);
-
+        loadLayoutContainer = this.getParentFragment().requireView().findViewById(R.id.map_load_layout_container);
         pinnieProgressBar = requireView().findViewById(R.id.map_pinnies_progress);
         pinniesText = requireView().findViewById(R.id.map_pinnies_text);
         pinnies_logo = requireView().findViewById(R.id.map_pinnies_logo);
 
         setPinnieCount();
         handleFilters();
+    }
+
+    private void lockUI(){
+        loadLayoutContainer.setVisibility(View.VISIBLE);
+    }
+
+    private void restoreUI(){
+        loadLayoutContainer.setVisibility(View.GONE);
     }
 
     private void handleFilters() {
@@ -153,7 +166,6 @@ public class MapFragment extends Fragment {
 
     private void styleMap() {
         if (getActivity() != null) {
-            map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
             int nightModeFlags = requireActivity().getResources()
                     .getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
             switch (nightModeFlags) {
@@ -170,6 +182,23 @@ public class MapFragment extends Fragment {
                 case Configuration.UI_MODE_NIGHT_UNDEFINED:
                     break;
             }
+        }
+    }
+
+    private void setMarkerWindowFunction(){
+        if (getActivity() != null){
+            map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
+            map.setOnMarkerClickListener(mark -> {
+
+                //call once to force an image load
+                mark.showInfoWindow();
+
+                //call a second time to set the image (should actually be loaded by this time)
+                final Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(() -> mark.showInfoWindow(), MARKER_IMAGE_LOAD_TIME);
+
+                return true;
+            });
         }
     }
 
@@ -217,6 +246,7 @@ public class MapFragment extends Fragment {
     }
 
     private void handleUndiscoveredPinClick(Marker marker) {
+
         if (getActivity() == null) {
             Toast.makeText(requireContext(), R.string.location_error_text, Toast.LENGTH_SHORT)
                     .show();
@@ -233,11 +263,13 @@ public class MapFragment extends Fragment {
             if (LocationDriver.isCloseEnoughToFindPin(
                     new LatLng(userLoc.getLatitude(), userLoc.getLongitude()),
                     marker.getPosition())) {
+                lockUI();
                 String pinId = (String) marker.getTag();
                 NearbyPinData pinData = firebase.getCachedNearbyPin(pinId);
                 PinSource source = pinData.getSource() == PinSource.FRIEND ? PinSource.GENERAL :
                         pinData.getSource();
                 firebase.findPin(pinId, userLoc, source).addOnSuccessListener(reward -> {
+                    restoreUI();
                     Toast.makeText(requireContext(),
                             String.format(getString(R.string.pinnie_reward_message), reward),
                             Toast.LENGTH_LONG).show();
@@ -245,8 +277,9 @@ public class MapFragment extends Fragment {
                     navController.navigate(
                             MapContainerFragmentDirections.pinView(marker.getTag().toString()));
                 }).addOnFailureListener(
-                        e -> Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG)
-                                .show());
+                        e -> {restoreUI();
+                            Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG)
+                                .show();});
             } else {
                 Toast.makeText(requireContext(), R.string.undiscovered_pin_not_close_enough,
                         Toast.LENGTH_SHORT).show();
