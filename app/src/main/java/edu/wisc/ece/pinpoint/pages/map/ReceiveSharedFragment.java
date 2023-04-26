@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,7 +49,7 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 public class ReceiveSharedFragment extends Fragment {
 
     private final FirebaseDriver firebase = FirebaseDriver.getInstance();
-    private final String recipient = firebase.getUid();
+    private final String recipient = firebase.getCachedUser(firebase.getUid()).getUsername();
     private TextView progressText;
     private TextView senderText;
     private NavController navController;
@@ -123,22 +124,15 @@ public class ReceiveSharedFragment extends Fragment {
             new PayloadCallback() {
                 @Override
                 public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
-                    progressText.setText("TRANSFERRING!");
+                    progressText.setText(R.string.share_in_progress_text);
                     storePinData(payload.asBytes());
                 }
 
                 @Override
                 public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
-                    switch(payloadTransferUpdate.getStatus()){
-                        case PayloadTransferUpdate.Status.SUCCESS:
-                            progressText.setText("TRANSFER COMPLETE!");
-                            break;
-                        default:
-                            Toast.makeText(requireContext(),
-                                    R.string.pin_share_exception_text, Toast.LENGTH_LONG).show();
-                            break;
+                    if(payloadTransferUpdate.getStatus() == PayloadTransferUpdate.Status.SUCCESS){
+                        progressText.setText(R.string.share_complete_text);
                     }
-
                 }
             };
 
@@ -149,6 +143,8 @@ public class ReceiveSharedFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_receive_nfc, container, false);
         progressText = view.findViewById(R.id.receive_text);
         senderText = view.findViewById(R.id.sender_name);
+        ImageButton backButton = view.findViewById(R.id.share_pin_back_button);
+        backButton.setOnClickListener((v) -> navController.popBackStack());
         return view;
     }
 
@@ -193,12 +189,12 @@ public class ReceiveSharedFragment extends Fragment {
                 .addOnSuccessListener(
                         (Void unused) -> {
                             // We're discovering!
-                            progressText.setText("DISCOVERING!");
+                            progressText.setText(R.string.searching_for_sender_text);
                         })
                 .addOnFailureListener(
                         (Exception e) -> {
                             // We're unable to start discovering.
-                            progressText.setText("not discovering!");
+                            progressText.setText(R.string.pin_share_exception_text);
                         });
     }
 

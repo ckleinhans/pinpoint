@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
@@ -73,7 +74,7 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> strangerMarkers;
     private final Integer MARKER_IMAGE_LOAD_TIME = 200;
     private boolean isFilterVisible = false;
-    private HashMap<String, NearbyPinData> sharedPins;
+    private HashMap<String, Map<String, Object>> sharedPins;
     private ConstraintLayout loadLayoutContainer;
 
     @Override
@@ -240,8 +241,12 @@ public class MapFragment extends Fragment {
         try{
             FileInputStream fis = new FileInputStream(filename);
             ObjectInputStream in = new ObjectInputStream(fis);
-            sharedPins = (HashMap<String, NearbyPinData>) in.readObject();
-            sharedPins.forEach((pid, data) -> createUndiscoveredPin(pid, data));
+            sharedPins = (HashMap<String, Map<String, Object>>) in.readObject();
+            sharedPins.forEach((pid, data) -> {
+                NearbyPinData pinData = new NearbyPinData(data);
+                pinData.setSource(PinSource.NFC);
+                createUndiscoveredPin(pid, pinData);
+            });
             in.close();
             fis.close();
             Log.d(TAG, "Successfully loaded "+ sharedPins.size()+" shared pins.");

@@ -14,6 +14,7 @@ import androidx.navigation.Navigation;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +42,7 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 public class SendSharedFragment extends Fragment {
 
     private final FirebaseDriver firebase = FirebaseDriver.getInstance();
-    private final String sender = firebase.getUid();
+    private final String sender = firebase.getCachedUser(firebase.getUid()).getUsername();
     private TextView progressText;
     private TextView recipientText;
     private String pid;
@@ -62,7 +63,8 @@ public class SendSharedFragment extends Fragment {
                     switch (result.getStatus().getStatusCode()) {
                         case ConnectionsStatusCodes.STATUS_OK:
                             // We're connected! Can now start sending and receiving data.
-                            recipientText.setText("Connected to "+recipient);
+                            String connection = "Connected to "+recipient;
+                            recipientText.setText(connection);
                             Payload bytesPayload = Payload.fromBytes(createByteArray());
                             Nearby.getConnectionsClient(requireContext()).sendPayload(endpointId, bytesPayload);
                             break;
@@ -84,17 +86,15 @@ public class SendSharedFragment extends Fragment {
             new PayloadCallback() {
                 @Override
                 public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
-                    progressText.setText("TRANSFERRING!");
+                    progressText.setText(R.string.share_in_progress_text);
                 }
 
                 @Override
                 public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
                     if(payloadTransferUpdate.getStatus() == PayloadTransferUpdate.Status.SUCCESS){
-                        progressText.setText("TRANSFER COMPLETE!");
+                        progressText.setText(R.string.share_complete_text);
                         // Pop the original post & the share fragment from the navigation stack
                         navController.popBackStack();
-                        navController.popBackStack();
-                        navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid));
                     }
                 }
             };
@@ -106,6 +106,8 @@ public class SendSharedFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_send_nfc, container, false);
         progressText = view.findViewById(R.id.send_text);
         recipientText = view.findViewById(R.id.recipient_name);
+        ImageButton backButton = view.findViewById(R.id.share_pin_back_button);
+        backButton.setOnClickListener((v) -> navController.popBackStack());
         return view;
     }
 
@@ -155,12 +157,12 @@ public class SendSharedFragment extends Fragment {
                 .addOnSuccessListener(
                         (Void unused) -> {
                             // We're discovering!
-                            progressText.setText("ADVERTISING!");
+                            progressText.setText(R.string.searching_for_recipient_text);
                         })
                 .addOnFailureListener(
                         (Exception e) -> {
                             // We're unable to start discovering.
-                            progressText.setText("not advertising!");
+                            progressText.setText(R.string.pin_share_exception_text);
                         });
     }
 

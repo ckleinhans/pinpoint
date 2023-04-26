@@ -105,9 +105,10 @@
     <string name="my_pins_text">My Pins</string>
     <string name="toggle_pin_filter">Toggle Pin Filter</string>
     <string name="pin_reward_message">You received %d pinnies as a reward!</string>
-    <string name="searching_for_sender_text">Searching for pin sender...</string>
-    <string name="searching_for_recipient_text">Searching for pin recipient...</string>
-    <string name="share_in_progress_text">Pin sharing in progress...</string>
+    <string name="searching_for_sender_text">Searching for pin sender…</string>
+    <string name="searching_for_recipient_text">Searching for pin recipient…</string>
+    <string name="share_in_progress_text">Pin sharing in progress…</string>
+    <string name="share_pin_text">Share Pin</string>
     <string name="share_complete_text">Pin sharing complete!</string>
     <string name="service_id">edu.wisc.ece.pinpoint</string>
     <string name="pin_share_exception_text">Something went wrong when trying to share pins. Please try again later.</string>
@@ -117,4 +118,5 @@
     <string name="saving_profile">Saving Profile</string>
     <string name="deleting_account">Deleting Account</string>
     <string name="loading_pin">Loading Pin</string>
+    <string name="pin_sharing_setup_text">Setting up pin sharing…</string>
 </resources>
