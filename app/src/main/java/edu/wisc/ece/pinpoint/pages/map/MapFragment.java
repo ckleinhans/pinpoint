@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,6 +64,7 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> nfcMarkers;
     private ArrayList<Marker> devMarkers;
     private ArrayList<Marker> strangerMarkers;
+    private final Integer MARKER_IMAGE_LOAD_TIME = 200;
     private boolean isFilterVisible = false;
 
     @Override
@@ -86,6 +89,7 @@ public class MapFragment extends Fragment {
             this.map = googleMap;
             map.clear();
             styleMap();
+            setMarkerWindowFunction();
             getDeviceLocation();
             loadDiscoveredPins();
             map.setOnInfoWindowClickListener(marker -> {
@@ -153,7 +157,6 @@ public class MapFragment extends Fragment {
 
     private void styleMap() {
         if (getActivity() != null) {
-            map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
             int nightModeFlags = requireActivity().getResources()
                     .getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
             switch (nightModeFlags) {
@@ -170,6 +173,23 @@ public class MapFragment extends Fragment {
                 case Configuration.UI_MODE_NIGHT_UNDEFINED:
                     break;
             }
+        }
+    }
+
+    private void setMarkerWindowFunction(){
+        if (getActivity() != null){
+            map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
+            map.setOnMarkerClickListener(mark -> {
+
+                //call once to force an image load
+                mark.showInfoWindow();
+
+                //call a second time to set the image (should actually be loaded by this time)
+                final Handler handler = new Handler(Looper.getMainLooper());
+                handler.postDelayed(() -> mark.showInfoWindow(), MARKER_IMAGE_LOAD_TIME);
+
+                return true;
+            });
         }
     }
 
