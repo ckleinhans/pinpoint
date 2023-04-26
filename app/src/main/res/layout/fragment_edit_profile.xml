@@ -58,22 +58,51 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-    <ImageView
-        android:id="@+id/profile_edit_image"
-        android:layout_width="125dp"
-        android:layout_height="125dp"
-        android:layout_marginTop="15dp"
-        android:contentDescription="@string/profile_pic_upload_text"
-        android:src="@drawable/ic_profile"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top_bar" />
+    <RelativeLayout
+        android:id="@+id/profile_edit_img"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/top_bar">
+
+        <ImageView
+            android:id="@+id/profile_edit_image"
+            android:layout_width="125dp"
+            android:layout_height="125dp"
+            android:layout_marginTop="15dp"
+            android:layout_marginLeft="150dp"
+            android:contentDescription="@string/profile_pic_upload_text"
+            android:src="@drawable/ic_profile"
+            android:foreground="@drawable/profile_pic_overlay"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            >
+        </ImageView>
+
+        <TextView
+            android:id="@+id/myImageViewText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@id/profile_edit_image"
+            android:layout_alignTop="@id/profile_edit_image"
+            android:layout_alignRight="@id/profile_edit_image"
+            android:layout_alignBottom="@id/profile_edit_image"
+            android:layout_marginBottom="15dp"
+            android:layout_marginLeft="27dp"
+            android:gravity="bottom"
+            android:text="Edit Picture"
+            android:textColor="@color/white"
+            android:textFontWeight="700"/>
+
+
+    </RelativeLayout>
+
+
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        app:layout_constraintTop_toBottomOf="@+id/profile_edit_image">
+        app:layout_constraintTop_toBottomOf="@+id/profile_edit_img">
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/profile_edit_username_layout"
