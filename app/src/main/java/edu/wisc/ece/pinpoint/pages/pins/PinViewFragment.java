@@ -278,9 +278,15 @@ public class PinViewFragment extends Fragment {
 
                     return true;
                 case REPORT:
-                    // TODO: add pin reporting logic here
-                    Toast.makeText(requireContext(), "Pin reporting not yet implemented!",
-                            Toast.LENGTH_SHORT).show();
+                    firebase.reportPin(pid)
+                            .addOnCompleteListener(t -> {
+                                Toast.makeText(requireContext(), t.getResult(),
+                                        Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(requireContext(), e.toString(),
+                                        Toast.LENGTH_SHORT).show();
+                            });
                     return true;
                 case DELETE:
                     AlertDialog.Builder dialog = new AlertDialog.Builder(requireContext());

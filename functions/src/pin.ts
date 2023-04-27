@@ -1,7 +1,7 @@
 import { firestore } from "firebase-admin";
 import { FieldValue, GeoPoint } from "firebase-admin/firestore";
 import * as functions from "firebase-functions";
-import { distanceBetween, geohashForLocation } from "geofire-common";
+import { distanceBetween, geohashForLocation, Geopoint } from "geofire-common";
 
 import { calculateCost, calculateReward } from "./cost";
 import {
@@ -15,7 +15,6 @@ import {
 
 const PIN_FIND_RADIUS_KILOMETERS = 0.02; // 20 meters
 
-// TODO: add anti-spoof check before dropping pin
 export const dropPinHandler = async (
   {
     textContent,
@@ -57,6 +56,9 @@ export const dropPinHandler = async (
   // Perform validation & updates in transaction to enforce all or none
   await firestore().runTransaction(async (t) => {
     const timestamp = new Date();
+
+    await locationSecurityCheck(t, privateDataRef, [latitude, longitude], timestamp);
+
     // Create pin object & calculate cost
     const pin: Pin = {
       caption,
@@ -68,6 +70,7 @@ export const dropPinHandler = async (
       authorUID: context.auth.uid,
       timestamp,
       finds: 0,
+      reports: 0,
       cost: await calculateCost([latitude, longitude], t),
     };
     if (type === PinType.TEXT) pin.textContent = textContent;
@@ -108,6 +111,8 @@ export const dropPinHandler = async (
     t.create(pinRef, pin);
     t.set(droppedRef, { [pinRef.id]: metadata }, { merge: true });
     t.update(userRef, { numPinsDropped: FieldValue.increment(1) });
+    t.update(privateDataRef, { lastActivity: timestamp.valueOf() });
+    t.update(privateDataRef, { lastLocation: [latitude, longitude] });
     t.set(
       activityRef,
       { activity: FieldValue.arrayUnion(activity) },
@@ -117,7 +122,6 @@ export const dropPinHandler = async (
   return pinRef.id;
 };
 
-// TODO: add anti-spoof check before finding pin
 export const findPinHandler = async (
   { pid, latitude, longitude, pinSource },
   context
@@ -129,9 +133,7 @@ export const findPinHandler = async (
       "dropPin must be called while authenticated."
     );
   }
-  // TODO: add !pinSource once merged & remove below line
-  if (pinSource == undefined) pinSource = PinSource.GENERAL;
-  if (!pid || !latitude || !longitude) {
+  if (!pid || !latitude || !longitude || !pinSource) {
     throw new functions.https.HttpsError(
       "invalid-argument",
       "dropPin must be called with proper arguments."
@@ -154,12 +156,12 @@ export const findPinHandler = async (
     );
   }
 
-  // TODO: add anti-spoof check
-  // const privateData = (await t.get(privateDataRef)).data();
-
   // Perform pin read, reward calculation, & writes in one transaction
   return await firestore().runTransaction(async (t) => {
     const timestamp = new Date();
+
+    await locationSecurityCheck(t, privateDataRef, [latitude, longitude], timestamp);
+
     // Check pin exists
     const pinData: Pin = <Pin>(await pinRef.get()).data();
     if (pinData === undefined) {
@@ -213,6 +215,8 @@ export const findPinHandler = async (
     t.update(privateDataRef, { currency: FieldValue.increment(reward) });
     t.update(pinRef, { finds: FieldValue.increment(1) });
     t.update(userRef, { numPinsFound: FieldValue.increment(1) });
+    t.update(privateDataRef, { lastActivity: timestamp.valueOf() });
+    t.update(privateDataRef, { lastLocation: [latitude, longitude] });
     t.create(foundRef, metadata);
     t.set(
       activityRef,
@@ -226,3 +230,105 @@ export const findPinHandler = async (
     };
   });
 };
+
+// checks speed based on diff between previous and current timestamp and location
+// throws HTTP error if invalid speed is detected
+// users with `isDev: true` in their private metadata will bypass this check
+async function locationSecurityCheck(
+  transaction: firestore.Transaction,
+  privDataRef: firestore.DocumentReference<firestore.DocumentData>,
+  currLoc: Geopoint,
+  currTime: Date
+) {
+  // anti-spoof check
+  const userData = (await transaction.get(privDataRef)).data();
+  if (!userData) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "User does not exist."
+    );
+  }
+
+  // developers get to skip location check
+  if (userData.isDev) {
+    return;
+  }
+
+  const lastActivity = new Date(userData.lastActivity);
+  const lastLocation: Geopoint = userData.lastLocation;
+
+  if (!antiSpoofCheck(
+    lastLocation,
+    currLoc,
+    lastActivity,
+    currTime)) {
+    throw new functions.https.HttpsError(
+      "failed-precondition",
+      "Location spoofing detected. You are moving suspiciously fast."
+    );
+  }
+}
+
+function antiSpoofCheck(
+  prevLoc: Geopoint,
+  currLoc: Geopoint,
+  prevTimestamp: Date,
+  currTimestamp: Date): boolean {
+
+  const KILO_TO_MILE: number = 0.6213711;
+
+  // so we don't break existing users
+  if (!prevLoc || !prevTimestamp) {
+    console.log("user does not have previous location / timestamp, passing check");
+    return true;
+  }
+
+  const dist = KILO_TO_MILE * distanceBetween(prevLoc, currLoc);
+  const interval = currTimestamp.valueOf() - prevTimestamp.valueOf();
+  console.log(`curr: ${currTimestamp}, prev: ${prevTimestamp}`);
+  const hours = (interval / 1000.0) / (60.0 * 60.0);
+  const mph = dist / hours;
+  let valid = false;
+
+  console.log(`dist: ${dist}, interval: ${interval}, hours ${hours}`);
+
+  if (dist < 1) {
+    // can't walk faster than 5mph
+    valid = mph < 5;
+  } else if (dist < 5) {
+    // can't bike faster than 20mph
+    valid = mph < 25;
+  } else if (dist < 1000) {
+    // can't drive faster than 100mph
+    valid = mph < 100;
+  } else {
+    // can't ride a plane faster than 650mph
+    valid = mph < 650;
+  }
+
+  if (valid) {
+    console.log(`${prevLoc} is close enough to ${currLoc} to reasonablly travel in ${hours} hrs`);
+  } else {
+    console.log(`${prevLoc} is too far from ${currLoc} to reasonablly travel in ${hours} hrs`);
+  }
+
+  return valid;
+
+}
+
+export async function reportPinHandler({ pid }) {
+  const pinRef = firestore().collection("pins").doc(pid);
+  const pinData: Pin = <Pin>(await pinRef.get()).data();
+
+  const reports = (pinData.reports || 0) + 1;
+  const reportRatio = reports / pinData.finds;
+
+  // this requires more than one person to report a pin before it is deleted
+  if (pinData.finds > 3 && reportRatio > 0.25) {
+    pinRef.delete();
+    return "Pin removed due to excessive reports. Thanks for keeping PinPoint safe.";
+  }
+
+  pinRef.update({ reports });
+  return "Pin has been reported. Thanks for keeping PinPoint safe.";
+}

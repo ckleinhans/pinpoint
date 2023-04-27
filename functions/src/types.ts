@@ -17,6 +17,7 @@ export type Pin = {
   timestamp: Date;
   finds: number;
   cost: number;
+  reports: number;
 };
 
 export type PinMetadata = {
