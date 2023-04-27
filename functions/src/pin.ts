@@ -70,6 +70,7 @@ export const dropPinHandler = async (
       authorUID: context.auth.uid,
       timestamp,
       finds: 0,
+      reports: 0,
       cost: await calculateCost([latitude, longitude], t),
     };
     if (type === PinType.TEXT) pin.textContent = textContent;
@@ -312,4 +313,22 @@ function antiSpoofCheck(
   }
 
   return valid;
+
+}
+
+export async function reportPinHandler({ pid }) {
+  const pinRef = firestore().collection("pins").doc(pid);
+  const pinData: Pin = <Pin>(await pinRef.get()).data();
+
+  const reports = (pinData.reports || 0) + 1;
+  const reportRatio = reports / pinData.finds;
+
+  // this requires more than one person to report a pin before it is deleted
+  if (pinData.finds > 3 && reportRatio > 0.25) {
+    pinRef.delete();
+    return "Pin removed due to excessive reports. Thanks for keeping PinPoint safe.";
+  }
+
+  pinRef.update({ reports });
+  return "Pin has been reported. Thanks for keeping PinPoint safe.";
 }
