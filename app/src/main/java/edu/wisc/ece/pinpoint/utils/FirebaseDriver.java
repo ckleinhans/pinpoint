@@ -495,6 +495,14 @@ public class FirebaseDriver {
         return nearbyPins.get(pid);
     }
 
+    public Task<String> reportPin(String pid) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("pid", pid);
+        return functions.getHttpsCallable("reportPin").call(data)
+                .continueWith(task -> (String) task.getResult().getData())
+                .addOnFailureListener(e -> Log.w(TAG, "Error reporting Pin", e));
+    }
+
     public Task<HashSet<String>> fetchFollowers(String uid) {
         if (auth.getUid() == null) {
             throw new IllegalStateException("User must be logged in to fetch followers");
