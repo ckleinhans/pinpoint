@@ -119,4 +119,5 @@
     <string name="deleting_account">Deleting Account</string>
     <string name="loading_pin">Loading Pin</string>
     <string name="pin_sharing_setup_text">Setting up pin sharing…</string>
+    <string name="navigate_text">Navigate</string>
 </resources>

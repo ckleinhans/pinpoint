@@ -1,8 +1,10 @@
 package edu.wisc.ece.pinpoint.pages.map;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -76,6 +79,9 @@ public class MapFragment extends Fragment {
     private boolean isFilterVisible = false;
     private HashMap<String, Map<String, Object>> sharedPins;
     private ConstraintLayout loadLayoutContainer;
+    private Button directionsButton;
+    // Scale factor for setting padding in dp
+    private float scale;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -126,6 +132,8 @@ public class MapFragment extends Fragment {
         pinnieProgressBar = requireView().findViewById(R.id.map_pinnies_progress);
         pinniesText = requireView().findViewById(R.id.map_pinnies_text);
         pinnies_logo = requireView().findViewById(R.id.map_pinnies_logo);
+        directionsButton = requireView().findViewById(R.id.map_directions_button);
+        scale = getResources().getDisplayMetrics().density;
 
         setPinnieCount();
         handleFilters();
@@ -151,8 +159,6 @@ public class MapFragment extends Fragment {
         ImageView filterTab = requireView().findViewById(R.id.checkbox_tab);
         ConstraintLayout filterContainer = requireView().findViewById(R.id.filter_container);
 
-        // Scale factor for setting padding in dp
-        float scale = getResources().getDisplayMetrics().density;
 
         filterTab.setOnClickListener(view -> {
             if (isFilterVisible) {
@@ -203,11 +209,34 @@ public class MapFragment extends Fragment {
         if (getActivity() != null){
             map.setInfoWindowAdapter(new InfoAdapter(requireContext()));
             map.setOnMarkerClickListener(mark -> {
-
-                //call once to force an image load
+                // Enable directions button
+                directionsButton.setClickable(true);
+                // Show directions button
+                directionsButton.animate().translationX(-12 * scale + 0.5f);
+                // Get coordinates of selected pin
+                LatLng latLng = mark.getPosition();
+                // Move map camera to focus on clicked pin
+                map.animateCamera(CameraUpdateFactory.newLatLng(latLng));
+                String location = "geo:"
+                        +latLng.latitude+","+latLng.longitude+"?z=17&q="
+                        +latLng.latitude+","+latLng.longitude;
+                // Open Google Maps at pin coordinates
+                directionsButton.setOnClickListener(view -> {
+                    Uri gmmIntentUri = Uri.parse(location);
+                    Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                    mapIntent.setPackage("com.google.android.apps.maps");
+                    startActivity(mapIntent);
+                });
+                map.setOnInfoWindowCloseListener(marker -> {
+                    // Disable clicking button while it is sliding away
+                    directionsButton.setClickable(false);
+                    // Hide directions button
+                    directionsButton.animate().translationX(171 * scale + 0.5f);
+                });
+                // Call once to force an image load
                 mark.showInfoWindow();
 
-                //call a second time to set the image (should actually be loaded by this time)
+                // Call a second time to set the image (should actually be loaded by this time)
                 final Handler handler = new Handler(Looper.getMainLooper());
                 handler.postDelayed(() -> mark.showInfoWindow(), MARKER_IMAGE_LOAD_TIME);
                 return true;
@@ -236,30 +265,31 @@ public class MapFragment extends Fragment {
     private void loadSharedPins() {
         // Pull hash map of <String pid, Map<String, Object> data>
         // Drop an undiscovered marker for each
-        String filename = requireContext().getFilesDir()+"shared_pins";
-        try{
-            FileInputStream fis = new FileInputStream(filename);
-            ObjectInputStream in = new ObjectInputStream(fis);
-            sharedPins = (HashMap<String, Map<String, Object>>) in.readObject();
-            sharedPins.forEach((pid, data) -> {
-                NearbyPinData pinData = new NearbyPinData(data);
-                pinData.setSource(PinSource.NFC);
-                createUndiscoveredPin(pid, pinData);
-            });
-            in.close();
-            fis.close();
-            Log.d(TAG, "Successfully loaded "+ sharedPins.size()+" shared pins.");
-        }
-        // If file not found, the user has no NFC pins
-        catch (FileNotFoundException e){
-            Log.d(TAG, "No shared pins loaded.");
-            // Reset nfc pins if exception occurs
-            sharedPins = new HashMap<>();
-        }
-        catch (Exception e){
-            Log.w(TAG, e);
-            // Reset nfc pins if exception occurs
-            sharedPins = new HashMap<>();
+        if (getActivity() != null) {
+            String filename = requireContext().getFilesDir() + "shared_pins";
+            try {
+                FileInputStream fis = new FileInputStream(filename);
+                ObjectInputStream in = new ObjectInputStream(fis);
+                sharedPins = (HashMap<String, Map<String, Object>>) in.readObject();
+                sharedPins.forEach((pid, data) -> {
+                    NearbyPinData pinData = new NearbyPinData(data);
+                    pinData.setSource(PinSource.NFC);
+                    createUndiscoveredPin(pid, pinData);
+                });
+                in.close();
+                fis.close();
+                Log.d(TAG, "Successfully loaded " + sharedPins.size() + " shared pins.");
+            }
+            // If file not found, the user has no NFC pins
+            catch (FileNotFoundException e) {
+                Log.d(TAG, "No shared pins loaded.");
+                // Reset nfc pins if exception occurs
+                sharedPins = new HashMap<>();
+            } catch (Exception e) {
+                Log.w(TAG, e);
+                // Reset nfc pins if exception occurs
+                sharedPins = new HashMap<>();
+            }
         }
     }
 
