@@ -104,7 +104,6 @@
     <string name="nfc_text">NFC</string>
     <string name="my_pins_text">My Pins</string>
     <string name="toggle_pin_filter">Toggle Pin Filter</string>
-    <string name="pin_reward_message">You received %d pinnies as a reward!</string>
     <string name="searching_for_sender_text">Searching for pin sender…</string>
     <string name="searching_for_recipient_text">Searching for pin recipient…</string>
     <string name="share_in_progress_text">Pin sharing in progress…</string>
