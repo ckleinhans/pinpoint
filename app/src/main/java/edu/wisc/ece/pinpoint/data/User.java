@@ -102,7 +102,7 @@ public class User {
     }
 
     public void loadProfilePic(ImageView imageView, Fragment fragment) {
-        if (profilePicUrl != null) {
+        if (profilePicUrl != null && fragment.getActivity() != null) {
             Glide.with(fragment).load(profilePicUrl).placeholder(R.drawable.ic_profile).signature(
                             new ObjectKey(profilePicTimestamp != null ? profilePicTimestamp :
                                     "default"))
