@@ -29,28 +29,15 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.gms.nearby.Nearby;
-import com.google.android.gms.nearby.connection.AdvertisingOptions;
-import com.google.android.gms.nearby.connection.Payload;
-import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
-import edu.wisc.ece.pinpoint.pages.map.MapContainerFragmentDirections;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
@@ -278,15 +265,11 @@ public class PinViewFragment extends Fragment {
 
                     return true;
                 case REPORT:
-                    firebase.reportPin(pid)
-                            .addOnCompleteListener(t -> {
-                                Toast.makeText(requireContext(), t.getResult(),
-                                        Toast.LENGTH_SHORT).show();
-                            })
-                            .addOnFailureListener(e -> {
-                                Toast.makeText(requireContext(), e.toString(),
-                                        Toast.LENGTH_SHORT).show();
-                            });
+                    firebase.reportPin(pid).addOnCompleteListener(
+                            t -> Toast.makeText(requireContext(), t.getResult(), Toast.LENGTH_SHORT)
+                                    .show()).addOnFailureListener(
+                            e -> Toast.makeText(requireContext(), e.toString(), Toast.LENGTH_SHORT)
+                                    .show());
                     return true;
                 case DELETE:
                     AlertDialog.Builder dialog = new AlertDialog.Builder(requireContext());
@@ -319,16 +302,16 @@ public class PinViewFragment extends Fragment {
         popup.show();
     }
 
-    private void lockUI(){
+    private void lockUI() {
         loadLayoutContainer.setVisibility(View.VISIBLE);
         InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
                 Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+        if (getView() != null) imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
         backButton.setVisibility(View.INVISIBLE);
         optionsButton.setVisibility(View.INVISIBLE);
     }
 
-    private void restoreUI(){
+    private void restoreUI() {
         loadLayoutContainer.setVisibility(View.GONE);
         backButton.setVisibility(View.VISIBLE);
         optionsButton.setVisibility(View.VISIBLE);
