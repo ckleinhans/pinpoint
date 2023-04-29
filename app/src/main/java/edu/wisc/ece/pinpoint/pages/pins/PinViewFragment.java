@@ -29,15 +29,28 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.nearby.Nearby;
+import com.google.android.gms.nearby.connection.AdvertisingOptions;
+import com.google.android.gms.nearby.connection.Payload;
+import com.google.android.gms.nearby.connection.Strategy;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.Comment;
 import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.data.User;
+import edu.wisc.ece.pinpoint.pages.map.MapContainerFragmentDirections;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.FormatUtils;
 import edu.wisc.ece.pinpoint.utils.ValidationUtils;
@@ -261,9 +274,8 @@ public class PinViewFragment extends Fragment {
         popup.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case SHARE:
-                    // TODO: add NFC sharing logic here
-                    Toast.makeText(requireContext(), "NFC pin sharing not yet implemented!",
-                            Toast.LENGTH_SHORT).show();
+                    navController.navigate(PinViewFragmentDirections.sendNFCPin(pid));
+
                     return true;
                 case REPORT:
                     firebase.reportPin(pid)

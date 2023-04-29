@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -35,9 +36,16 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.GeoPoint;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import edu.wisc.ece.pinpoint.MainActivity;
 import edu.wisc.ece.pinpoint.R;
@@ -66,6 +74,7 @@ public class MapFragment extends Fragment {
     private ArrayList<Marker> strangerMarkers;
     private final Integer MARKER_IMAGE_LOAD_TIME = 250;
     private boolean isFilterVisible = false;
+    private HashMap<String, Map<String, Object>> sharedPins;
     private ConstraintLayout loadLayoutContainer;
 
     @Override
@@ -76,6 +85,7 @@ public class MapFragment extends Fragment {
         nfcMarkers = new ArrayList<>();
         devMarkers = new ArrayList<>();
         strangerMarkers = new ArrayList<>();
+        sharedPins = new HashMap<>();
     }
 
     @Override
@@ -91,6 +101,7 @@ public class MapFragment extends Fragment {
             map.clear();
             styleMap();
             setMarkerWindowFunction();
+            loadSharedPins();
             getDeviceLocation();
             loadDiscoveredPins();
             map.setOnInfoWindowClickListener(marker -> {
@@ -118,6 +129,9 @@ public class MapFragment extends Fragment {
 
         setPinnieCount();
         handleFilters();
+
+        ImageButton nfc_button = requireView().findViewById(R.id.map_nfc_share);
+        nfc_button.setOnClickListener(v -> navController.navigate(MapContainerFragmentDirections.receiveNFCPin()));
     }
 
     private void lockUI(){
@@ -219,11 +233,60 @@ public class MapFragment extends Fragment {
         }
     }
 
+    private void loadSharedPins() {
+        // Pull hash map of <String pid, Map<String, Object> data>
+        // Drop an undiscovered marker for each
+        String filename = requireContext().getFilesDir()+"shared_pins";
+        try{
+            FileInputStream fis = new FileInputStream(filename);
+            ObjectInputStream in = new ObjectInputStream(fis);
+            sharedPins = (HashMap<String, Map<String, Object>>) in.readObject();
+            sharedPins.forEach((pid, data) -> {
+                NearbyPinData pinData = new NearbyPinData(data);
+                pinData.setSource(PinSource.NFC);
+                createUndiscoveredPin(pid, pinData);
+            });
+            in.close();
+            fis.close();
+            Log.d(TAG, "Successfully loaded "+ sharedPins.size()+" shared pins.");
+        }
+        // If file not found, the user has no NFC pins
+        catch (FileNotFoundException e){
+            Log.d(TAG, "No shared pins loaded.");
+            // Reset nfc pins if exception occurs
+            sharedPins = new HashMap<>();
+        }
+        catch (Exception e){
+            Log.w(TAG, e);
+            // Reset nfc pins if exception occurs
+            sharedPins = new HashMap<>();
+        }
+    }
+
+    private void updateSharedPins() {
+        // Rewrite nfc_pins file with updated hash map
+        String filename = requireContext().getFilesDir()+"shared_pins";
+        try{
+            FileOutputStream fos = new FileOutputStream(filename);
+            ObjectOutputStream out = new ObjectOutputStream(fos);
+            out.writeObject(sharedPins);
+            out.close();
+            fos.close();
+            Log.d(TAG, "Successfully stored " + sharedPins.size() + " pins.");
+        }
+        catch (Exception e){
+            Log.w(TAG, e);
+        }
+    }
+
     private void createUndiscoveredPin(String key, NearbyPinData val) {
         float color = BitmapDescriptorFactory.HUE_RED;
         // Data field to persist in pin marker to know the pin source when the user finds the pin
         ArrayList<Marker> markerList = strangerMarkers;
-        // TODO: change color for nfc pin (cyan)
+        if(val.getSource() == PinSource.NFC){
+            color = BitmapDescriptorFactory.HUE_CYAN;
+            markerList = nfcMarkers;
+        }
         if (val.getSource() == PinSource.DEV) {
             color = BitmapDescriptorFactory.HUE_YELLOW;
             markerList = devMarkers;
@@ -265,10 +328,15 @@ public class MapFragment extends Fragment {
                 lockUI();
                 String pinId = (String) marker.getTag();
                 NearbyPinData pinData = firebase.getCachedNearbyPin(pinId);
-                PinSource source = pinData.getSource() == PinSource.FRIEND ? PinSource.GENERAL :
+                PinSource source = (sharedPins.containsKey(pinId)) ? PinSource.NFC :
+                        pinData.getSource() == PinSource.FRIEND ? PinSource.GENERAL :
                         pinData.getSource();
                 firebase.findPin(pinId, userLoc, source).addOnSuccessListener(reward -> {
                     restoreUI();
+                    if(source.equals(PinSource.NFC)){
+                        sharedPins.remove(pinId);
+                        updateSharedPins();
+                    }
                     Toast.makeText(requireContext(),
                             String.format(getString(R.string.pinnie_reward_message), reward),
                             Toast.LENGTH_LONG).show();
@@ -340,7 +408,8 @@ public class MapFragment extends Fragment {
                                         // load pin if undiscovered
                                         if (!firebase.getCachedDroppedPinMetadata().contains(
                                                 key) && !firebase.getCachedFoundPinMetadata()
-                                                .contains(key)) createUndiscoveredPin(key, val);
+                                                .contains(key) && !sharedPins.containsKey(key))
+                                            createUndiscoveredPin(key, val);
                                     })));
                     locationResult.addOnCompleteListener(requireActivity(), task -> {
                         if (task.isSuccessful()) {
