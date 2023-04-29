@@ -106,6 +106,25 @@
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <Button
+        android:id="@+id/map_directions_button"
+        android:layout_width="171dp"
+        android:layout_height="49dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="58dp"
+        android:alpha="0.75"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:backgroundTint="?attr/colorSecondary"
+        app:cornerRadius="0dp"
+        android:translationZ="45dp"
+        android:translationX="171dp"
+        android:drawableLeft="@drawable/ic_navigation"
+        android:text="@string/navigate_text"
+        android:textColor="?attr/colorOnSecondary"
+        app:drawableTint="?attr/colorOnSecondary"/>
+
     <ImageButton
         android:id="@+id/map_nfc_share"
         android:layout_width="39dp"
