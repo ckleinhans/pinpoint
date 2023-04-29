@@ -34,6 +34,7 @@ public class NavBarProfileFragment extends Fragment {
     private TextView pinsDroppedCount;
     private TextView pinsFoundCount;
     private TextView location;
+    private ConstraintLayout locationLayout;
     private TextView bio;
     private ImageView profilePic;
 
@@ -63,6 +64,7 @@ public class NavBarProfileFragment extends Fragment {
         pinsDroppedCount = requireView().findViewById(R.id.profile_dropped_count);
         pinsFoundCount = requireView().findViewById(R.id.profile_found_count);
         location = requireView().findViewById(R.id.profile_location);
+        locationLayout = requireView().findViewById(R.id.profile_location_layout);
         bio = requireView().findViewById(R.id.profile_bio);
         profilePic = requireView().findViewById(R.id.profile_pic);
         Button button = requireView().findViewById(R.id.profile_button);
@@ -135,9 +137,9 @@ public class NavBarProfileFragment extends Fragment {
         location.setText(user.getLocation());
         bio.setText(user.getBio());
         if (user.getLocation() == null) {
-            location.setVisibility(View.GONE);
+            locationLayout.setVisibility(View.GONE);
         } else {
-            location.setVisibility(View.VISIBLE);
+            locationLayout.setVisibility(View.VISIBLE);
         }
         if (user.getBio() == null) {
             bio.setVisibility(View.GONE);
