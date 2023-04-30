@@ -83,7 +83,6 @@ public class LocationChangeDetection extends Worker {
 
                     }
 
-
                     newLoc = task.getResult();
 
                     if (newLoc != null) {
@@ -97,9 +96,6 @@ public class LocationChangeDetection extends Worker {
                             Log.d("dist", String.valueOf(distance));
 
                             if (newLoc != null && (distance <= 0.5)) {
-                                notificationDriver = NotificationDriver.getInstance(context);
-                                notificationDriver.updatePersistent("Pins", "too close");
-
 
                             } else {
                                 firebaseDriver = FirebaseDriver.getInstance();
@@ -118,7 +114,7 @@ public class LocationChangeDetection extends Worker {
                                 });
                             }
                         } else {
-                            Log.d("loc","new4");
+
                             preferences.edit().remove("longitude").commit();
                             preferences.edit().remove("latitude").commit();
                             SharedPreferences.Editor editor = preferences.edit();
