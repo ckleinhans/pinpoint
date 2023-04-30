@@ -74,6 +74,8 @@ public class LocationChangeDetection extends Worker {
                         notificationDriver = NotificationDriver.getInstance(context);
                         notificationDriver.updatePersistent("Location", "Enable Background Location Access");
 
+
+
                     }
 
                     newLoc = task.getResult();
@@ -89,6 +91,7 @@ public class LocationChangeDetection extends Worker {
                             Log.d("dist", String.valueOf(distance));
 
                             if (newLoc != null && (distance <= 0.5)) {
+                                
 
                             } else {
                                 firebaseDriver = FirebaseDriver.getInstance();
