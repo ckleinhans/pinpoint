@@ -2,7 +2,6 @@ package edu.wisc.ece.pinpoint.utils;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.location.Location;
@@ -11,22 +10,17 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.preference.PreferenceManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.tasks.Task;
 
 import java.util.HashMap;
-import java.util.Map;
 
-import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.NearbyPinData;
-import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
+
 
 public class LocationChangeDetection extends Worker {
 
@@ -36,13 +30,12 @@ public class LocationChangeDetection extends Worker {
     Context context;
     HashMap<String, NearbyPinData> nearbyPins;
 
-    OrderedPinMetadata pins;
     private Location newLoc;
 
     SharedPreferences preferences;
     NotificationDriver notificationDriver;
     private static final double EARTH_RADIUS_MILES = 3959;
-    int n;
+
 
 
     public LocationChangeDetection(@NonNull Context context, @NonNull WorkerParameters workerParams) {
