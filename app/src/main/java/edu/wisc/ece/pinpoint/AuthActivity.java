@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.util.Arrays;
 
@@ -34,6 +35,7 @@ public class AuthActivity extends AppCompatActivity {
         switcher = findViewById(R.id.view_switcher);
 
         if (firebase.isLoggedIn() && firebase.isVerified()) {
+            FirebaseCrashlytics.getInstance().setUserId(firebase.getUid());
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();
@@ -50,6 +52,7 @@ public class AuthActivity extends AppCompatActivity {
                         if (!firebase.isVerified()) {
                             firebase.sendEmailVerification(null);
                         } else {
+                            FirebaseCrashlytics.getInstance().setUserId(firebase.getUid());
                             Intent intent = new Intent(AuthActivity.this, MainActivity.class);
                             startActivity(intent);
                             finish();
@@ -146,6 +149,7 @@ public class AuthActivity extends AppCompatActivity {
                         Log.d(TAG, "User logged out.");
                     } else if (firebase.isVerified()) {
                         Log.d(TAG, "User verified!");
+                        FirebaseCrashlytics.getInstance().setUserId(firebase.getUid());
                         Intent intent = new Intent(AuthActivity.this, MainActivity.class);
                         startActivity(intent);
                         finish();

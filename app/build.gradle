@@ -3,6 +3,8 @@ plugins {
     id 'com.google.gms.google-services'
     id 'androidx.navigation.safeargs'
     id 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin'
+    id 'com.google.firebase.crashlytics'
+    id 'com.google.firebase.firebase-perf'
 }
 
 android {
@@ -14,7 +16,7 @@ android {
         minSdk 30
         targetSdk 33
         versionCode 1
-        versionName "1.0"
+        versionName "0.1.0-alpha"
         resConfigs "en"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -44,6 +46,8 @@ dependencies {
     implementation platform('com.google.firebase:firebase-bom:31.2.2')
     // Firebase product dependencies (https://firebase.google.com/docs/android/setup#available-libraries)
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-perf'
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-storage'
