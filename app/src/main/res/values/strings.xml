@@ -126,4 +126,8 @@
     <string name="delete_account_error_message">Something went wrong deleting your account. Please try again later.</string>
     <string name="account_deleted_message">Your account has been deleted.</string>
     <string name="feedback_message">Thank you for using PinPoint! We really appreciate any feedback you have on problems you have ru into with the app, things you think could work better, or new feature ideas we can add!</string>
+    <string name="tester_sign_in_message">Thanks for trying out our app! To provide you with the best user experience please join our testers! Your app will automatically update when we release new features or fix bugs. If you were already invited to be a tester sign in below. Otherwise reach out to us so we can add you!</string>
+    <string name="welcome_message">Welcome to PinPoint!</string>
+    <string name="sign_in_text">Sign In</string>
+    <string name="not_right_now_text">Not right now</string>
 </resources>

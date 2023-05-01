@@ -118,15 +118,13 @@ public class FirebaseDriver {
         return distribution.isTesterSignedIn();
     }
 
-    public void signInTester(Context context, DialogInterface.OnClickListener cancel) {
+    public void signInTester(Context context, DialogInterface.OnClickListener onContinue) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(context);
-        dialog.setTitle("Welcome to PinPoint!");
-        dialog.setMessage(
-                "Thanks for trying out our app! To provide you with the best user experience " +
-                        "please join our testers! Your app will automatically update when we " +
-                        "release new features or fix bugs. If you were already invited to be a " + "tester sign in below. Otherwise reach out to us so we can add you!");
-        dialog.setPositiveButton("Sign In", (d, buttonId) -> distribution.signInTester());
-        dialog.setNegativeButton("Not right now", cancel);
+        dialog.setTitle(R.string.welcome_message);
+        dialog.setMessage(R.string.tester_sign_in_message);
+        dialog.setPositiveButton(R.string.sign_in_text, (d, buttonId) -> distribution.signInTester()
+                .addOnCompleteListener(t -> onContinue.onClick(d, buttonId)));
+        dialog.setNegativeButton(R.string.not_right_now_text, onContinue);
         // prevent clicks outside dialog from closing it
         dialog.setCancelable(false);
         dialog.show();
