@@ -152,11 +152,12 @@ public class MainActivity extends AppCompatActivity {
             if(preferences.contains("counter2")){
 
             }else{
-
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.putString("counter2", String.valueOf(1));
+                editor.apply();
                 new AlertDialog.Builder(this)
                         .setTitle("Enable Background Location")
                         .setMessage("Enabling background location access allows PinPoint to search for nearby pins when app is closed ")
-
 
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
@@ -166,9 +167,6 @@ public class MainActivity extends AppCompatActivity {
                                 Uri uri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
                                 intent.setData(uri);
                                 getApplicationContext().startActivity(intent);
-                                SharedPreferences.Editor editor = preferences.edit();
-                                editor.putString("counter2", String.valueOf(1));
-                                editor.apply();
                                 Toast.makeText(getApplicationContext(),"Permissions -> Location -> Allow all the time",Toast.LENGTH_LONG).show();
                             }
                         })
@@ -177,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
                         .show();
 
             }
-            
+
 
             PeriodicWorkRequest saveRequest =
                     new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 30,
