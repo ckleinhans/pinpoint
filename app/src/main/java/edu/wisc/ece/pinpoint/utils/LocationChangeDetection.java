@@ -55,14 +55,6 @@ public class LocationChangeDetection extends Worker {
             if (locationDriver.hasCoarseLocation(context)) {
                 locationDriver.getLastLocation(context).addOnCompleteListener(task -> {
 
-                    preferences = PreferenceManager.getDefaultSharedPreferences(context);
-
-                    if(preferences.contains("counter2")) {
-                    }
-                    else{
-
-                    }
-
                     newLoc = task.getResult();
 
                     if (newLoc != null) {
