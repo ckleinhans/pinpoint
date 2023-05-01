@@ -178,6 +178,35 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
+            if(preferences.contains("counter2")){
+
+            }else{
+
+                new AlertDialog.Builder(this)
+                        .setTitle("Enable Background Location")
+                        .setMessage("Enabling background location access allows PinPoint to search for nearby pins when app is closed ")
+
+
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                Uri uri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
+                                intent.setData(uri);
+                                getApplicationContext().startActivity(intent);
+                                SharedPreferences.Editor editor = preferences.edit();
+                                editor.putString("counter2", String.valueOf(1));
+                                editor.apply();
+                                Toast.makeText(getApplicationContext(),"Permissions -> Location -> Allow all the time",Toast.LENGTH_LONG).show();
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, null)
+                        .setIcon(android.R.drawable.ic_dialog_info)
+                        .show();
+
+            }
+
             PeriodicWorkRequest saveRequest =
                     new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 30,
                             TimeUnit.MINUTES)
