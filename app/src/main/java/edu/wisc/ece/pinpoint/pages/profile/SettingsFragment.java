@@ -1,11 +1,9 @@
 package edu.wisc.ece.pinpoint.pages.profile;
 
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -22,12 +20,15 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
     private ConstraintLayout deleteLoadLayoutContainer;
     private ImageButton backButton;
+
     @Override
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-
-        deleteLoadLayoutContainer = this.getParentFragment().requireView().findViewById(R.id.delete_acct_load_layout_container);
+        //noinspection ConstantConditions
+        deleteLoadLayoutContainer = this.getParentFragment().requireView()
+                .findViewById(R.id.delete_acct_load_layout_container);
         backButton = this.getParentFragment().requireView().findViewById(R.id.settings_cancel);
-        deleteLoadLayoutContainer.setOnClickListener(v -> {});
+        deleteLoadLayoutContainer.setOnClickListener(v -> {
+        });
 
         setPreferencesFromResource(R.xml.settings, rootKey);
         Preference logOut = getPreferenceManager().findPreference("logout");
@@ -37,9 +38,9 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                     Intent intent = new Intent(requireContext(), AuthActivity.class);
                     startActivity(intent);
                     requireActivity().finish();
-                }).addOnFailureListener(e -> Toast.makeText(getContext(),
-                        "Something went wrong logging out. Please try again later.",
-                        Toast.LENGTH_LONG).show());
+                }).addOnFailureListener(
+                        e -> Toast.makeText(getContext(), R.string.logout_error_message,
+                                Toast.LENGTH_LONG).show());
                 return true;
             });
         }
@@ -47,7 +48,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         if (deleteAccount != null) {
             deleteAccount.setOnPreferenceClickListener(preference -> {
                 AlertDialog.Builder dialog = new AlertDialog.Builder(requireContext());
-                dialog.setTitle("Confirm Account Deletion");
+                dialog.setTitle(R.string.confirm_account_deletion_text);
                 dialog.setMessage(R.string.account_delete_message);
                 dialog.setPositiveButton(R.string.delete_text, this::deleteAccount);
                 dialog.setNegativeButton(R.string.cancel_text, (d, buttonId) -> {
@@ -57,30 +58,35 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                 return true;
             });
         }
+        Preference feedback = getPreferenceManager().findPreference("feedback");
+        if (feedback != null) {
+            feedback.setOnPreferenceClickListener(preference -> {
+                FirebaseDriver.getInstance().startFeedback();
+                return true;
+            });
+        }
     }
 
-    private void lockUI(){
+    private void lockUI() {
         deleteLoadLayoutContainer.setVisibility(View.VISIBLE);
         backButton.setVisibility(View.INVISIBLE);
     }
 
-    private void restoreUI(){
+    private void restoreUI() {
         deleteLoadLayoutContainer.setVisibility(View.GONE);
         backButton.setVisibility(View.VISIBLE);
     }
 
     private void deleteAccount(DialogInterface dialog, int buttonId) {
         lockUI();
-        FirebaseDriver.getInstance().deleteAccount(requireContext())
-                .addOnFailureListener( e -> {
-                        Toast.makeText(getContext(),
-                        "Something went wrong deleting your account. Please try again later.",
-                        Toast.LENGTH_LONG).show();
-                        restoreUI();})
-                .addOnSuccessListener(t -> {
-                Toast.makeText(getContext(), "Your account has been deleted.", Toast.LENGTH_LONG)
+        FirebaseDriver.getInstance().deleteAccount(requireContext()).addOnFailureListener(e -> {
+            Toast.makeText(getContext(), R.string.delete_account_error_message, Toast.LENGTH_LONG)
                     .show();
-                    restoreUI();
+            restoreUI();
+        }).addOnSuccessListener(t -> {
+            Toast.makeText(getContext(), R.string.account_deleted_message, Toast.LENGTH_LONG)
+                    .show();
+            restoreUI();
             if (getContext() != null && getActivity() != null) {
                 Intent intent = new Intent(getContext(), AuthActivity.class);
                 startActivity(intent);

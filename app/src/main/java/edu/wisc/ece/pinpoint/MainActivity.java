@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
                     R.id.new_pin_fragment);
+    private FirebaseDriver firebase;
     private int currentDestinationId;
     private NavController navController;
     private NavHostFragment navHostFragment;
@@ -48,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        firebase = FirebaseDriver.getInstance();
 
         // Create trace to track initial app load time
         Trace trace = FirebasePerformance.getInstance().newTrace("initialLoad");
@@ -76,7 +79,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Fetch logged in user profile, following/followers, & activity on app load
-        FirebaseDriver firebase = FirebaseDriver.getInstance();
         String uid = firebase.getUid();
         // List of fetching tasks that must be completed before launching app content
         List<Task<Object>> fetchTasks = new ArrayList<>();
@@ -149,6 +151,13 @@ public class MainActivity extends AppCompatActivity {
             WorkManager work = WorkManager.getInstance(getApplicationContext());
             work.enqueue(saveRequest);
         }, 1000);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Check for new app versions for testers using Firebase App Distribution
+        if (firebase.isTesterSignedIn()) firebase.checkForNewTesterRelease();
     }
 
     public void onMapButtonClick(View view) {

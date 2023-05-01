@@ -74,4 +74,9 @@ dependencies {
     // implementation 'com.facebook.android:facebook-login:8.1.0'
     implementation 'androidx.work:work-runtime:2.8.1'
     implementation 'net.yslibrary.keyboardvisibilityevent:keyboardvisibilityevent:3.0.0-RC3'
+    // API-only tester distribution library (ok to include in all variants)
+    implementation 'com.google.firebase:firebase-appdistribution-api:16.0.0-beta08'
+    // Full SDK tester distribution library (NOT ALLOWED on Google Play store)
+    // TODO: comment this out before submitting to Google Play store
+    implementation 'com.google.firebase:firebase-appdistribution:16.0.0-beta08'
 }

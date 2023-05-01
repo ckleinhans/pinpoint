@@ -48,10 +48,11 @@ public class AuthActivity extends AppCompatActivity {
                             // TODO: currently don't handle if this call fails, which would make
                             //  user's app crash on launch & be unusable
                             firebase.handleNewUser();
+                            if (!firebase.isVerified()) {
+                                firebase.sendEmailVerification(null);
+                            }
                         }
-                        if (!firebase.isVerified()) {
-                            firebase.sendEmailVerification(null);
-                        } else {
+                        if (firebase.isVerified()) {
                             FirebaseCrashlytics.getInstance().setUserId(firebase.getUid());
                             Intent intent = new Intent(AuthActivity.this, MainActivity.class);
                             startActivity(intent);
@@ -67,7 +68,8 @@ public class AuthActivity extends AppCompatActivity {
         super.onStart();
         if (!firebase.isLoggedIn()) {
             showView(R.id.loading_view);
-            launchAuth();
+            // If user not signed in prompt them to sign into tester account before pinpoint account
+            if (!firebase.isTesterSignedIn()) firebase.signInTester(this, (d, b) -> launchAuth());
         } else if (!firebase.isVerified()) {
             showView(R.id.verify_email_view);
             startAuthReloadHandler();

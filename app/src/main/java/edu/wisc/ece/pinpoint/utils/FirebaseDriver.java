@@ -1,6 +1,7 @@
 package edu.wisc.ece.pinpoint.utils;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
@@ -8,6 +9,7 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
@@ -17,6 +19,8 @@ import com.firebase.ui.auth.AuthUI;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.appdistribution.FirebaseAppDistribution;
+import com.google.firebase.appdistribution.FirebaseAppDistributionException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.FirebaseUserMetadata;
@@ -36,6 +40,7 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +72,7 @@ public class FirebaseDriver {
     private final FirebaseFunctions functions;
     private final FirebaseCrashlytics crashlytics;
     private final FirebasePerformance performance;
+    private final FirebaseAppDistribution distribution;
     private final Map<String, User> users;
     private final Map<String, Pin> pins;
     private final Map<String, OrderedPinMetadata> userPinMetadata;
@@ -89,6 +95,7 @@ public class FirebaseDriver {
         functions = FirebaseFunctions.getInstance();
         crashlytics = FirebaseCrashlytics.getInstance();
         performance = FirebasePerformance.getInstance();
+        distribution = FirebaseAppDistribution.getInstance();
         users = new HashMap<>();
         pins = new HashMap<>();
         userPinMetadata = new HashMap<>();
@@ -103,6 +110,49 @@ public class FirebaseDriver {
             new FirebaseDriver();
         }
         return instance;
+    }
+
+    public boolean isTesterSignedIn() {
+        Log.d(TAG, distribution.isTesterSignedIn() ? "User is signed in as a tester" :
+                "User is not signed in as a tester");
+        return distribution.isTesterSignedIn();
+    }
+
+    public void signInTester(Context context, DialogInterface.OnClickListener cancel) {
+        AlertDialog.Builder dialog = new AlertDialog.Builder(context);
+        dialog.setTitle("Welcome to PinPoint!");
+        dialog.setMessage(
+                "Thanks for trying out our app! To provide you with the best user experience " +
+                        "please join our testers! Your app will automatically update when we " +
+                        "release new features or fix bugs. If you were already invited to be a " + "tester sign in below. Otherwise reach out to us so we can add you!");
+        dialog.setPositiveButton("Sign In", (d, buttonId) -> distribution.signInTester());
+        dialog.setNegativeButton("Not right now", cancel);
+        // prevent clicks outside dialog from closing it
+        dialog.setCancelable(false);
+        dialog.show();
+    }
+
+    public void checkForNewTesterRelease() {
+        Log.d(TAG, "Checking for new tester releases...");
+        // Checks for new tester release using Firebase App Distribution. This will prompt users
+        // to sign into their tester accounts through Firebase if not already signed in.
+        distribution.updateIfNewReleaseAvailable().addOnProgressListener(updateProgress -> {
+            // (Optional) Implement custom progress updates in addition to automatic
+            // NotificationManager updates.
+        }).addOnFailureListener(e -> {
+            if (e instanceof FirebaseAppDistributionException) {
+                //noinspection StatementWithEmptyBody
+                if (((FirebaseAppDistributionException) e).getErrorCode() == FirebaseAppDistributionException.Status.NOT_IMPLEMENTED) {
+                    // SDK did nothing. This is expected when building for Google Play.
+                } else {
+                    handleError(e, "Error checking for new tester versions");
+                }
+            }
+        });
+    }
+
+    public void startFeedback() {
+        distribution.startFeedback(R.string.feedback_message);
     }
 
     public boolean isLoggedIn() {
@@ -185,7 +235,7 @@ public class FirebaseDriver {
         }
         FirebaseUserMetadata metadata = auth.getCurrentUser().getMetadata();
         //noinspection ConstantConditions
-        return metadata.getLastSignInTimestamp() - metadata.getCreationTimestamp() < 1000;
+        return Instant.now().toEpochMilli() - metadata.getCreationTimestamp() < 5000;
     }
 
     public Task<User> fetchUser(@NonNull String uid) {

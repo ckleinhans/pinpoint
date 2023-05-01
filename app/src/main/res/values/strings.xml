@@ -121,4 +121,9 @@
     <string name="navigate_text">Navigate</string>
     <string name="connected_message">Connected to %s</string>
     <string name="profile_save_error">Something went wrong saving your profile. Please try again later.</string>
+    <string name="confirm_account_deletion_text">Confirm Account Deletion</string>
+    <string name="logout_error_message">Something went wrong logging out. Please try again later.</string>
+    <string name="delete_account_error_message">Something went wrong deleting your account. Please try again later.</string>
+    <string name="account_deleted_message">Your account has been deleted.</string>
+    <string name="feedback_message">Thank you for using PinPoint! We really appreciate any feedback you have on problems you have ru into with the app, things you think could work better, or new feature ideas we can add!</string>
 </resources>
