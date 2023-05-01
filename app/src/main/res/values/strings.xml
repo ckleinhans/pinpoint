@@ -19,7 +19,7 @@
     <string name="map_button_text">Map Button</string>
     <string name="feed_text">Feed</string>
     <string name="leaderboard_text">Leaderboard</string>
-    <string name="board_text">Pin Board</string>
+    <string name="board_text">Found Pins</string>
     <string name="profile_text">Profile</string>
     <string name="edit_profile_text">Edit Profile</string>
     <string name="activity_text">Activity</string>
@@ -53,7 +53,11 @@
     <string name="file_creation_failed_message">Something went wrong taking your photo. Please try again!</string>
     <string name="drop_pin_text">Pin successfully dropped!</string>
     <string name="photo_upload_error_message">Something went wrong uploading your photo! Try again later.</string>
-    <string name="found_pins_text">Found Pins</string>
+    <string name="found_pins_text">All</string>
+    <string name="following_pins_text">Followed</string>
+    <string name="nfc_pin_text">NFC</string>
+    <string name="landmark_pin_text">Landmark</string>
+    <string name="other_pin_text">Other</string>
     <string name="undiscovered_pin_title">Undiscovered Pin</string>
     <string name="undiscovered_pin_message">Travel close to this pin and click here to reveal its contents!</string>
     <string name="insufficient_pinnies">Insufficient Pinnies</string>

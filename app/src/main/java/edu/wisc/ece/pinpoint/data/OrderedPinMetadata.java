@@ -144,4 +144,14 @@ public class OrderedPinMetadata {
     public Iterator<PinMetadata> getIterator() {
         return list.iterator();
     }
+
+    public OrderedPinMetadata filterBySource(PinMetadata.PinSource source) {
+        OrderedPinMetadata ret = new OrderedPinMetadata();
+        this.list.forEach(p -> {
+            if (p.getPinSource() == source) {
+                ret.add(p);
+            }
+        });
+        return ret;
+    }
 }

@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
+import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class PinListFragment extends Fragment {
@@ -63,13 +64,29 @@ public class PinListFragment extends Fragment {
                     setupRecyclerView(view, pinMetadata, listType);
                 }
                 break;
-            case DROPPED:
-                pinMetadata = firebase.getCachedDroppedPinMetadata();
-                setupRecyclerView(view, pinMetadata, listType);
+            case ALL:
+                OrderedPinMetadata allPinMetadata = firebase.getCachedFoundPinMetadata();
+                setupRecyclerView(view, allPinMetadata, listType);
                 break;
-            case FOUND:
-                pinMetadata = firebase.getCachedFoundPinMetadata();
-                setupRecyclerView(view, pinMetadata, listType);
+            case NFC:
+                OrderedPinMetadata nfcPinMetadata = firebase.getCachedFoundPinMetadata()
+                        .filterBySource(PinMetadata.PinSource.NFC);
+                setupRecyclerView(view, nfcPinMetadata, listType);
+                break;
+            case LANDMARK:
+                OrderedPinMetadata landmarkPinMetadata = firebase.getCachedFoundPinMetadata()
+                        .filterBySource(PinMetadata.PinSource.DEV);
+                setupRecyclerView(view, landmarkPinMetadata, listType);
+                break;
+            case FOLLOWED:
+                OrderedPinMetadata followedPinMetadata = firebase.getCachedFoundPinMetadata()
+                        .filterBySource(PinMetadata.PinSource.FRIEND);
+                setupRecyclerView(view, followedPinMetadata, listType);
+                break;
+            case OTHER:
+                OrderedPinMetadata otherPinMetadata = firebase.getCachedFoundPinMetadata()
+                        .filterBySource(PinMetadata.PinSource.GENERAL);
+                setupRecyclerView(view, otherPinMetadata, listType);
                 break;
         }
     }
@@ -86,6 +103,6 @@ public class PinListFragment extends Fragment {
     }
 
     public enum PinListType {
-        FOUND, DROPPED, USER
+         USER, NFC, LANDMARK, FOLLOWED, OTHER, ALL
     }
 }
