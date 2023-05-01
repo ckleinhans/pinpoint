@@ -70,6 +70,7 @@ public class AuthActivity extends AppCompatActivity {
             showView(R.id.loading_view);
             // If user not signed in prompt them to sign into tester account before pinpoint account
             if (!firebase.isTesterSignedIn()) firebase.signInTester(this, (d, b) -> launchAuth());
+            else launchAuth();
         } else if (!firebase.isVerified()) {
             showView(R.id.verify_email_view);
             startAuthReloadHandler();
