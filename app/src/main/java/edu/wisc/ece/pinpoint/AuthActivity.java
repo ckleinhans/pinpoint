@@ -43,6 +43,7 @@ public class AuthActivity extends AppCompatActivity {
 
         authLauncher = this.registerForActivityResult(new FirebaseAuthUIActivityResultContract(),
                 (result) -> {
+                    Log.d("TEST", String.format("Result code: %d", result.getResultCode()));
                     if (result.getResultCode() == RESULT_OK) {
                         if (firebase.isNewUser()) {
                             // TODO: currently don't handle if this call fails, which would make

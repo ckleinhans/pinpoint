@@ -118,13 +118,13 @@ public class FirebaseDriver {
         return distribution.isTesterSignedIn();
     }
 
-    public void signInTester(Context context, DialogInterface.OnClickListener onContinue) {
+    public void signInTester(Context context, DialogInterface.OnClickListener onCancel) {
         AlertDialog.Builder dialog = new AlertDialog.Builder(context);
         dialog.setTitle(R.string.welcome_message);
         dialog.setMessage(R.string.tester_sign_in_message);
-        dialog.setPositiveButton(R.string.sign_in_text, (d, buttonId) -> distribution.signInTester()
-                .addOnCompleteListener(t -> onContinue.onClick(d, buttonId)));
-        dialog.setNegativeButton(R.string.not_right_now_text, onContinue);
+        dialog.setPositiveButton(R.string.sign_in_text,
+                (d, buttonId) -> distribution.signInTester());
+        dialog.setNegativeButton(R.string.not_right_now_text, onCancel);
         // prevent clicks outside dialog from closing it
         dialog.setCancelable(false);
         dialog.show();

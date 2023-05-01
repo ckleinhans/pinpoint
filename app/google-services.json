@@ -14,11 +14,35 @@
       },
       "oauth_client": [
         {
-          "client_id": "56663903953-je61uqk9u161b31r84plj58jgnb235v9.apps.googleusercontent.com",
+          "client_id": "56663903953-1g9edun53ka0de94ankhkmlashvhoabq.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "edu.wisc.ece.pinpoint",
-            "certificate_hash": "a2f5de21dd82ac37c22cd76cf1515293fcfa7840"
+            "certificate_hash": "9b1c8f7209e351dc86f8b12f70ba6bce99d20583"
+          }
+        },
+        {
+          "client_id": "56663903953-5bs44e50ao1j9336tipqdv825j47laas.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.wisc.ece.pinpoint",
+            "certificate_hash": "78ec2e1669d12089d49b0edeb27f8ad82c11a155"
+          }
+        },
+        {
+          "client_id": "56663903953-7pv03so7id44035ejj1jb5pu0klt73ev.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.wisc.ece.pinpoint",
+            "certificate_hash": "c9d100eeeb4391f7e6509938141fe5d5cf096d1e"
+          }
+        },
+        {
+          "client_id": "56663903953-d4t6v13ucgho5kqvfjh3k68ntioefp51.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "edu.wisc.ece.pinpoint",
+            "certificate_hash": "35f4d9dbde4fb43d25d1a2c39d682eb47b64adfe"
           }
         },
         {
