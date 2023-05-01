@@ -1,5 +1,7 @@
 package edu.wisc.ece.pinpoint;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -136,6 +138,29 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
             preferences.edit().remove("longitude").commit();
             preferences.edit().remove("latitude").commit();
+
+            if(preferences.contains("counter2")){
+
+            }else{
+
+                new AlertDialog.Builder(this)
+                        .setTitle("Enable Background Location")
+                        .setMessage("To get notifications all the time")
+
+                        // Specifying a listener allows you to take an action before dismissing the dialog.
+                        // The dialog is automatically dismissed when a dialog button is clicked.
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Continue with delete operation
+                            }
+                        })
+
+                        // A null listener allows the button to dismiss the dialog and take no further action.
+                        .setNegativeButton(android.R.string.no, null)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+
+            }
 
             PeriodicWorkRequest saveRequest =
                     new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 30,
