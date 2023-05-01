@@ -130,4 +130,6 @@
     <string name="welcome_message">Welcome to PinPoint!</string>
     <string name="sign_in_text">Sign In</string>
     <string name="not_right_now_text">Not right now</string>
+    <string name="user_activity_empty_message">No activity yet!</string>
+    <string name="no_pins_yet">No pins yet!</string>
 </resources>

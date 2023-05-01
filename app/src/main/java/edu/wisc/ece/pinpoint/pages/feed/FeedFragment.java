@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,6 +30,7 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 public class FeedFragment extends Fragment {
     public static final String UID_ARG_KEY = "uid";
     private FirebaseDriver firebase;
+    public TextView emptyText;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,6 +51,7 @@ public class FeedFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.feed_recycler_view);
         ConstraintLayout topBar = view.findViewById(R.id.top_bar);
+        emptyText = view.findViewById(R.id.feed_empty_text);
         // Scale factor for setting padding in dp
         float scale = getResources().getDisplayMetrics().density;
         NavController navController =
@@ -80,9 +83,17 @@ public class FeedFragment extends Fragment {
                 ActivityList cachedActivity = firebase.getCachedActivity(userId);
                 if (cachedActivity != null) {
                     cachedMasterList.addAll(cachedActivity);
+                    emptyText.setVisibility(View.GONE);
+                }
+                else{
+                    emptyText.setVisibility(View.VISIBLE);
                 }
                 fetchTasks.add(firebase.fetchActivity(userId)
-                        .addOnSuccessListener(fetchedMasterList::addAll).addOnFailureListener(
+                        .addOnSuccessListener(activityList ->{
+                            fetchedMasterList.addAll(activityList);
+                            if (fetchedMasterList.size() == 0) emptyText.setVisibility(View.VISIBLE);
+                            else emptyText.setVisibility(View.GONE);
+                        }).addOnFailureListener(
                                 e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
                                         Toast.LENGTH_SHORT).show()));
             }
@@ -104,15 +115,25 @@ public class FeedFragment extends Fragment {
 
             // Attempt to use cached activity before fetching
             ActivityList cachedActivity = firebase.getCachedActivity(uid);
-            if (cachedActivity != null) recyclerView.setAdapter(
+            if (cachedActivity != null) {recyclerView.setAdapter(
                     new FeedAdapter(cachedActivity, navController, this,
                             FeedAdapter.FeedSource.PROFILE));
+                emptyText.setVisibility(View.GONE);
+            }
+            else{
+                emptyText.setVisibility(View.VISIBLE);
+            }
             // If user is not self, fetch activity regardless to maintain up to date data
             if (!firebase.getUid().equals(uid) || cachedActivity == null)
                 firebase.fetchActivity(uid).addOnSuccessListener(
-                        activityList -> recyclerView.setAdapter(
-                                new FeedAdapter(activityList, navController, this,
-                                        FeedAdapter.FeedSource.PROFILE))).addOnFailureListener(
+                        activityList -> {
+                            recyclerView.setAdapter(
+                                    new FeedAdapter(activityList, navController, this,
+                                            FeedAdapter.FeedSource.PROFILE));
+                            if (activityList.size() == 0) emptyText.setVisibility(View.VISIBLE);
+                            else emptyText.setVisibility(View.GONE);
+                        }
+                ).addOnFailureListener(
                         e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
                                 Toast.LENGTH_SHORT).show());
         }

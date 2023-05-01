@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -45,6 +46,7 @@ public class PinListFragment extends Fragment {
         // Get list type from arguments
         PinListType listType = PinListType.valueOf(requireArguments().getString(LIST_TYPE_ARG_KEY));
         OrderedPinMetadata pinMetadata;
+
         switch (listType) {
             case USER:
                 String uid = requireArguments().getString(UID_ARG_KEY);
