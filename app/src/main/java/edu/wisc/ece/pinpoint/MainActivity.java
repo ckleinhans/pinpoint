@@ -155,13 +155,12 @@ public class MainActivity extends AppCompatActivity {
 
                 new AlertDialog.Builder(this)
                         .setTitle("Enable Background Location")
-                        .setMessage("To get notifications all the time")
+                        .setMessage("Enabling background location access allows PinPoint to search for nearby pins when app is closed ")
 
-                        // Specifying a listener allows you to take an action before dismissing the dialog.
-                        // The dialog is automatically dismissed when a dialog button is clicked.
+
                         .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which) {
-                                // Continue with delete operation
+
                                 Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                                 Uri uri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
@@ -173,8 +172,6 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(getApplicationContext(),"Permissions -> Location -> Allow all the time",Toast.LENGTH_LONG).show();
                             }
                         })
-
-                        // A null listener allows the button to dismiss the dialog and take no further action.
                         .setNegativeButton(android.R.string.no, null)
                         .setIcon(android.R.drawable.ic_dialog_info)
                         .show();
