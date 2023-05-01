@@ -54,7 +54,7 @@
     <string name="drop_pin_text">Pin successfully dropped!</string>
     <string name="photo_upload_error_message">Something went wrong uploading your photo! Try again later.</string>
     <string name="found_pins_text">All</string>
-    <string name="following_pins_text">Followed</string>
+    <string name="following_pins_text">Following</string>
     <string name="nfc_pin_text">NFC</string>
     <string name="landmark_pin_text">Landmark</string>
     <string name="other_pin_text">Other</string>
