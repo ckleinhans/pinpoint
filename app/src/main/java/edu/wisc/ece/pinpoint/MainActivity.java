@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.util.Log;
+import android.provider.Settings;
 import android.view.View;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
