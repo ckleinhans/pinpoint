@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
+
 /**
  * Class that allows for O(1) searching, adding, and removing (like HashSet), but also supports an
  * indexed ordering of elements based on the insertion order.
@@ -145,13 +147,35 @@ public class OrderedPinMetadata {
         return list.iterator();
     }
 
+    // this is probably the worst code I've ever written sorry
     public OrderedPinMetadata filterBySource(PinMetadata.PinSource source) {
         OrderedPinMetadata ret = new OrderedPinMetadata();
-        this.list.forEach(p -> {
-            if (p.getPinSource() == source) {
-                ret.add(p);
-            }
-        });
+        if (source == PinMetadata.PinSource.FRIEND) {
+            FirebaseDriver firebase = FirebaseDriver.getInstance();
+            this.list.forEach(p -> {
+                Pin pin = firebase.getCachedPin(p.getPinId());
+                // if this pin is by someone who current user is following
+                if (firebase.getCachedFollowing(firebase.getUid()).contains(pin.getAuthorUID())) {
+                    ret.add(p);
+                }
+            });
+        } else if (source == PinMetadata.PinSource.GENERAL) {
+            FirebaseDriver firebase = FirebaseDriver.getInstance();
+            this.list.forEach(p -> {
+                Pin pin = firebase.getCachedPin(p.getPinId());
+                // if this pin is by someone who current user isn't following
+                if (!firebase.getCachedFollowing(firebase.getUid()).contains(pin.getAuthorUID())) {
+                    ret.add(p);
+                }
+            });
+        }
+        else {
+            this.list.forEach(p -> {
+                if (p.getPinSource() == source) {
+                    ret.add(p);
+                }
+            });
+        }
         return ret;
     }
 }
