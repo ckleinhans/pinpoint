@@ -13,10 +13,10 @@ android {
 
     defaultConfig {
         applicationId "edu.wisc.ece.pinpoint"
-        minSdk 30
+        minSdk 31
         targetSdk 33
-        versionCode 1
-        versionName "0.1.0-alpha"
+        versionCode 2
+        versionName "v0.1.1-alpha"
         resConfigs "en"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

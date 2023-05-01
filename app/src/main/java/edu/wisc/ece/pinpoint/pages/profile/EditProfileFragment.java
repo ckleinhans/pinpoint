@@ -34,13 +34,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.textfield.TextInputLayout;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.IOException;
@@ -148,7 +145,8 @@ public class EditProfileFragment extends Fragment {
         locationInput.setOnFocusChangeListener(this::launchLocationAutocomplete);
         locationInput.setOnClickListener(
                 (locationView) -> launchLocationAutocomplete(locationView, true));
-        loadLayoutContainer.setOnClickListener(v -> {});
+        loadLayoutContainer.setOnClickListener(v -> {
+        });
         cancelButton.setOnClickListener((buttonView) -> navController.popBackStack());
         saveButton.setOnClickListener(this::save);
         profilePicUpload.setOnClickListener(view1 -> showSelectDialog());
@@ -180,23 +178,22 @@ public class EditProfileFragment extends Fragment {
         });
     }
 
-    private void lockUI(){
+    private void lockUI() {
         loadLayoutContainer.setVisibility(View.VISIBLE);
         InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
                 Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
-        saveButton.setVisibility(View.INVISIBLE);
-        cancelButton.setVisibility(View.INVISIBLE);
+        imm.hideSoftInputFromWindow(requireView().getWindowToken(), 0);
+        saveButton.setEnabled(false);
+        cancelButton.setEnabled(false);
     }
 
-    private void restoreUI(){
+    private void restoreUI() {
         loadLayoutContainer.setVisibility(View.GONE);
-        saveButton.setVisibility(View.VISIBLE);
-        cancelButton.setVisibility(View.VISIBLE);
+        saveButton.setEnabled(true);
+        cancelButton.setEnabled(true);
     }
 
     private void save(View buttonView) {
-
         if (ValidationUtils.isEmpty(usernameInput)) {
             usernameInputLayout.setError(getString(R.string.missing_username));
             return;
@@ -212,7 +209,6 @@ public class EditProfileFragment extends Fragment {
         String oldUsername = cachedUser.getUsername();
         String oldLocation = cachedUser.getLocation();
         String oldBio = cachedUser.getBio();
-        String oldProfilePicUrl = cachedUser.getProfilePicUrl();
 
         String newUsername = usernameInput.getText().toString().trim();
         String newLocation = locationInput.getText().toString().trim().equals("") ? null :
@@ -220,37 +216,36 @@ public class EditProfileFragment extends Fragment {
         String newBio = bioInput.getText().toString().trim().equals("") ? null :
                 bioInput.getText().toString().trim();
 
-        OnCompleteListener<Void> saveUserDataListener = task -> {
-            if (task.isSuccessful()) {
-                navController.popBackStack();
-            } else {
-                cachedUser.setUsername(oldUsername).setLocation(oldLocation).setBio(oldBio)
-                        .setProfilePicUrl(oldProfilePicUrl, false);
-                Toast.makeText(requireContext(), "Couldn't save profile. Try again later.",
-                        Toast.LENGTH_LONG).show();
-                restoreUI();
-            }
-        };
-
         if (photo != null) {
-            StorageReference pictureRef =
-                    FirebaseStorage.getInstance().getReference("users").child(uid);
-            pictureRef.putFile(photo).addOnCompleteListener((task) -> {
-                if (task.isSuccessful()) {
-                    pictureRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        cachedUser.setUsername(newUsername).setLocation(newLocation).setBio(newBio)
-                                .setProfilePicUrl(uri.toString());
-                        cachedUser.save(uid).addOnCompleteListener(saveUserDataListener);
-                    });
-                } else {
-                    Toast.makeText(requireActivity(), "Image upload failed. Try again later.",
-                            Toast.LENGTH_LONG).show();
-                    restoreUI();
-                }
+            String oldProfilePicUrl = cachedUser.getProfilePicUrl();
+            Date oldProfilePicTimestamp = cachedUser.getProfilePicTimestamp();
+
+            firebase.uploadProfilePicture(photo, uid).addOnFailureListener(e -> {
+                Toast.makeText(requireContext(), R.string.profile_save_error, Toast.LENGTH_LONG)
+                        .show();
+                restoreUI();
+            }).addOnSuccessListener(url -> {
+                cachedUser.setUsername(newUsername).setLocation(newLocation).setBio(newBio)
+                        .setProfilePicUrl(url.toString());
+                cachedUser.save(uid).addOnSuccessListener(t -> navController.popBackStack())
+                        .addOnFailureListener(e -> {
+                            cachedUser.setUsername(oldUsername).setLocation(oldLocation)
+                                    .setBio(oldBio).setProfilePicUrl(oldProfilePicUrl)
+                                    .setProfilePicTimestamp(oldProfilePicTimestamp);
+                            Toast.makeText(requireContext(), R.string.profile_save_error,
+                                    Toast.LENGTH_LONG).show();
+                            restoreUI();
+                        });
             });
         } else {
             cachedUser.setUsername(newUsername).setLocation(newLocation).setBio(newBio);
-            cachedUser.save(uid).addOnCompleteListener(saveUserDataListener);
+            cachedUser.save(uid).addOnSuccessListener(t -> navController.popBackStack())
+                    .addOnFailureListener(e -> {
+                        cachedUser.setUsername(oldUsername).setLocation(oldLocation).setBio(oldBio);
+                        Toast.makeText(requireContext(), R.string.profile_save_error,
+                                Toast.LENGTH_LONG).show();
+                        restoreUI();
+                    });
         }
     }
 
@@ -272,7 +267,6 @@ public class EditProfileFragment extends Fragment {
     }
 
     private void takePicture() {
-
         File photoFile;
         Intent pictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE).addFlags(
                 Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -303,7 +297,6 @@ public class EditProfileFragment extends Fragment {
         return File.createTempFile(imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
                 storageDir      /* directory */);
-
     }
 
     private void showSelectDialog() {

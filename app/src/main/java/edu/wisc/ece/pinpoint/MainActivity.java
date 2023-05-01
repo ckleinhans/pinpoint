@@ -4,7 +4,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.widget.ViewSwitcher;
 
@@ -22,6 +21,8 @@ import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.perf.FirebasePerformance;
+import com.google.firebase.perf.metrics.Trace;
 
 import net.yslibrary.android.keyboardvisibilityevent.KeyboardVisibilityEvent;
 
@@ -35,7 +36,6 @@ import edu.wisc.ece.pinpoint.utils.LocationChangeDetection;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = MainActivity.class.getName();
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
                     R.id.new_pin_fragment);
@@ -48,6 +48,10 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Create trace to track initial app load time
+        Trace trace = FirebasePerformance.getInstance().newTrace("initialLoad");
+        trace.start();
 
         // Instantiate view switcher & start on loading screen
         switcher = findViewById(R.id.view_switcher);
@@ -81,12 +85,8 @@ public class MainActivity extends AppCompatActivity {
         fetchTasks.add(firebase.fetchFollowing(uid).continueWith(t -> null));
         fetchTasks.add(firebase.fetchFollowers(uid).continueWith(t -> null));
         fetchTasks.add(firebase.fetchActivity(uid).continueWith(t -> null));
-        fetchTasks.add(firebase.fetchDroppedPins()
-                .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched dropped pins."))
-                .addOnFailureListener(e -> Log.w(TAG, e)).continueWith(t -> null));
-        fetchTasks.add(firebase.fetchFoundPins()
-                .addOnSuccessListener(pids -> Log.d(TAG, "Successfully fetched found pins."))
-                .addOnFailureListener(e -> Log.w(TAG, e)).continueWith(t -> null));
+        fetchTasks.add(firebase.fetchDroppedPins().continueWith(t -> null));
+        fetchTasks.add(firebase.fetchFoundPins().continueWith(t -> null));
         // Wait until all tasks complete before showing view
         Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(fetchingComplete -> {
             // Instantiate nav host and inject into view
@@ -128,14 +128,17 @@ public class MainActivity extends AppCompatActivity {
             getOnBackPressedDispatcher().addCallback(this, callback);
             // Switch to app view once loading is complete
             showView(R.id.content_view);
+            // End tracking of initial load since app is now loaded
+            trace.stop();
         });
 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
-
+            // TODO: do we need to delete these here? It'd be better to just do a null check in
+            //  the other activity
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
-            preferences.edit().remove("longitude").commit();
-            preferences.edit().remove("latitude").commit();
+            preferences.edit().remove("longitude").apply();
+            preferences.edit().remove("latitude").apply();
 
             PeriodicWorkRequest saveRequest =
                     new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 30,

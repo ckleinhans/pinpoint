@@ -119,4 +119,6 @@
     <string name="loading_pin">Loading Pin</string>
     <string name="pin_sharing_setup_text">Setting up pin sharing…</string>
     <string name="navigate_text">Navigate</string>
+    <string name="connected_message">Connected to %s</string>
+    <string name="profile_save_error">Something went wrong saving your profile. Please try again later.</string>
 </resources>
