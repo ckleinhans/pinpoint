@@ -60,21 +60,6 @@ public class LocationChangeDetection extends Worker {
                     if(preferences.contains("counter2")) {
                     }
                     else{
-                        AlertDialog.Builder builder1 = new AlertDialog.Builder(context);
-                        builder1.setMessage("Write your message here.");
-                        builder1.setCancelable(true);
-                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        Uri uri = Uri.fromParts("package", context.getPackageName(), null);
-                        intent.setData(uri);
-                        context.startActivity(intent);
-                        SharedPreferences.Editor editor = preferences.edit();
-                        editor.putString("counter2", String.valueOf(1));
-                        editor.apply();
-                        notificationDriver = NotificationDriver.getInstance(context);
-                        notificationDriver.updatePersistent("Location", "Enable Background Location Access");
-
-
 
                     }
 
