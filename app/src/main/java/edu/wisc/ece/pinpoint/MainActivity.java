@@ -11,6 +11,7 @@ import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import androidx.activity.OnBackPressedCallback;
@@ -163,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
                                 SharedPreferences.Editor editor = preferences.edit();
                                 editor.putString("counter2", String.valueOf(1));
                                 editor.apply();
+                                Toast.makeText(getApplicationContext(),"Permissions -> Location -> Allow all the time",Toast.LENGTH_LONG).show();
                             }
                         })
 
