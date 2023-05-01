@@ -25,6 +25,7 @@ public class Pin {
     private String nearbyLocationName;
     private String geohash;
     private Integer finds;
+    private Integer reports;
     private Long cost;
 
     public Pin() {
@@ -42,6 +43,7 @@ public class Pin {
         this.broadLocationName = broadLocationName;
         this.geohash = null;
         this.finds = 0;
+        this.reports = 0;
         this.cost = 0L;
     }
 
@@ -83,6 +85,10 @@ public class Pin {
 
     public Integer getFinds() {
         return finds;
+    }
+
+    public Integer getReports() {
+        return reports;
     }
 
     public Long getCost() {

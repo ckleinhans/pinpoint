@@ -316,6 +316,7 @@ function antiSpoofCheck(
 
 }
 
+// TODO: refactor - need to prevent user from reporting pin multiple times, need to recursively delete pin data
 export async function reportPinHandler({ pid }) {
   const pinRef = firestore().collection("pins").doc(pid);
   const pinData: Pin = <Pin>(await pinRef.get()).data();

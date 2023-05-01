@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.firebase.ui.auth.AuthUI;
 import com.firebase.ui.auth.FirebaseAuthUIActivityResultContract;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.util.Arrays;
 
@@ -34,6 +35,7 @@ public class AuthActivity extends AppCompatActivity {
         switcher = findViewById(R.id.view_switcher);
 
         if (firebase.isLoggedIn() && firebase.isVerified()) {
+            FirebaseCrashlytics.getInstance().setUserId(firebase.getUid());
             Intent intent = new Intent(this, MainActivity.class);
             startActivity(intent);
             finish();
@@ -41,15 +43,18 @@ public class AuthActivity extends AppCompatActivity {
 
         authLauncher = this.registerForActivityResult(new FirebaseAuthUIActivityResultContract(),
                 (result) -> {
+                    Log.d("TEST", String.format("Result code: %d", result.getResultCode()));
                     if (result.getResultCode() == RESULT_OK) {
                         if (firebase.isNewUser()) {
                             // TODO: currently don't handle if this call fails, which would make
                             //  user's app crash on launch & be unusable
                             firebase.handleNewUser();
+                            if (!firebase.isVerified()) {
+                                firebase.sendEmailVerification(null);
+                            }
                         }
-                        if (!firebase.isVerified()) {
-                            firebase.sendEmailVerification(null);
-                        } else {
+                        if (firebase.isVerified()) {
+                            FirebaseCrashlytics.getInstance().setUserId(firebase.getUid());
                             Intent intent = new Intent(AuthActivity.this, MainActivity.class);
                             startActivity(intent);
                             finish();
@@ -64,7 +69,9 @@ public class AuthActivity extends AppCompatActivity {
         super.onStart();
         if (!firebase.isLoggedIn()) {
             showView(R.id.loading_view);
-            launchAuth();
+            // If user not signed in prompt them to sign into tester account before pinpoint account
+            if (!firebase.isTesterSignedIn()) firebase.signInTester(this, (d, b) -> launchAuth());
+            else launchAuth();
         } else if (!firebase.isVerified()) {
             showView(R.id.verify_email_view);
             startAuthReloadHandler();
@@ -146,6 +153,7 @@ public class AuthActivity extends AppCompatActivity {
                         Log.d(TAG, "User logged out.");
                     } else if (firebase.isVerified()) {
                         Log.d(TAG, "User verified!");
+                        FirebaseCrashlytics.getInstance().setUserId(firebase.getUid());
                         Intent intent = new Intent(AuthActivity.this, MainActivity.class);
                         startActivity(intent);
                         finish();

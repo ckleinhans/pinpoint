@@ -2,6 +2,12 @@ package edu.wisc.ece.pinpoint.pages.map;
 
 import android.Manifest;
 import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -10,13 +16,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.AdvertisingOptions;
@@ -28,6 +27,7 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.nearby.connection.Strategy;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,62 +40,61 @@ import edu.wisc.ece.pinpoint.data.Pin;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class SendSharedFragment extends Fragment {
-
     private final FirebaseDriver firebase = FirebaseDriver.getInstance();
     private final String sender = firebase.getCachedUser(firebase.getUid()).getUsername();
     private TextView progressText;
     private TextView recipientText;
     private String pid;
     private NavController navController;
+    private final PayloadCallback payloadCallback = new PayloadCallback() {
+        @Override
+        public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
+            progressText.setText(R.string.share_in_progress_text);
+        }
 
+        @Override
+        public void onPayloadTransferUpdate(@NonNull String s,
+                                            @NonNull PayloadTransferUpdate payloadTransferUpdate) {
+            if (payloadTransferUpdate.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                progressText.setText(R.string.share_complete_text);
+                // Pop the original post & the share fragment from the navigation stack
+                navController.popBackStack();
+            }
+        }
+    };
     private final ConnectionLifecycleCallback connectionLifecycleCallback =
             new ConnectionLifecycleCallback() {
                 private String recipient;
+
                 @Override
-                public void onConnectionInitiated(String endpointId, ConnectionInfo connectionInfo) {
+                public void onConnectionInitiated(@NonNull String endpointId,
+                                                  ConnectionInfo connectionInfo) {
                     // Automatically accept the connection on both sides.
-                    Nearby.getConnectionsClient(requireContext()).acceptConnection(endpointId, payloadCallback);
+                    Nearby.getConnectionsClient(requireContext())
+                            .acceptConnection(endpointId, payloadCallback);
                     recipient = connectionInfo.getEndpointName();
                 }
 
                 @Override
-                public void onConnectionResult(String endpointId, ConnectionResolution result) {
-                    switch (result.getStatus().getStatusCode()) {
-                        case ConnectionsStatusCodes.STATUS_OK:
-                            // We're connected! Can now start sending and receiving data.
-                            String connection = "Connected to "+recipient;
-                            recipientText.setText(connection);
-                            Payload bytesPayload = Payload.fromBytes(createByteArray());
-                            Nearby.getConnectionsClient(requireContext()).sendPayload(endpointId, bytesPayload);
-                            break;
-                        default:
-                            Toast.makeText(requireContext(),
-                                    R.string.pin_share_exception_text, Toast.LENGTH_LONG).show();
-                            break;
+                public void onConnectionResult(@NonNull String endpointId,
+                                               ConnectionResolution result) {
+                    if (result.getStatus().getStatusCode() == ConnectionsStatusCodes.STATUS_OK) {
+                        // We're connected! Can now start sending and receiving data.
+                        String connection = "Connected to " + recipient;
+                        recipientText.setText(connection);
+                        Payload bytesPayload = Payload.fromBytes(createByteArray());
+                        Nearby.getConnectionsClient(requireContext())
+                                .sendPayload(endpointId, bytesPayload);
+                    } else {
+                        Toast.makeText(requireContext(), R.string.pin_share_exception_text,
+                                Toast.LENGTH_LONG).show();
                     }
                 }
 
                 @Override
-                public void onDisconnected(String endpointId) {
+                public void onDisconnected(@NonNull String endpointId) {
                     // We've been disconnected from this endpoint. No more data can be
                     // sent or received.
-                }
-            };
-
-    private final PayloadCallback payloadCallback =
-            new PayloadCallback() {
-                @Override
-                public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
-                    progressText.setText(R.string.share_in_progress_text);
-                }
-
-                @Override
-                public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
-                    if(payloadTransferUpdate.getStatus() == PayloadTransferUpdate.Status.SUCCESS){
-                        progressText.setText(R.string.share_complete_text);
-                        // Pop the original post & the share fragment from the navigation stack
-                        navController.popBackStack();
-                    }
                 }
             };
 
@@ -129,7 +128,7 @@ public class SendSharedFragment extends Fragment {
         Nearby.getConnectionsClient(requireContext()).stopAdvertising();
     }
 
-    private void checkPermissions(){
+    private void checkPermissions() {
         // Code for requesting nearby share
         ActivityResultLauncher<String[]> nearbyPermissions =
                 registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
@@ -139,12 +138,14 @@ public class SendSharedFragment extends Fragment {
                                             false);
                             if (nearbyDevicesGranted != null && nearbyDevicesGranted) {
                                 startAdvertising();
-                            }
-                            else Toast.makeText(requireContext(),
-                                    "Sharing permissions not granted.", Toast.LENGTH_LONG).show();
+                            } else
+                                Toast.makeText(requireContext(), "Sharing permissions not granted.",
+                                        Toast.LENGTH_LONG).show();
                         });
         nearbyPermissions.launch(new String[]{Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.NEARBY_WIFI_DEVICES});
+                Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.NEARBY_WIFI_DEVICES});
     }
 
 
@@ -152,18 +153,18 @@ public class SendSharedFragment extends Fragment {
         AdvertisingOptions advertisingOptions =
                 new AdvertisingOptions.Builder().setStrategy(Strategy.P2P_POINT_TO_POINT).build();
         Nearby.getConnectionsClient(requireContext())
-                .startAdvertising(
-                        sender, getString(R.string.service_id), connectionLifecycleCallback, advertisingOptions)
-                .addOnSuccessListener(
-                        (Void unused) -> {
-                            // We're discovering!
-                            progressText.setText(R.string.searching_for_recipient_text);
-                        })
-                .addOnFailureListener(
-                        (Exception e) -> {
-                            // We're unable to start discovering.
-                            progressText.setText(R.string.pin_share_exception_text);
-                        });
+                .startAdvertising(sender, getString(R.string.service_id),
+                        connectionLifecycleCallback, advertisingOptions)
+                .addOnSuccessListener((Void unused) -> {
+                    // We're discovering!
+                    progressText.setText(R.string.searching_for_recipient_text);
+                }).addOnFailureListener((Exception e) -> {
+                    // We're unable to start discovering.
+                    FirebaseCrashlytics.getInstance()
+                            .setCustomKey("message", "Error trying to advertise pin");
+                    FirebaseCrashlytics.getInstance().recordException(e);
+                    progressText.setText(R.string.pin_share_exception_text);
+                });
     }
 
     private byte[] createByteArray() {

@@ -2,6 +2,13 @@ package edu.wisc.ece.pinpoint.pages.map;
 
 import android.Manifest;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -10,14 +17,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
-
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageButton;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.nearby.Nearby;
 import com.google.android.gms.nearby.connection.ConnectionInfo;
@@ -31,12 +30,12 @@ import com.google.android.gms.nearby.connection.Payload;
 import com.google.android.gms.nearby.connection.PayloadCallback;
 import com.google.android.gms.nearby.connection.PayloadTransferUpdate;
 import com.google.android.gms.nearby.connection.Strategy;
+import com.google.firebase.crashlytics.FirebaseCrashlytics;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -48,65 +47,59 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class ReceiveSharedFragment extends Fragment {
 
+    private static final String TAG = "RECEIVE";
     private final FirebaseDriver firebase = FirebaseDriver.getInstance();
     private final String recipient = firebase.getCachedUser(firebase.getUid()).getUsername();
     private TextView progressText;
     private TextView senderText;
     private NavController navController;
-    private static final String TAG = "RECEIVE";
-
-    private final EndpointDiscoveryCallback endpointDiscoveryCallback = new EndpointDiscoveryCallback() {
+    private final PayloadCallback payloadCallback = new PayloadCallback() {
         @Override
-        public void onEndpointFound(String endpointId, DiscoveredEndpointInfo info) {
-            // An endpoint was found. We request a connection to it.
-            Nearby.getConnectionsClient(requireContext())
-                    .requestConnection(recipient, endpointId, connectionLifecycleCallback)
-                    .addOnSuccessListener(
-                            (Void unused) -> {
-                                // We successfully requested a connection. Now both sides
-                                // must accept before the connection is established.
-                            })
-                    .addOnFailureListener(
-                            (Exception e) -> {
-                                // Nearby Connections failed to request the connection.
-                                Toast.makeText(requireContext(),
-                                        R.string.pin_share_exception_text, Toast.LENGTH_LONG).show();
-                            });
+        public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
+            progressText.setText(R.string.share_in_progress_text);
+            storePinData(payload.asBytes());
         }
 
         @Override
-        public void onEndpointLost(String endpointId) {
-            // A previously discovered endpoint has gone away.
+        public void onPayloadTransferUpdate(@NonNull String s,
+                                            @NonNull PayloadTransferUpdate payloadTransferUpdate) {
+            if (payloadTransferUpdate.getStatus() == PayloadTransferUpdate.Status.SUCCESS) {
+                progressText.setText(R.string.share_complete_text);
+            }
         }
     };
-
     private final ConnectionLifecycleCallback connectionLifecycleCallback =
             new ConnectionLifecycleCallback() {
                 private String sender;
+
                 @Override
-                public void onConnectionInitiated(String endpointId, ConnectionInfo connectionInfo) {
+                public void onConnectionInitiated(@NonNull String endpointId,
+                                                  ConnectionInfo connectionInfo) {
                     // Automatically accept the connection on both sides.
 
-                    Nearby.getConnectionsClient(requireContext()).acceptConnection(endpointId, payloadCallback);
+                    Nearby.getConnectionsClient(requireContext())
+                            .acceptConnection(endpointId, payloadCallback);
                     sender = connectionInfo.getEndpointName();
                 }
 
                 @Override
-                public void onConnectionResult(String endpointId, ConnectionResolution result) {
+                public void onConnectionResult(@NonNull String endpointId,
+                                               ConnectionResolution result) {
                     switch (result.getStatus().getStatusCode()) {
                         case ConnectionsStatusCodes.STATUS_OK:
                             // We're connected! Can now start sending and receiving data.
-                            senderText.setText("Connected to "+sender);
+                            senderText.setText(
+                                    String.format(getString(R.string.connected_message), sender));
                             break;
                         case ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED:
                             // The connection was rejected by one or both sides.
-                            Toast.makeText(requireContext(),
-                                    R.string.connection_rejected_text, Toast.LENGTH_LONG).show();
+                            Toast.makeText(requireContext(), R.string.connection_rejected_text,
+                                    Toast.LENGTH_LONG).show();
                             break;
                         case ConnectionsStatusCodes.STATUS_ERROR:
                             // The connection broke before it was able to be accepted.
-                            Toast.makeText(requireContext(),
-                                    R.string.pin_share_exception_text, Toast.LENGTH_LONG).show();
+                            Toast.makeText(requireContext(), R.string.pin_share_exception_text,
+                                    Toast.LENGTH_LONG).show();
                             break;
                         default:
                             // Unknown status code
@@ -114,25 +107,35 @@ public class ReceiveSharedFragment extends Fragment {
                 }
 
                 @Override
-                public void onDisconnected(String endpointId) {
+                public void onDisconnected(@NonNull String endpointId) {
                     // We've been disconnected from this endpoint. No more data can be
                     // sent or received.
                 }
             };
-
-    private final PayloadCallback payloadCallback =
-            new PayloadCallback() {
+    private final EndpointDiscoveryCallback endpointDiscoveryCallback =
+            new EndpointDiscoveryCallback() {
                 @Override
-                public void onPayloadReceived(@NonNull String s, @NonNull Payload payload) {
-                    progressText.setText(R.string.share_in_progress_text);
-                    storePinData(payload.asBytes());
+                public void onEndpointFound(@NonNull String endpointId,
+                                            @NonNull DiscoveredEndpointInfo info) {
+                    // An endpoint was found. We request a connection to it.
+                    Nearby.getConnectionsClient(requireContext())
+                            .requestConnection(recipient, endpointId, connectionLifecycleCallback)
+                            .addOnSuccessListener((Void unused) -> {
+                                // We successfully requested a connection. Now both sides
+                                // must accept before the connection is established.
+                            }).addOnFailureListener((Exception e) -> {
+                                // Nearby Connections failed to request the connection.
+                                FirebaseCrashlytics.getInstance().setCustomKey("message",
+                                        "Error trying to connect to sender to receive pin");
+                                FirebaseCrashlytics.getInstance().recordException(e);
+                                Toast.makeText(requireContext(), R.string.pin_share_exception_text,
+                                        Toast.LENGTH_LONG).show();
+                            });
                 }
 
                 @Override
-                public void onPayloadTransferUpdate(@NonNull String s, @NonNull PayloadTransferUpdate payloadTransferUpdate) {
-                    if(payloadTransferUpdate.getStatus() == PayloadTransferUpdate.Status.SUCCESS){
-                        progressText.setText(R.string.share_complete_text);
-                    }
+                public void onEndpointLost(@NonNull String endpointId) {
+                    // A previously discovered endpoint has gone away.
                 }
             };
 
@@ -163,66 +166,60 @@ public class ReceiveSharedFragment extends Fragment {
         Nearby.getConnectionsClient(requireContext()).stopDiscovery();
     }
 
-    private void checkPermissions(){
+    private void checkPermissions() {
         // Code for requesting nearby share
         ActivityResultLauncher<String[]> nearbyPermissions =
                 registerForActivityResult(new ActivityResultContracts.RequestMultiplePermissions(),
                         result -> {
                             Boolean nearbyDevicesGranted =
-                                result.getOrDefault(Manifest.permission.BLUETOOTH_ADVERTISE,
-                                        false);
+                                    result.getOrDefault(Manifest.permission.BLUETOOTH_ADVERTISE,
+                                            false);
                             if (nearbyDevicesGranted != null && nearbyDevicesGranted) {
                                 startDiscovery();
-                            }
-                            else Toast.makeText(requireContext(),
-                                    "Sharing permissions not granted.", Toast.LENGTH_LONG).show();
-                });
+                            } else
+                                Toast.makeText(requireContext(), "Sharing permissions not granted.",
+                                        Toast.LENGTH_LONG).show();
+                        });
         nearbyPermissions.launch(new String[]{Manifest.permission.BLUETOOTH_ADVERTISE,
-                Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.NEARBY_WIFI_DEVICES});
+                Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.NEARBY_WIFI_DEVICES});
     }
 
     private void startDiscovery() {
         DiscoveryOptions discoveryOptions =
                 new DiscoveryOptions.Builder().setStrategy(Strategy.P2P_POINT_TO_POINT).build();
         Nearby.getConnectionsClient(requireContext())
-                .startDiscovery(getString(R.string.service_id), endpointDiscoveryCallback, discoveryOptions)
-                .addOnSuccessListener(
-                        (Void unused) -> {
-                            // We're discovering!
-                            progressText.setText(R.string.searching_for_sender_text);
-                        })
-                .addOnFailureListener(
-                        (Exception e) -> {
-                            // We're unable to start discovering.
-                            progressText.setText(R.string.pin_share_exception_text);
-                        });
+                .startDiscovery(getString(R.string.service_id), endpointDiscoveryCallback,
+                        discoveryOptions).addOnSuccessListener((Void unused) -> {
+                    // We're discovering!
+                    progressText.setText(R.string.searching_for_sender_text);
+                }).addOnFailureListener((Exception e) -> {
+                    // We're unable to start discovering.
+                    FirebaseCrashlytics.getInstance().setCustomKey("message",
+                            "Error trying to discover nearby devices sharing pins");
+                    FirebaseCrashlytics.getInstance().recordException(e);
+                    progressText.setText(R.string.pin_share_exception_text);
+                });
     }
 
     private void storePinData(byte[] bytes) {
         // Parse pin data from byte array
         Map<String, Object> pinData;
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        ObjectInput objIn = null;
-        try {
-            objIn = new ObjectInputStream(bis);
+        try (ObjectInput objIn = new ObjectInputStream(bis)) {
+            //noinspection unchecked
             pinData = (Map<String, Object>) objIn.readObject();
         } catch (Exception e) {
             throw new RuntimeException(e);
-        } finally {
-            try {
-                if (objIn != null) {
-                    objIn.close();
-                }
-            } catch (IOException ex) {
-                // ignore close exception
-            }
         }
+        // ignore close exception
         // If pin is not null, the data was successfully parsed. Store in pin file
-        if (pinData != null){
+        if (pinData != null) {
             String pid = (String) pinData.get("pid");
             // If the user already has this pin, pop this from the stack and nav to pin view
-            if(firebase.getCachedDroppedPinMetadata().contains(pid) ||
-                    firebase.getCachedFoundPinMetadata().contains(pid)){
+            if (firebase.getCachedDroppedPinMetadata()
+                    .contains(pid) || firebase.getCachedFoundPinMetadata().contains(pid)) {
                 navController.popBackStack();
                 navController.navigate(edu.wisc.ece.pinpoint.NavigationDirections.pinView(pid));
             } else {
@@ -233,6 +230,7 @@ public class ReceiveSharedFragment extends Fragment {
                 try {
                     FileInputStream fis = new FileInputStream(filename);
                     ObjectInputStream in = new ObjectInputStream(fis);
+                    //noinspection unchecked
                     nfcPins = (HashMap<String, Map<String, Object>>) in.readObject();
                     in.close();
                     fis.close();

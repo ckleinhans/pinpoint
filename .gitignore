@@ -24,6 +24,9 @@ yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
 
+# Builds
+*.apk
+
 # Firebase cache
 .firebase/
 

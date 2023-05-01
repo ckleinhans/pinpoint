@@ -107,7 +107,8 @@ public class NewPinFragment extends Fragment {
         locationNameInput = requireView().findViewById(R.id.newpin_location_name_input);
         loadLayoutContainer = requireView().findViewById(R.id.newpin_load_layout_container);
         Spinner locationNameSelect = requireView().findViewById(R.id.newpin_location_name_select);
-        loadLayoutContainer.setOnClickListener(v -> {});
+        loadLayoutContainer.setOnClickListener(v -> {
+        });
 
         if (!locationDriver.hasFineLocation(requireContext())) {
             Toast.makeText(requireContext(), R.string.fine_location_error_text, Toast.LENGTH_LONG)
@@ -214,7 +215,7 @@ public class NewPinFragment extends Fragment {
             pinnieCount = firebase.getCachedPinnies();
             setPinnieCountUI();
         } else {
-            firebase.getPinnies().addOnCompleteListener(task -> {
+            firebase.fetchPinnies().addOnCompleteListener(task -> {
                 if (task.isSuccessful()) {
                     pinnieCount = task.getResult();
                     Log.d(TAG, String.format("Got %s pinnies for user", pinnieCount.toString()));
@@ -248,13 +249,11 @@ public class NewPinFragment extends Fragment {
                         FirebaseDriver.getInstance().calcPinCost(pinLocation)
                                 .addOnCompleteListener(task -> {
                                     if (!task.isSuccessful()) {
-                                        Log.d(TAG, "get failed with ", task.getException());
                                         if (getContext() != null) Toast.makeText(getContext(),
                                                 R.string.pin_cost_calc_error_message,
                                                 Toast.LENGTH_LONG).show();
                                     }
                                     pinCost = task.getResult().longValue();
-                                    Log.d(TAG, String.format("Pin Cost: %s", pinCost));
                                     if (pinnieCount != null && getContext() != null) {
                                         setPinCostUI();
                                     }
@@ -281,19 +280,19 @@ public class NewPinFragment extends Fragment {
         }
     }
 
-    private void lockUI(){
+    private void lockUI() {
         loadLayoutContainer.setVisibility(View.VISIBLE);
         InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
                 Context.INPUT_METHOD_SERVICE);
-        imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+        imm.hideSoftInputFromWindow(requireView().getWindowToken(), 0);
         dropButton.setEnabled(false);
-        cancelButton.setVisibility(View.INVISIBLE);
+        cancelButton.setEnabled(false);
     }
 
-    private void restoreUI(){
+    private void restoreUI() {
         loadLayoutContainer.setVisibility(View.GONE);
         dropButton.setEnabled(true);
-        cancelButton.setVisibility(View.VISIBLE);
+        cancelButton.setEnabled(true);
     }
 
     private void createNewPin() {

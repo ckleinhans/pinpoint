@@ -8,5 +8,9 @@
         app:icon="@drawable/ic_delete"
         app:key="deleteAccount"
         app:title="@string/delete_account" />
+    <Preference
+        app:icon="@drawable/ic_feedback"
+        app:key="feedback"
+        app:title="Provide Feedback" />
 
 </androidx.preference.PreferenceScreen>
