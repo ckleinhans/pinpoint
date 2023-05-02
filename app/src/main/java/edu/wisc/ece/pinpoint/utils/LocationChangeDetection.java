@@ -58,7 +58,7 @@ public class LocationChangeDetection extends Worker {
 
             if (preferences.getString("Activity", "").equals("DRIVING")) {
                 notificationDriver = NotificationDriver.getInstance(context);
-                notificationDriver.updatePersistent("DRIVING", "Drive Safely without disturbances");
+                notificationDriver.updatePersistent("DRIVING", "Drive Safely without getting disturbed");
             } else {
                 if (locationDriver.hasCoarseLocation(context)) {
                     locationDriver.getLastLocation(context).addOnCompleteListener(task -> {

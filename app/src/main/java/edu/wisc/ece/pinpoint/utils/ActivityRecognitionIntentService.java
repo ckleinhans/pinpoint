@@ -28,30 +28,12 @@ public class ActivityRecognitionIntentService extends BroadcastReceiver {
                 // chronological sequence of events....
                 String theActivity = toActivityString(event.getActivityType());
 
-                if(theActivity.equals("WALKING")){
+
+                if(theActivity.equals("DRIVING")){
                     preferences = PreferenceManager.getDefaultSharedPreferences(context);
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putString("Activity", theActivity);
                     editor.apply();
-                    notificationDriver = NotificationDriver.getInstance(context);
-                    notificationDriver.updatePersistent("Walking", "Great Job getting your butt up");
-
-                }
-                else if(theActivity.equals("DRIVING")){
-                    preferences = PreferenceManager.getDefaultSharedPreferences(context);
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putString("Activity", theActivity);
-                    editor.apply();
-
-
-                }
-                else if(theActivity.equals("STILL")){
-                    preferences = PreferenceManager.getDefaultSharedPreferences(context);
-                    SharedPreferences.Editor editor = preferences.edit();
-                    editor.putString("Activity", theActivity);
-                    editor.apply();
-                    notificationDriver = NotificationDriver.getInstance(context);
-                    notificationDriver.updatePersistent("Still", "Go find pins you lazy bum");
 
                 }
                 else {

@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             PeriodicWorkRequest saveRequest =
-                    new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 30,
+                    new PeriodicWorkRequest.Builder(LocationChangeDetection.class, 1,
                             TimeUnit.MINUTES)
                             // Constraints
                             .build();
