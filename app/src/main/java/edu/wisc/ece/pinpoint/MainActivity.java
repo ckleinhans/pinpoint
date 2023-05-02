@@ -59,6 +59,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import edu.wisc.ece.pinpoint.utils.ActivityRecognitionIntentService;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationChangeDetection;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
@@ -82,10 +83,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Intent intent = new Intent(TRANSITION_ACTION_RECEIVER);
-        mPendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_MUTABLE);
-        activityRecognitionIntentService = new ActivityRecognitionIntentService();
-        registerReceiver(activityRecognitionIntentService, new IntentFilter(TRANSITION_ACTION_RECEIVER));
+        setUpTransitions();
+        ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{android.Manifest.permission.ACTIVITY_RECOGNITION},
+                1);
 
         firebase = FirebaseDriver.getInstance();
 
@@ -173,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
+
             // TODO: do we need to delete these here? It'd be better to just do a null check in
             //  the other activity
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -275,9 +277,23 @@ public class MainActivity extends AppCompatActivity {
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+
+//        Intent intent = new Intent(TRANSITION_ACTION_RECEIVER);
+//        mPendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_MUTABLE);
+//        activityRecognitionIntentService = new ActivityRecognitionIntentService();
+//        registerReceiver(activityRecognitionIntentService, new IntentFilter(TRANSITION_ACTION_RECEIVER));
+
+
+        Intent intent = new Intent(getApplicationContext(), ActivityRecognitionIntentService.class);
+        intent.setAction(ActivityRecognitionIntentService.INTENT_ACTION);
+
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent,
+                PendingIntent.FLAG_MUTABLE);
+
         Task<Void> task =
                 ActivityRecognition.getClient(this)
-                        .requestActivityTransitionUpdates(request, mPendingIntent);
+                        .requestActivityTransitionUpdates(request, pendingIntent);
         task.addOnSuccessListener(
                 new OnSuccessListener<Void>() {
                     @Override
