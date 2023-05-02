@@ -75,6 +75,9 @@ public class LocationChangeDetection extends Worker {
                                         newLong, Double.parseDouble(preferences.getString("longitude", "")));
                                 Log.d("dist", String.valueOf(distance));
                                 if (newLoc != null && (distance <= 0.5)) {
+                                    notificationDriver = NotificationDriver.getInstance(context);
+                                    notificationDriver.updatePersistent("Too close", String.valueOf(distance));
+
                                 } else {
                                     firebaseDriver = FirebaseDriver.getInstance();
                                     firebaseDriver.fetchNearbyPins(newLoc).addOnCompleteListener(task1 -> {
