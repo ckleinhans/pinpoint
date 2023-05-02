@@ -111,7 +111,7 @@ public class LocationChangeDetection extends Worker {
 
         }, 1);
 
-        return Result.retry();
+        return Result.success();
     }
 
     public static double calcDistanceMiles(double lat1, double lat2, double long1, double long2) {
