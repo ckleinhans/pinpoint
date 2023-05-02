@@ -22,12 +22,27 @@ public class PinBoardTabAdapter extends FragmentStateAdapter {
     public Fragment createFragment(int position) {
         PinListFragment frag = new PinListFragment();
         Bundle args = new Bundle();
-        if (position == 0) {
-            args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
-                    PinListFragment.PinListType.FOUND.name());
-        } else {
-            args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
-                    PinListFragment.PinListType.DROPPED.name());
+        switch (position) {
+            case 0:
+                args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
+                        PinListFragment.PinListType.ALL.name());
+                break;
+            case 1:
+                args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
+                        PinListFragment.PinListType.FOLLOWED.name());
+                break;
+            case 2:
+                args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
+                        PinListFragment.PinListType.NFC.name());
+                break;
+            case 3:
+                args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
+                        PinListFragment.PinListType.LANDMARK.name());
+                break;
+            case 4:
+                args.putString(PinListFragment.LIST_TYPE_ARG_KEY,
+                        PinListFragment.PinListType.OTHER.name());
+                break;
         }
         frag.setArguments(args);
         return frag;

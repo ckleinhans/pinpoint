@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import edu.wisc.ece.pinpoint.R;
 import edu.wisc.ece.pinpoint.data.OrderedPinMetadata;
+import edu.wisc.ece.pinpoint.data.PinMetadata;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class PinListFragment extends Fragment {
@@ -25,6 +27,7 @@ public class PinListFragment extends Fragment {
     public static final String UID_ARG_KEY = "uid";
     private static final String TAG = PinListFragment.class.getName();
     private FirebaseDriver firebase;
+    private TextView emptyText;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -45,12 +48,18 @@ public class PinListFragment extends Fragment {
         // Get list type from arguments
         PinListType listType = PinListType.valueOf(requireArguments().getString(LIST_TYPE_ARG_KEY));
         OrderedPinMetadata pinMetadata;
+        emptyText = view.findViewById(R.id.pin_list_empty_text);
+        emptyText.setVisibility(View.VISIBLE);
+
         switch (listType) {
             case USER:
                 String uid = requireArguments().getString(UID_ARG_KEY);
                 if (firebase.getCachedUserPinMetadata(uid) == null) {
                     firebase.fetchUserPins(uid).addOnSuccessListener(
-                                    metadata -> setupRecyclerView(view, metadata, listType))
+                                    metadata -> {
+                                        setupRecyclerView(view, metadata, listType);
+                                        if(metadata.size() > 0) emptyText.setVisibility(View.GONE);
+                                    })
                             .addOnFailureListener(e -> {
                                 Log.w(TAG, e);
                                 Toast.makeText(requireContext(), R.string.pin_fetch_error,
@@ -59,15 +68,37 @@ public class PinListFragment extends Fragment {
                 } else {
                     pinMetadata = firebase.getCachedUserPinMetadata(uid);
                     setupRecyclerView(view, pinMetadata, listType);
+                    if(pinMetadata.size() > 0) emptyText.setVisibility(View.GONE);
                 }
                 break;
-            case DROPPED:
-                pinMetadata = firebase.getCachedDroppedPinMetadata();
-                setupRecyclerView(view, pinMetadata, listType);
+            case ALL:
+                OrderedPinMetadata allPinMetadata = firebase.getCachedFoundPinMetadata();
+                setupRecyclerView(view, allPinMetadata, listType);
+                if(allPinMetadata.size() > 0) emptyText.setVisibility(View.GONE);
                 break;
-            case FOUND:
-                pinMetadata = firebase.getCachedFoundPinMetadata();
-                setupRecyclerView(view, pinMetadata, listType);
+            case NFC:
+                OrderedPinMetadata nfcPinMetadata = firebase.getCachedFoundPinMetadata()
+                        .filterBySource(PinMetadata.PinSource.NFC);
+                setupRecyclerView(view, nfcPinMetadata, listType);
+                if(nfcPinMetadata.size() > 0) emptyText.setVisibility(View.GONE);
+                break;
+            case LANDMARK:
+                OrderedPinMetadata landmarkPinMetadata = firebase.getCachedFoundPinMetadata()
+                        .filterBySource(PinMetadata.PinSource.DEV);
+                setupRecyclerView(view, landmarkPinMetadata, listType);
+                if(landmarkPinMetadata.size() > 0) emptyText.setVisibility(View.GONE);
+                break;
+            case FOLLOWED:
+                OrderedPinMetadata followedPinMetadata = firebase.getCachedFoundPinMetadata()
+                        .filterBySource(PinMetadata.PinSource.FRIEND);
+                setupRecyclerView(view, followedPinMetadata, listType);
+                if(followedPinMetadata.size() > 0) emptyText.setVisibility(View.GONE);
+                break;
+            case OTHER:
+                OrderedPinMetadata otherPinMetadata = firebase.getCachedFoundPinMetadata()
+                        .filterBySource(PinMetadata.PinSource.GENERAL);
+                setupRecyclerView(view, otherPinMetadata, listType);
+                if(otherPinMetadata.size() > 0) emptyText.setVisibility(View.GONE);
                 break;
         }
     }
@@ -84,6 +115,6 @@ public class PinListFragment extends Fragment {
     }
 
     public enum PinListType {
-        FOUND, DROPPED, USER
+         USER, NFC, LANDMARK, FOLLOWED, OTHER, ALL
     }
 }
