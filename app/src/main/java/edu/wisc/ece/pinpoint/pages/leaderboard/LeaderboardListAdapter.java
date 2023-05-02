@@ -30,8 +30,7 @@ public class LeaderboardListAdapter
     private final FirebaseDriver firebase;
     private final Fragment fragment;
     private final LeaderboardListFragment.LeaderboardListType listType;
-
-    // TODO: make this adapter a ListAdapter to improve UX & performance
+    
     public LeaderboardListAdapter(List<String> userIds, NavController navController,
                                   Fragment fragment,
                                   LeaderboardListFragment.LeaderboardListType listType) {

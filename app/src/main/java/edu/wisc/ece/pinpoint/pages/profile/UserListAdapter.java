@@ -27,7 +27,6 @@ public class UserListAdapter extends RecyclerView.Adapter<UserListAdapter.UserLi
     private final FirebaseDriver firebase;
     private final Fragment fragment;
 
-    // TODO: make this adapter a ListAdapter to improve UX & performance
     public UserListAdapter(List<String> userIds, NavController navController, Fragment fragment) {
         this.userIds = userIds;
         this.navController = navController;
