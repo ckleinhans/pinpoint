@@ -82,7 +82,7 @@ public class LocationChangeDetection extends Worker {
                                         int i = nearbyPins.size();
                                         x = String.valueOf(i);
                                         notificationDriver = NotificationDriver.getInstance(context);
-                                        notificationDriver.updatePersistent("Pins", x);
+                                        notificationDriver.updatePersistent("Pins nearby", x);
                                         SharedPreferences.Editor editor = preferences.edit();
                                         editor.putString("longitude", String.valueOf(newLoc.getLongitude()));
                                         editor.apply();
