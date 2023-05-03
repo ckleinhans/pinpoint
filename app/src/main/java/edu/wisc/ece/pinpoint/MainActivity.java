@@ -3,18 +3,34 @@ package edu.wisc.ece.pinpoint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import static android.content.ContentValues.TAG;
+
+import android.app.PendingIntent;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.util.Log;
+import android.util.Log;
+import android.provider.Settings;
+import android.provider.Settings;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 import android.widget.ViewSwitcher;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.navigation.ui.NavigationUI;
@@ -22,6 +38,12 @@ import androidx.preference.PreferenceManager;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
 
+import com.google.android.gms.location.ActivityRecognition;
+import com.google.android.gms.location.ActivityTransition;
+import com.google.android.gms.location.ActivityTransitionRequest;
+import com.google.android.gms.location.DetectedActivity;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomappbar.BottomAppBar;
@@ -37,6 +59,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import edu.wisc.ece.pinpoint.utils.ActivityRecognitionIntentService;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationChangeDetection;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
@@ -50,11 +73,20 @@ public class MainActivity extends AppCompatActivity {
     private NavController navController;
     private NavHostFragment navHostFragment;
     private ViewSwitcher switcher;
+    private PendingIntent mPendingIntent;
+    private final String TRANSITION_ACTION_RECEIVER =
+            BuildConfig.APPLICATION_ID + "TRANSITION_ACTION_RECEIVER";
+    private ActivityRecognitionIntentService activityRecognitionIntentService;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        setUpTransitions();
+        ActivityCompat.requestPermissions(MainActivity.this,
+                new String[]{android.Manifest.permission.ACTIVITY_RECOGNITION},
+                1);
 
         firebase = FirebaseDriver.getInstance();
 
@@ -142,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(() -> {
+
             // TODO: do we need to delete these here? It'd be better to just do a null check in
             //  the other activity
             SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -201,5 +234,90 @@ public class MainActivity extends AppCompatActivity {
         if (switcher.getNextView().getId() == viewId) {
             switcher.showNext();
         }
+    }
+
+
+    private void setUpTransitions() {
+        List<ActivityTransition> transitions = new ArrayList<>();
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.WALKING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.WALKING)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.STILL)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.STILL)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.IN_VEHICLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
+                        .build());
+        transitions.add(
+                new ActivityTransition.Builder()
+                        .setActivityType(DetectedActivity.IN_VEHICLE)
+                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
+                        .build());
+
+        ActivityTransitionRequest request = new ActivityTransitionRequest(transitions);
+
+        // Register for Transitions Updates.
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+
+//        Intent intent = new Intent(TRANSITION_ACTION_RECEIVER);
+//        mPendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_MUTABLE);
+//        activityRecognitionIntentService = new ActivityRecognitionIntentService();
+//        registerReceiver(activityRecognitionIntentService, new IntentFilter(TRANSITION_ACTION_RECEIVER));
+
+
+        Intent intent = new Intent(getApplicationContext(), ActivityRecognitionIntentService.class);
+        intent.setAction(ActivityRecognitionIntentService.INTENT_ACTION);
+
+
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent,
+                PendingIntent.FLAG_MUTABLE);
+
+        Task<Void> task =
+                ActivityRecognition.getClient(this)
+                        .requestActivityTransitionUpdates(request, pendingIntent);
+        task.addOnSuccessListener(
+                new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void result) {
+                        Log.i(TAG, "Transitions Api was successfully registered.");
+                    }
+                });
+        task.addOnFailureListener(
+                new OnFailureListener() {
+                    @Override
+                    public void onFailure(Exception e) {
+                        Log.e(TAG, "Transitions Api could not be registered: " + e);
+                    }
+                });
     }
 }
