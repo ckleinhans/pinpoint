@@ -52,10 +52,7 @@ public class LocationChangeDetection extends Worker {
 
             LocationDriver locationDriver = LocationDriver.getInstance(context);
             preferences = PreferenceManager.getDefaultSharedPreferences(context);
-
-            activity = preferences.getString("Activity","");
-            Log.d("Tag", activity);
-
+            
             if (preferences.getString("Activity", "").equals("DRIVING")) {
                 notificationDriver = NotificationDriver.getInstance(context);
                 notificationDriver.updatePersistent("Nearby Pin Notifications paused", "Drive Safely without getting disturbed");
@@ -68,14 +65,12 @@ public class LocationChangeDetection extends Worker {
                             preferences = PreferenceManager.getDefaultSharedPreferences(context);
                             if (preferences.contains("longitude") && preferences.contains("latitude")) {
 
-
                                 double newLat = newLoc.getLatitude();
                                 double newLong = newLoc.getLongitude();
                                 double distance = calcDistanceMiles(newLat, Double.parseDouble(preferences.getString("latitude", "")),
                                         newLong, Double.parseDouble(preferences.getString("longitude", "")));
                                 Log.d("dist", String.valueOf(distance));
-                                if (newLoc != null && (distance <= 0.5)) {
-                                } else {
+                                if (newLoc != null && (distance > 0.5)) {
                                     firebaseDriver = FirebaseDriver.getInstance();
                                     firebaseDriver.fetchNearbyPins(newLoc).addOnCompleteListener(task1 -> {
                                         nearbyPins = task1.getResult();
