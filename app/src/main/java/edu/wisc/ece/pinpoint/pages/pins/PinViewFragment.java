@@ -162,6 +162,10 @@ public class PinViewFragment extends Fragment {
                 if (getContext() != null) {
                     addCommentButton.setForeground(
                             ContextCompat.getDrawable(getContext(), R.drawable.ic_add_comment));
+                    // hide keyboard
+                    InputMethodManager imm = (InputMethodManager) requireContext().getSystemService(
+                            Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
                 }
 
                 // add new comment locally, refresh display

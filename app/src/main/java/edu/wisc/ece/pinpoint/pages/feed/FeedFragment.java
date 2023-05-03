@@ -112,7 +112,7 @@ public class FeedFragment extends Fragment {
             // Attempt to use cached activity before fetching
             ActivityList cachedActivity = firebase.getCachedActivity(uid);
             ActivityList activityList =
-                    cachedActivity == null ? new ActivityList() : cachedActivity;
+                    cachedActivity == null ? new ActivityList(new ArrayList<>()) : cachedActivity;
             if (activityList.size() == 0) emptyText.setVisibility(View.VISIBLE);
             else emptyText.setVisibility(View.GONE);
 
