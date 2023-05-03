@@ -26,6 +26,7 @@ public class LocationChangeDetection extends Worker {
     FirebaseDriver firebaseDriver;
     private static final double ONE_MILE_LATITUDE_DEGREES = 0.014492753623188;
     String x;
+    String activity;
     Context context;
     HashMap<String, NearbyPinData> nearbyPins;
 
@@ -50,52 +51,56 @@ public class LocationChangeDetection extends Worker {
         handler.postDelayed(() -> {
 
             LocationDriver locationDriver = LocationDriver.getInstance(context);
-
-            if (locationDriver.hasCoarseLocation(context)) {
-                locationDriver.getLastLocation(context).addOnCompleteListener(task -> {
+            preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            
+            if (preferences.getString("Activity", "").equals("DRIVING")) {
+                notificationDriver = NotificationDriver.getInstance(context);
+                notificationDriver.updatePersistent("Nearby Pin Notifications paused", "Drive Safely without getting disturbed");
+            } else {
+                if (locationDriver.hasCoarseLocation(context)) {
+                    locationDriver.getLastLocation(context).addOnCompleteListener(task -> {
 
                         newLoc = task.getResult();
-                    if (newLoc != null) {
-                        preferences = PreferenceManager.getDefaultSharedPreferences(context);
-                        if (preferences.contains("longitude") && preferences.contains("latitude") ) {
+                        if (newLoc != null) {
+                            preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                            if (preferences.contains("longitude") && preferences.contains("latitude")) {
 
-                            double newLat = newLoc.getLatitude();
-                            double newLong = newLoc.getLongitude();
-                            double distance = calcDistanceMiles(newLat , Double.parseDouble(preferences.getString("latitude","")) ,
-                                    newLong, Double.parseDouble(preferences.getString("longitude","")));
-                            Log.d("dist", String.valueOf(distance));
-
-                            if (newLoc != null && (distance <= 0.5)) {
-                            } else {
-                                firebaseDriver = FirebaseDriver.getInstance();
-                                firebaseDriver.fetchNearbyPins(newLoc).addOnCompleteListener(task1 -> {
-                                    nearbyPins = task1.getResult();
+                                double newLat = newLoc.getLatitude();
+                                double newLong = newLoc.getLongitude();
+                                double distance = calcDistanceMiles(newLat, Double.parseDouble(preferences.getString("latitude", "")),
+                                        newLong, Double.parseDouble(preferences.getString("longitude", "")));
+                                Log.d("dist", String.valueOf(distance));
+                                if (newLoc != null && (distance > 0.5)) {
+                                    firebaseDriver = FirebaseDriver.getInstance();
+                                    firebaseDriver.fetchNearbyPins(newLoc).addOnCompleteListener(task1 -> {
+                                        nearbyPins = task1.getResult();
                                         int i = nearbyPins.size();
                                         x = String.valueOf(i);
                                         notificationDriver = NotificationDriver.getInstance(context);
-                                        notificationDriver.updatePersistent("Pins", x);
+                                        notificationDriver.updatePersistent("Pins nearby", x);
                                         SharedPreferences.Editor editor = preferences.edit();
                                         editor.putString("longitude", String.valueOf(newLoc.getLongitude()));
                                         editor.apply();
                                         editor.putString("latitude", String.valueOf(newLoc.getLatitude()));
                                         editor.apply();
 
-                                });
+                                    });
+                                }
+                            } else {
+                                preferences.edit().remove("longitude").commit();
+                                preferences.edit().remove("latitude").commit();
+                                SharedPreferences.Editor editor = preferences.edit();
+                                editor.putString("longitude", String.valueOf(newLoc.getLongitude()));
+                                editor.apply();
+                                editor.putString("latitude", String.valueOf(newLoc.getLatitude()));
+                                editor.apply();
                             }
-                        } else {
-                            preferences.edit().remove("longitude").commit();
-                            preferences.edit().remove("latitude").commit();
-                            SharedPreferences.Editor editor = preferences.edit();
-                            editor.putString("longitude", String.valueOf(newLoc.getLongitude()));
-                            editor.apply();
-                            editor.putString("latitude", String.valueOf(newLoc.getLatitude()));
-                            editor.apply();
+
                         }
 
-                    }
-                });
+                    });
 
-
+                }
             }
 
 

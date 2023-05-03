@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,6 +30,7 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 public class FeedFragment extends Fragment {
     public static final String UID_ARG_KEY = "uid";
     private FirebaseDriver firebase;
+    public TextView emptyText;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,6 +51,7 @@ public class FeedFragment extends Fragment {
 
         RecyclerView recyclerView = view.findViewById(R.id.feed_recycler_view);
         ConstraintLayout topBar = view.findViewById(R.id.top_bar);
+        emptyText = view.findViewById(R.id.feed_empty_text);
         // Scale factor for setting padding in dp
         float scale = getResources().getDisplayMetrics().density;
         NavController navController =
@@ -72,16 +75,22 @@ public class FeedFragment extends Fragment {
             // to be displayed immediately, the other is for fetching & displaying up to date data
             ActivityList masterList = new ActivityList(new ArrayList<>());
             ActivityList fetchedList = new ActivityList(new ArrayList<>());
+            emptyText.setVisibility(View.VISIBLE);
             // For each followed user, check if their activity is cached, then add it to master list
             for (String userId : firebase.getCachedFollowing(firebase.getUid())) {
                 ActivityList cachedActivity = firebase.getCachedActivity(userId);
                 if (cachedActivity != null) {
                     masterList.addAll(cachedActivity);
+                    if (masterList.size() > 0) emptyText.setVisibility(View.GONE);
                 }
-                fetchTasks.add(
-                        firebase.fetchActivity(userId).addOnSuccessListener(fetchedList::addAll)
-                                .addOnFailureListener(e -> Toast.makeText(requireContext(),
-                                        R.string.activity_fetch_error, Toast.LENGTH_SHORT).show()));
+                fetchTasks.add(firebase.fetchActivity(userId)
+                        .addOnSuccessListener(activityList ->{
+                            fetchedList.addAll(activityList);
+                            if (fetchedMasterList.size() == 0) emptyText.setVisibility(View.VISIBLE);
+                            else emptyText.setVisibility(View.GONE);
+                        }).addOnFailureListener(
+                                e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
+                                        Toast.LENGTH_SHORT).show()));
             }
             // Setup immediate cached master list
             masterList.sort();
@@ -106,6 +115,8 @@ public class FeedFragment extends Fragment {
             ActivityList cachedActivity = firebase.getCachedActivity(uid);
             ActivityList activityList =
                     cachedActivity == null ? new ActivityList() : cachedActivity;
+            if (activityList.size() == 0) emptyText.setVisibility(View.VISIBLE);
+            else emptyText.setVisibility(View.GONE);
 
             FeedAdapter adapter = new FeedAdapter(activityList, navController, this,
                     FeedAdapter.FeedSource.PROFILE);
@@ -116,6 +127,8 @@ public class FeedFragment extends Fragment {
                 firebase.fetchActivity(uid).addOnSuccessListener(fetchedActivity -> {
                     activityList.clear();
                     activityList.addAll(fetchedActivity);
+                    if (activityList.size() == 0) emptyText.setVisibility(View.VISIBLE);
+                    else emptyText.setVisibility(View.GONE);
                     //noinspection NotifyDataSetChanged
                     adapter.notifyDataSetChanged();
                 }).addOnFailureListener(

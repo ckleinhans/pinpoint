@@ -2,6 +2,7 @@ package edu.wisc.ece.pinpoint.utils;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.net.Uri;
@@ -10,6 +11,7 @@ import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.preference.PreferenceManager;
 
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.GlideException;
@@ -198,6 +200,8 @@ public class FirebaseDriver {
                     droppedPinMetadata = null;
                     pinnies = null;
                     crashlytics.setUserId("");
+                    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+                    preferences.edit().remove("counter2").apply();
                 }).addOnFailureListener(
                         e -> handleError(e, String.format("Error logging out user %s",
                                 auth.getUid())))

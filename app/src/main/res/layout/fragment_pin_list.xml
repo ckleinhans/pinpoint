@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context=".pages.pins.PinListFragment">
 
     <androidx.recyclerview.widget.RecyclerView
@@ -11,4 +12,15 @@
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingBottom="95dp" />
+
+    <TextView
+        android:id="@+id/pin_list_empty_text"
+        style="@style/TextAppearance.Pinpoint.ThickText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/no_pins_yet"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

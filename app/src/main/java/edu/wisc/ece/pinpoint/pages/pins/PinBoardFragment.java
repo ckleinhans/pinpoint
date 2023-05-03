@@ -29,7 +29,11 @@ public class PinBoardFragment extends Fragment {
         TabLayout tabLayout = requireView().findViewById(R.id.tab_layout);
         ViewPager2 viewPager = requireView().findViewById(R.id.view_pager);
         tabLayout.addTab(tabLayout.newTab().setText(R.string.found_pins_text));
-        tabLayout.addTab(tabLayout.newTab().setText(R.string.dropped_pins_text));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.following_pins_text));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.nfc_pin_text));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.landmark_pin_text));
+        tabLayout.addTab(tabLayout.newTab().setText(R.string.other_pin_text));
+        tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
         PinBoardTabAdapter fragmentAdapter =
                 new PinBoardTabAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());

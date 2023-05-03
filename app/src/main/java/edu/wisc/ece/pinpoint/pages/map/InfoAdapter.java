@@ -80,6 +80,7 @@ public class InfoAdapter implements GoogleMap.InfoWindowAdapter {
         message.setText(R.string.undiscovered_pin_message);
         image.setVisibility(View.GONE);
         message.setVisibility(View.VISIBLE);
+        title.setVisibility(View.VISIBLE);
     }
 
     private void setTextPinContents(Pin pin) {
