@@ -58,7 +58,7 @@ public class LocationChangeDetection extends Worker {
 
             if (preferences.getString("Activity", "").equals("DRIVING")) {
                 notificationDriver = NotificationDriver.getInstance(context);
-                notificationDriver.updatePersistent("DRIVING", "Drive Safely without getting disturbed");
+                notificationDriver.updatePersistent("Nearby Pin Notifications Muted", "Drive Safely without getting disturbed");
             } else {
                 if (locationDriver.hasCoarseLocation(context)) {
                     locationDriver.getLastLocation(context).addOnCompleteListener(task -> {
@@ -75,7 +75,8 @@ public class LocationChangeDetection extends Worker {
                                         newLong, Double.parseDouble(preferences.getString("longitude", "")));
                                 Log.d("dist", String.valueOf(distance));
                                 if (newLoc != null && (distance <= 0.5)) {
-                                    
+                                    notificationDriver = NotificationDriver.getInstance(context);
+                                    notificationDriver.updatePersistent("Too close", String.valueOf(distance));
 
                                 } else {
                                     firebaseDriver = FirebaseDriver.getInstance();
