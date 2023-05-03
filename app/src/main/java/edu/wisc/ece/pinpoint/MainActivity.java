@@ -1,27 +1,16 @@
 package edu.wisc.ece.pinpoint;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import static android.content.ContentValues.TAG;
 
+import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.provider.Settings;
-import android.util.Log;
-import android.util.Log;
-import android.provider.Settings;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -42,8 +31,6 @@ import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.ActivityTransition;
 import com.google.android.gms.location.ActivityTransitionRequest;
 import com.google.android.gms.location.DetectedActivity;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.bottomappbar.BottomAppBar;
@@ -62,20 +49,21 @@ import java.util.concurrent.TimeUnit;
 import edu.wisc.ece.pinpoint.utils.ActivityRecognitionIntentService;
 import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 import edu.wisc.ece.pinpoint.utils.LocationChangeDetection;
+import edu.wisc.ece.pinpoint.utils.LocationDriver;
 import edu.wisc.ece.pinpoint.utils.NotificationDriver;
 
 public class MainActivity extends AppCompatActivity {
     private static final List<Integer> hiddenNavbarFragments =
             Arrays.asList(R.id.settings_container_fragment, R.id.edit_profile_fragment,
                     R.id.new_pin_fragment);
+    private final String TRANSITION_ACTION_RECEIVER =
+            BuildConfig.APPLICATION_ID + "TRANSITION_ACTION_RECEIVER";
     private FirebaseDriver firebase;
     private int currentDestinationId;
     private NavController navController;
     private NavHostFragment navHostFragment;
     private ViewSwitcher switcher;
     private PendingIntent mPendingIntent;
-    private final String TRANSITION_ACTION_RECEIVER =
-            BuildConfig.APPLICATION_ID + "TRANSITION_ACTION_RECEIVER";
     private ActivityRecognitionIntentService activityRecognitionIntentService;
 
     @Override
@@ -85,8 +73,7 @@ public class MainActivity extends AppCompatActivity {
 
         setUpTransitions();
         ActivityCompat.requestPermissions(MainActivity.this,
-                new String[]{android.Manifest.permission.ACTIVITY_RECOGNITION},
-                1);
+                new String[]{android.Manifest.permission.ACTIVITY_RECOGNITION}, 1);
 
         firebase = FirebaseDriver.getInstance();
 
@@ -181,31 +168,31 @@ public class MainActivity extends AppCompatActivity {
             preferences.edit().remove("longitude").apply();
             preferences.edit().remove("latitude").apply();
 
-            if(preferences.contains("counter2")){
-
-            }else{
+            if (!preferences.contains("counter2")) {
                 SharedPreferences.Editor editor = preferences.edit();
                 editor.putString("counter2", String.valueOf(1));
                 editor.apply();
 
-                new AlertDialog.Builder(this)
-                        .setTitle("Enable Background Location")
-                        .setMessage("Enabling background location access allows PinPoint to search for nearby pins when app is closed ")
+                if (!LocationDriver.getInstance(this).hasBackgroundLocation(this)) {
+                    new AlertDialog.Builder(this).setTitle("Enable Background Location").setMessage(
+                                    "Enabling background location access allows PinPoint to " +
+                                            "search for nearby pins when app is closed ")
 
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
+                            .setPositiveButton(android.R.string.yes, (dialog, which) -> {
 
-                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Intent intent =
+                                        new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
                                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                Uri uri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
+                                Uri uri = Uri.fromParts("package",
+                                        getApplicationContext().getPackageName(), null);
                                 intent.setData(uri);
                                 getApplicationContext().startActivity(intent);
-                                Toast.makeText(getApplicationContext(),"Permissions -> Location -> Allow all the time",Toast.LENGTH_LONG).show();
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, null)
-                        .setIcon(android.R.drawable.ic_dialog_info)
-                        .show();
+                                Toast.makeText(getApplicationContext(),
+                                        "Permissions -> Location -> Allow all the time",
+                                        Toast.LENGTH_LONG).show();
+                            }).setNegativeButton(android.R.string.no, null)
+                            .setIcon(android.R.drawable.ic_dialog_info).show();
+                }
             }
 
             PeriodicWorkRequest saveRequest =
@@ -240,45 +227,32 @@ public class MainActivity extends AppCompatActivity {
     private void setUpTransitions() {
         List<ActivityTransition> transitions = new ArrayList<>();
 
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.WALKING)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-                        .build());
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.WALKING)
+                .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
+
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.WALKING)
+                .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
+
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.STILL)
+                .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER).build());
+
+        transitions.add(new ActivityTransition.Builder().setActivityType(DetectedActivity.STILL)
+                .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT).build());
 
         transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.WALKING)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.STILL)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.STILL)
-                        .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
-                        .build());
-
-        transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.IN_VEHICLE)
+                new ActivityTransition.Builder().setActivityType(DetectedActivity.IN_VEHICLE)
                         .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_ENTER)
                         .build());
         transitions.add(
-                new ActivityTransition.Builder()
-                        .setActivityType(DetectedActivity.IN_VEHICLE)
+                new ActivityTransition.Builder().setActivityType(DetectedActivity.IN_VEHICLE)
                         .setActivityTransition(ActivityTransition.ACTIVITY_TRANSITION_EXIT)
                         .build());
 
         ActivityTransitionRequest request = new ActivityTransitionRequest(transitions);
 
         // Register for Transitions Updates.
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACTIVITY_RECOGNITION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -290,9 +264,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
 //        Intent intent = new Intent(TRANSITION_ACTION_RECEIVER);
-//        mPendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent.FLAG_MUTABLE);
+//        mPendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, intent, PendingIntent
+//        .FLAG_MUTABLE);
 //        activityRecognitionIntentService = new ActivityRecognitionIntentService();
-//        registerReceiver(activityRecognitionIntentService, new IntentFilter(TRANSITION_ACTION_RECEIVER));
+//        registerReceiver(activityRecognitionIntentService, new IntentFilter
+//        (TRANSITION_ACTION_RECEIVER));
 
 
         Intent intent = new Intent(getApplicationContext(), ActivityRecognitionIntentService.class);
@@ -302,22 +278,10 @@ public class MainActivity extends AppCompatActivity {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(getApplicationContext(), 0, intent,
                 PendingIntent.FLAG_MUTABLE);
 
-        Task<Void> task =
-                ActivityRecognition.getClient(this)
-                        .requestActivityTransitionUpdates(request, pendingIntent);
+        Task<Void> task = ActivityRecognition.getClient(this)
+                .requestActivityTransitionUpdates(request, pendingIntent);
         task.addOnSuccessListener(
-                new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void result) {
-                        Log.i(TAG, "Transitions Api was successfully registered.");
-                    }
-                });
-        task.addOnFailureListener(
-                new OnFailureListener() {
-                    @Override
-                    public void onFailure(Exception e) {
-                        Log.e(TAG, "Transitions Api could not be registered: " + e);
-                    }
-                });
+                result -> Log.i(TAG, "Transitions Api was successfully registered."));
+        task.addOnFailureListener(e -> Log.e(TAG, "Transitions Api could not be registered: " + e));
     }
 }
