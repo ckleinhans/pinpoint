@@ -29,8 +29,8 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class FeedFragment extends Fragment {
     public static final String UID_ARG_KEY = "uid";
-    private FirebaseDriver firebase;
     public TextView emptyText;
+    private FirebaseDriver firebase;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,7 +70,6 @@ public class FeedFragment extends Fragment {
 
             // List of tasks to wait for before displaying activity
             List<Task<ActivityList>> fetchTasks = new ArrayList<>();
-            // TODO: replace adapter with ListAdapter to improve UX & efficiency
             // Two master lists with activity from all followed users, one is for all cached data
             // to be displayed immediately, the other is for fetching & displaying up to date data
             ActivityList masterList = new ActivityList(new ArrayList<>());
@@ -83,14 +82,13 @@ public class FeedFragment extends Fragment {
                     masterList.addAll(cachedActivity);
                     if (masterList.size() > 0) emptyText.setVisibility(View.GONE);
                 }
-                fetchTasks.add(firebase.fetchActivity(userId)
-                        .addOnSuccessListener(activityList ->{
-                            fetchedList.addAll(activityList);
-                            if (fetchedMasterList.size() == 0) emptyText.setVisibility(View.VISIBLE);
-                            else emptyText.setVisibility(View.GONE);
-                        }).addOnFailureListener(
-                                e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
-                                        Toast.LENGTH_SHORT).show()));
+                fetchTasks.add(firebase.fetchActivity(userId).addOnSuccessListener(activityList -> {
+                    fetchedList.addAll(activityList);
+                    if (fetchedList.size() == 0) emptyText.setVisibility(View.VISIBLE);
+                    else emptyText.setVisibility(View.GONE);
+                }).addOnFailureListener(
+                        e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
+                                Toast.LENGTH_SHORT).show()));
             }
             // Setup immediate cached master list
             masterList.sort();

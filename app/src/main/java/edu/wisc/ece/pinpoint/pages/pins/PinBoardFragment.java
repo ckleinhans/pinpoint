@@ -33,7 +33,6 @@ public class PinBoardFragment extends Fragment {
         tabLayout.addTab(tabLayout.newTab().setText(R.string.nfc_pin_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.landmark_pin_text));
         tabLayout.addTab(tabLayout.newTab().setText(R.string.other_pin_text));
-        tabLayout.setTabMode(TabLayout.MODE_SCROLLABLE);
         PinBoardTabAdapter fragmentAdapter =
                 new PinBoardTabAdapter(getChildFragmentManager(), tabLayout.getTabCount(),
                         getLifecycle());

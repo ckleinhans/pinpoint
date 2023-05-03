@@ -33,8 +33,10 @@
         android:layout_height="wrap_content"
         android:backgroundTint="?attr/colorBackgroundFloating"
         app:layout_constraintTop_toBottomOf="@+id/pin_board_top_bar"
+        app:tabGravity="start"
         app:tabIconTint="?attr/colorPrimary"
         app:tabIndicatorColor="?attr/colorPrimary"
+        app:tabMode="scrollable"
         app:tabRippleColor="@color/fui_transparent"
         app:tabTextColor="?attr/colorPrimary" />
 
