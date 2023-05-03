@@ -69,6 +69,9 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     }
 
     private void setContents(User author, ActivityItem action, @NonNull FeedViewHolder holder) {
+        if (fragment.getContext() == null || parentContext == null) {
+            return;
+        }
         String id = action.getId();
         ActivityItem.ActivityType type = action.getType();
 
@@ -138,6 +141,9 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
     private void setFollowActivityContents(FeedViewHolder holder, User target, String targetUID,
                                            String username) {
+        if (fragment.getContext() == null || parentContext == null) {
+            return;
+        }
         if (target != null) {
             String targetUsername = targetUID.equals(firebase.getUid()) ?
                     fragment.getString(R.string.you_lowercase) : target.getUsername();
