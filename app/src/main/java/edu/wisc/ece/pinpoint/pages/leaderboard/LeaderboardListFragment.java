@@ -51,18 +51,16 @@ public class LeaderboardListFragment extends Fragment {
         NavController navController =
                 Navigation.findNavController(requireParentFragment().requireView());
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(
-                new LeaderboardListAdapter(new ArrayList<>(), navController, this, listType));
+        ArrayList<String> userIds = new ArrayList<>();
+        String uid = firebase.getUid();
+        userIds.add(uid);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         // Get list type from arguments
         listType = LeaderboardListType.valueOf(requireArguments().getString(LIST_TYPE_ARG_KEY));
-        List<String> userIds = new ArrayList<>();
-        String uid = firebase.getUid();
-        userIds.add(uid);
         List<Task<Void>> fetchTasks = new ArrayList<>();
         for (String userId : firebase.getCachedFollowing(uid)) {
-            if (firebase.getCachedUser(userId) == null) {
+            if (!firebase.isUserCached(userId)) {
                 fetchTasks.add(firebase.fetchUser(userId).continueWith(task -> {
                     if (!task.isSuccessful()) {
                         Toast.makeText(requireContext(), R.string.user_fetch_error_message,
@@ -78,6 +76,18 @@ public class LeaderboardListFragment extends Fragment {
                 userIds.add(userId);
             }
         }
+        userIds.sort((uid1, uid2) -> {
+            User user1 = firebase.getCachedUser(uid1);
+            User user2 = firebase.getCachedUser(uid2);
+            if (listType == LeaderboardListType.FOUND) {
+                return user2.getNumPinsFound() - user1.getNumPinsFound();
+            } else {
+                return user2.getNumPinsDropped() - user1.getNumPinsDropped();
+            }
+        });
+        LeaderboardListAdapter adapter =
+                new LeaderboardListAdapter(userIds, navController, this, listType);
+        recyclerView.setAdapter(adapter);
         Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(task -> {
             userIds.sort((uid1, uid2) -> {
                 User user1 = firebase.getCachedUser(uid1);
@@ -88,8 +98,8 @@ public class LeaderboardListFragment extends Fragment {
                     return user2.getNumPinsDropped() - user1.getNumPinsDropped();
                 }
             });
-            recyclerView.setAdapter(
-                    new LeaderboardListAdapter(userIds, navController, this, listType));
+            //noinspection NotifyDataSetChanged
+            adapter.notifyDataSetChanged();
         });
     }
 

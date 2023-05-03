@@ -147,7 +147,6 @@ public class OrderedPinMetadata {
         return list.iterator();
     }
 
-    // this is probably the worst code I've ever written sorry
     public OrderedPinMetadata filterBySource(PinMetadata.PinSource source) {
         OrderedPinMetadata ret = new OrderedPinMetadata();
         if (source == PinMetadata.PinSource.FRIEND) {
@@ -162,14 +161,16 @@ public class OrderedPinMetadata {
         } else if (source == PinMetadata.PinSource.GENERAL) {
             FirebaseDriver firebase = FirebaseDriver.getInstance();
             this.list.forEach(p -> {
-                Pin pin = firebase.getCachedPin(p.getPinId());
-                // if this pin is by someone who current user isn't following
-                if (!firebase.getCachedFollowing(firebase.getUid()).contains(pin.getAuthorUID())) {
-                    ret.add(p);
+                if (p.getPinSource() == PinMetadata.PinSource.GENERAL) {
+                    Pin pin = firebase.getCachedPin(p.getPinId());
+                    // if this pin is by someone who current user isn't following
+                    if (!firebase.getCachedFollowing(firebase.getUid())
+                            .contains(pin.getAuthorUID())) {
+                        ret.add(p);
+                    }
                 }
             });
-        }
-        else {
+        } else {
             this.list.forEach(p -> {
                 if (p.getPinSource() == source) {
                     ret.add(p);

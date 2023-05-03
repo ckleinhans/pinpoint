@@ -29,8 +29,8 @@ import edu.wisc.ece.pinpoint.utils.FirebaseDriver;
 
 public class FeedFragment extends Fragment {
     public static final String UID_ARG_KEY = "uid";
-    private FirebaseDriver firebase;
     public TextView emptyText;
+    private FirebaseDriver firebase;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -59,9 +59,6 @@ public class FeedFragment extends Fragment {
 
         recyclerView.setLayoutManager(
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false));
-        recyclerView.setAdapter(
-                new FeedAdapter(new ActivityList(new ArrayList<>()), navController, this,
-                        FeedAdapter.FeedSource.FEED));
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         // Get list type from arguments
@@ -73,39 +70,38 @@ public class FeedFragment extends Fragment {
 
             // List of tasks to wait for before displaying activity
             List<Task<ActivityList>> fetchTasks = new ArrayList<>();
-            // TODO: replace adapter with ListAdapter to improve UX & efficiency
             // Two master lists with activity from all followed users, one is for all cached data
             // to be displayed immediately, the other is for fetching & displaying up to date data
-            ActivityList cachedMasterList = new ActivityList(new ArrayList<>());
-            ActivityList fetchedMasterList = new ActivityList(new ArrayList<>());
+            ActivityList masterList = new ActivityList(new ArrayList<>());
+            ActivityList fetchedList = new ActivityList(new ArrayList<>());
+            emptyText.setVisibility(View.VISIBLE);
             // For each followed user, check if their activity is cached, then add it to master list
             for (String userId : firebase.getCachedFollowing(firebase.getUid())) {
                 ActivityList cachedActivity = firebase.getCachedActivity(userId);
                 if (cachedActivity != null) {
-                    cachedMasterList.addAll(cachedActivity);
-                    emptyText.setVisibility(View.GONE);
+                    masterList.addAll(cachedActivity);
+                    if (masterList.size() > 0) emptyText.setVisibility(View.GONE);
                 }
-                else{
-                    emptyText.setVisibility(View.VISIBLE);
-                }
-                fetchTasks.add(firebase.fetchActivity(userId)
-                        .addOnSuccessListener(activityList ->{
-                            fetchedMasterList.addAll(activityList);
-                            if (fetchedMasterList.size() == 0) emptyText.setVisibility(View.VISIBLE);
-                            else emptyText.setVisibility(View.GONE);
-                        }).addOnFailureListener(
-                                e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
-                                        Toast.LENGTH_SHORT).show()));
+                fetchTasks.add(firebase.fetchActivity(userId).addOnSuccessListener(activityList -> {
+                    fetchedList.addAll(activityList);
+                    if (fetchedList.size() == 0) emptyText.setVisibility(View.VISIBLE);
+                    else emptyText.setVisibility(View.GONE);
+                }).addOnFailureListener(
+                        e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
+                                Toast.LENGTH_SHORT).show()));
             }
             // Setup immediate cached master list
-            cachedMasterList.sort();
-            recyclerView.setAdapter(new FeedAdapter(cachedMasterList, navController, this,
-                    FeedAdapter.FeedSource.FEED));
+            masterList.sort();
+            FeedAdapter adapter =
+                    new FeedAdapter(masterList, navController, this, FeedAdapter.FeedSource.FEED);
+            recyclerView.setAdapter(adapter);
             // When all fetches done, replace list with up to date data
             Tasks.whenAllComplete(fetchTasks).addOnCompleteListener(activityFetchingComplete -> {
-                fetchedMasterList.sort();
-                recyclerView.setAdapter(new FeedAdapter(fetchedMasterList, navController, this,
-                        FeedAdapter.FeedSource.FEED));
+                masterList.clear();
+                masterList.addAll(fetchedList);
+                masterList.sort();
+                //noinspection NotifyDataSetChanged
+                adapter.notifyDataSetChanged();
             });
 
         } else {
@@ -115,25 +111,25 @@ public class FeedFragment extends Fragment {
 
             // Attempt to use cached activity before fetching
             ActivityList cachedActivity = firebase.getCachedActivity(uid);
-            if (cachedActivity != null) {recyclerView.setAdapter(
-                    new FeedAdapter(cachedActivity, navController, this,
-                            FeedAdapter.FeedSource.PROFILE));
-                emptyText.setVisibility(View.GONE);
-            }
-            else{
-                emptyText.setVisibility(View.VISIBLE);
-            }
+            ActivityList activityList =
+                    cachedActivity == null ? new ActivityList(new ArrayList<>()) : cachedActivity;
+            if (activityList.size() == 0) emptyText.setVisibility(View.VISIBLE);
+            else emptyText.setVisibility(View.GONE);
+
+            FeedAdapter adapter = new FeedAdapter(activityList, navController, this,
+                    FeedAdapter.FeedSource.PROFILE);
+            recyclerView.setAdapter(adapter);
+
             // If user is not self, fetch activity regardless to maintain up to date data
             if (!firebase.getUid().equals(uid) || cachedActivity == null)
-                firebase.fetchActivity(uid).addOnSuccessListener(
-                        activityList -> {
-                            recyclerView.setAdapter(
-                                    new FeedAdapter(activityList, navController, this,
-                                            FeedAdapter.FeedSource.PROFILE));
-                            if (activityList.size() == 0) emptyText.setVisibility(View.VISIBLE);
-                            else emptyText.setVisibility(View.GONE);
-                        }
-                ).addOnFailureListener(
+                firebase.fetchActivity(uid).addOnSuccessListener(fetchedActivity -> {
+                    activityList.clear();
+                    activityList.addAll(fetchedActivity);
+                    if (activityList.size() == 0) emptyText.setVisibility(View.VISIBLE);
+                    else emptyText.setVisibility(View.GONE);
+                    //noinspection NotifyDataSetChanged
+                    adapter.notifyDataSetChanged();
+                }).addOnFailureListener(
                         e -> Toast.makeText(requireContext(), R.string.activity_fetch_error,
                                 Toast.LENGTH_SHORT).show());
         }

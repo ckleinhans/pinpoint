@@ -37,4 +37,8 @@ public class ActivityList {
     public void sort() {
         activity.sort(Comparator.comparing(ActivityItem::getTimestamp));
     }
+
+    public void clear() {
+        activity.clear();
+    }
 }

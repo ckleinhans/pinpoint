@@ -31,7 +31,6 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     private final Fragment fragment;
     private Context parentContext;
 
-    // TODO: make this adapter a ListAdapter to improve UX & performance
     public FeedAdapter(ActivityList activity, NavController navController, Fragment fragment,
                        FeedSource source) {
         this.activity = activity;
@@ -70,6 +69,9 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
     }
 
     private void setContents(User author, ActivityItem action, @NonNull FeedViewHolder holder) {
+        if (fragment.getContext() == null || parentContext == null) {
+            return;
+        }
         String id = action.getId();
         ActivityItem.ActivityType type = action.getType();
 
@@ -117,8 +119,7 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
         // Clicking author's picture will navigate to their profile unless already there
         if (source != FeedSource.PROFILE && author != null) holder.image.setOnClickListener(
-                view -> navController.navigate(
-                        NavigationDirections.profile(action.getAuthor())));
+                view -> navController.navigate(NavigationDirections.profile(action.getAuthor())));
 
         if (type != ActivityItem.ActivityType.FOLLOW) {
             // Reset color if error
@@ -140,6 +141,9 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
 
     private void setFollowActivityContents(FeedViewHolder holder, User target, String targetUID,
                                            String username) {
+        if (fragment.getContext() == null || parentContext == null) {
+            return;
+        }
         if (target != null) {
             String targetUsername = targetUID.equals(firebase.getUid()) ?
                     fragment.getString(R.string.you_lowercase) : target.getUsername();
@@ -151,8 +155,8 @@ public class FeedAdapter extends RecyclerView.Adapter<FeedAdapter.FeedViewHolder
                     .resolveAttribute(com.google.android.material.R.attr.colorOnBackground,
                             typedValue, true);
             holder.text.setTextColor(typedValue.data);
-            holder.item.setOnClickListener(view -> navController.navigate(
-                    NavigationDirections.profile(targetUID)));
+            holder.item.setOnClickListener(
+                    view -> navController.navigate(NavigationDirections.profile(targetUID)));
         } else {
             holder.text.setText(
                     String.format(fragment.getString(R.string.activity_follow_text), username,

@@ -35,7 +35,6 @@ public class PinListAdapter extends RecyclerView.Adapter<PinListAdapter.PinListV
     private Context parentContext;
     private LocationDriver locationDriver;
 
-    // TODO: make this adapter a ListAdapter to improve UX & performance
     public PinListAdapter(OrderedPinMetadata pinMetadata, NavController navController,
                           PinListFragment.PinListType listType) {
         this.pinMetadata = pinMetadata;

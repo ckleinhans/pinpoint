@@ -1,5 +1,6 @@
 package edu.wisc.ece.pinpoint.utils;
 
+import static android.Manifest.permission.ACCESS_BACKGROUND_LOCATION;
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
@@ -80,6 +81,11 @@ public class LocationDriver {
     public boolean hasFineLocation(Context context) {
         return ActivityCompat.checkSelfPermission(context,
                 ACCESS_FINE_LOCATION) == PERMISSION_GRANTED;
+    }
+
+    public boolean hasBackgroundLocation(Context context) {
+        return ActivityCompat.checkSelfPermission(context,
+                ACCESS_BACKGROUND_LOCATION) == PERMISSION_GRANTED;
     }
 
     public boolean hasLocationOn(Context context) {
