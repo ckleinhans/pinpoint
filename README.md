@@ -1,12 +1,6 @@
-# PinPoint
+# PinPoint: Find new places & people one pin at a time
+### App Installation
+If you'd like to install and run the app please download the APK from the most recent tagged release. The app will not work properly if you try to build it yourself due to missing API keys. You can also download and use the app through Firebase App Distribution by [clicking here](https://appdistribution.firebase.dev/i/b65b91f7ee488b35) and signing in with your Google Account. If you do not install the app using Firebase App Distribution click the "Not Now" option on the prompt that asks if you want to sign into your App Distribution test account.
 
-### Team Coding Conventions
-Performing actions in GitHub (creating a branch/PR, merging a PR) will automatically transition issues in Jira as long as you follow the naming conventions below, so there is no need to manually transition issues.
-##### Branches
-* Create a branch off of main for each individual task you work on. You can create a branch through Jira if you'd like.
-* Each branch should start with the task number (so it can be identified by Jira) and be descriptive of the task it addresses (ex. `PIN-12-short-task-name`).
-* Make and push branches as soon as possible (ideally before you start development) so others can easily see your progress.
-##### Pull Requests
-* Pull Requests should also all start with the Jira task number (ex. [PIN-12] Implement user profile page).
-* Once you make a PR, request review from the person who you think has the greatest understanding of the component you are working on and can give you the best feedback.
-* Once the reviewer accepts a PR, it can be merged into main. After it is merged, delete the branch you were developing on.
+#### What is Firebase App Distribution?
+[Firebase App Distribution](https://firebase.google.com/docs/app-distribution) is a service offered by Firebase that allows us to easily distribute up to date versions of our app to testers. A tester signs in using their Google Account and they are then prompted to install the most up to date app version we have published. It also notifies users in the app when there is a newer version available so they can install it easily and stay up to date. Firebase App Distribution is by no means required to use PinPoint, so feel free to stick to the standard APK download if you prefer.
