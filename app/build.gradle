@@ -15,8 +15,8 @@ android {
         applicationId "edu.wisc.ece.pinpoint"
         minSdk 31
         targetSdk 33
-        versionCode 2
-        versionName "v0.1.1-alpha"
+        versionCode 3
+        versionName "v1.0.0"
         resConfigs "en"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
